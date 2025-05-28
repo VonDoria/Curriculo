@@ -56,9 +56,56 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #1a365d; /* Indigo-800 */
         }
+
+        /* Estilos para o toggle de idioma */
+        .language-toggle {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 500;
+            color: #2c5282; /* custom-indigo */
+        }
+
+        .language-toggle span {
+            margin: 0 0.5rem;
+        }
+
+        .language-toggle input[type="checkbox"] {
+            position: relative;
+            width: 40px;
+            height: 20px;
+            -webkit-appearance: none;
+            background: #ccc;
+            outline: none;
+            border-radius: 20px;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+            transition: 0.5s;
+        }
+
+        .language-toggle input[type="checkbox"]:checked {
+            background: #1a365d; /* custom-teal */
+        }
+
+        .language-toggle input[type="checkbox"]:before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 20px;
+            top: 1px;
+            left: 1px;
+            background: #fff;
+            transform: scale(1.1);
+            transition: 0.5s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .language-toggle input[type="checkbox"]:checked:before {
+            left: 21px;
+        }
     </style>
     <script>
-        // Tailwind CSS configuration (optional, for custom theme extensions)
+        // Configuração do Tailwind CSS (opcional, para extensões de tema personalizadas)
         tailwind.config = {
             theme: {
                 extend: {
@@ -73,6 +120,307 @@
                 }
             }
         }
+
+        // Objeto de traduções
+        const translations = {
+            'pt-BR': {
+                // Títulos e Navegação
+                'pageTitle': 'Ítalo Faria Dória - Biólogo e Desenvolvedor',
+                'navAbout': 'Sobre',
+                'navExperience': 'Experiência',
+                'navSkills': 'Habilidades',
+                'navContact': 'Contato',
+                'heroTitle': 'Ítalo Faria Dória',
+                'heroSubtitle': 'Biólogo | Desenvolvedor Web | Entusiasta de Biologia Sintética e Biotecnologia',
+                'heroDescription': 'Apaixonado por tecnologia, pesquisa científica e inovação, buscando integrar conhecimentos multidisciplinares para criar soluções eficientes e impactantes na interface da biologia com a programação.',
+                'aboutTitle': 'Sobre Mim',
+                'aboutText1': 'Sou um Desenvolvedor Web com sólida formação técnica em Eletrônica e uma crescente trajetória em Ciências Biológicas. Minha paixão reside na interseção da tecnologia com a pesquisa científica, onde busco aplicar e integrar conhecimentos multidisciplinares para desenvolver soluções inovadoras, eficientes e com impacto significativo.',
+                'aboutText2': 'Minha jornada acadêmica e profissional tem sido marcada pela busca constante por desafios que me permitam combinar minhas habilidades em programação com os fascinantes mistérios da biologia, especialmente nas áreas de biologia sintética e biotecnologia.',
+                'educationTitle': 'Formação Acadêmica',
+                'educationBioDegree': 'Graduação em Ciências Biológicas (Licenciatura)',
+                'educationBioUniversity': 'Universidade Federal de Minas Gerais (UFMG)',
+                'educationBioDate': '2021/2 - Cursando (Previsão de formatura: Julho/2026)',
+                'educationElecDegree': 'Técnico em Eletroeletrônica',
+                'educationElecUniversity': 'CEFET-MG - Centro Federal de Educação e Tecnologia de Minas Gerais',
+                'educationElecDate': '2016 - 2018',
+                'experienceTitle': 'Experiência Profissional',
+                // Experiência 1
+                'exp1Title': 'Aluno de Iniciação Científica',
+                'exp1Company': 'Lab. de Virologia Básica e Aplicada (LVBA)/UFMG & CT Vacinas/UFMG',
+                'exp1Date': 'Agosto/2023 – Março/2024',
+                'exp1Bullet1': 'Estudos de literatura acadêmica (virologia, imunologia, biologia molecular).',
+                'exp1Bullet2': 'Execução de procedimentos laboratoriais: PCR, gel de poliacrilamida, purificação de proteínas, cultivo celular/bacteriano, infecção/titulação viral, extração de DNA, transformação bacteriana.',
+                'exp1Bullet3': 'Apoio a projetos de aprendizado de máquinas e desenvolvimento de vacinas de vetor viral.',
+                'exp1Bullet4': 'Desenvolvimento de software para gerenciamento de insumos e protocolos (BPL).',
+                'exp1Bullet5': 'Apoio no desenvolvimento e inspeção de processos BPL e gerenciamento de amostras de ensaios clínicos.',
+                // Experiência 2
+                'exp2Title': 'Programador Júnior',
+                'exp2Company': 'Jabil do Brasil',
+                'exp2Date': 'Fevereiro/2021 – Janeiro/2023',
+                'exp2Bullet1': 'Desenvolvimento de APIs REST (criação, edição, leitura de dados, integração, autenticação, eventos em tempo real).',
+                'exp2Bullet2': 'Criação de aplicações Front-end responsivas com Angular, SCSS e Bootstrap.',
+                'exp2Bullet3': 'Deploy de aplicações no IIS, aplicando metodologias ágeis (SCRUM), princípios SOLID e Clean Code.',
+                // Experiência 3
+                'exp3Title': 'Tecnólogo em Eletrônica',
+                'exp3Company': 'Centro de Pesquisa e Desenvolvimento Tecnológico em Informática e Eletroeletrônica de Ilhéus',
+                'exp3Date': 'Junho/2020 – Fevereiro/2021',
+                'exp3Bullet1': 'Desenvolvimento de tecnologias para controle, carga, teste e qualidade de baterias.',
+                'exp3Bullet2': 'Projeto de circuitos de carga, programas de controle de firmware e aplicações web para IHM.',
+                'exp3Bullet3': 'Integração de sistemas de controle de produção e criação de scripts para análise de resultados.',
+                'exp3Bullet4': 'Planejamento, gerenciamento e documentação de projetos, suporte técnico e apresentações.',
+                // Experiência 4
+                'exp4Title': 'Estágio',
+                'exp4Company': 'Jabil do Brasil',
+                'exp4Date': 'Fevereiro/2019 – Maio/2020',
+                'exp4Bullet1': 'Desenvolvimento de projetos para otimização de processos na linha de produção.',
+                'exp4Bullet2': 'Projeto de circuitos elétricos, pneumáticos e mecânicos; programação de controladores e firmware.',
+                'exp4Bullet3': 'Criação de aplicações web para IHM e integração de sistemas de controle de produção.',
+                'skillsTitle': 'Habilidades',
+                'skillsBioTitle': 'Ciências Biológicas & Laboratório',
+                'skillsBioBullet1': 'PCR, rtPCR e dPCR',
+                'skillsBioBullet2': 'Purificação de Proteínas',
+                'skillsBioBullet3': 'Cultivo Celular e Bacteriano',
+                'skillsBioBullet4': 'Infecção e Titulação Viral',
+                'skillsBioBullet5': 'Extração de DNA e Transformação Bacteriana',
+                'skillsBioBullet6': 'Conceitos de Imunologia e Virologia',
+                'skillsBioBullet7': 'Boas Práticas de Laboratório (BPL)',
+                'skillsDevTitle': 'Desenvolvimento de Software',
+                'skillsDevBullet1': 'Linguagens:',
+                'skillsDevBullet2': 'Frameworks/Bibliotecas:',
+                'skillsDevBullet3': 'Bancos de Dados:',
+                'skillsDevBullet4': 'Ferramentas/Conceitos:',
+                'skillsDevBullet5': 'Outros:',
+                'skillsGeneralTitle': 'Competências Gerais',
+                'skillsGeneralBullet1': 'Trabalho em equipe',
+                'skillsGeneralBullet2': 'Comunicação eficaz',
+                'skillsGeneralBullet3': 'Organização e Autonomia',
+                'skillsGeneralBullet4': 'Resolução de problemas',
+                'skillsGeneralBullet5': 'Pensamento analítico',
+                'languagesTitle': 'Idiomas',
+                'languagesBullet1': 'Português (Nativo)',
+                'languagesBullet2': 'Inglês (Intermediário)',
+                'languagesBullet3': 'Francês (Básico)',
+                'contactTitle': 'Entre em Contato',
+                'contactDescription': 'Estou sempre aberto a novas oportunidades, colaborações e discussões interessantes. Sinta-se à vontade para me contatar!',
+                'contactLocation': 'Belo Horizonte, Brasil',
+                'imageAlt': 'Ítalo Faria Dória - Foto Profissional',
+                'imageUnavailable': 'Imagem Indisponível'
+            },
+            'en-US': {
+                // Titles and Navigation
+                'pageTitle': 'Ítalo Faria Dória - Biologist and Developer',
+                'navAbout': 'About',
+                'navExperience': 'Experience',
+                'navSkills': 'Skills',
+                'navContact': 'Contact',
+                'heroTitle': 'Ítalo Faria Dória',
+                'heroSubtitle': 'Biologist | Web Developer | Synthetic Biology and Biotechnology Enthusiast',
+                'heroDescription': 'Passionate about technology, scientific research, and innovation, seeking to integrate multidisciplinary knowledge to create efficient and impactful solutions at the interface of biology and programming.',
+                'aboutTitle': 'About Me',
+                'aboutText1': 'I am a Web Developer with a solid technical background in Electronics and a growing trajectory in Biological Sciences. My passion lies at the intersection of technology and scientific research, where I seek to apply and integrate multidisciplinary knowledge to develop innovative, efficient, and impactful solutions.',
+                'aboutText2': 'My academic and professional journey has been marked by a constant search for challenges that allow me to combine my programming skills with the fascinating mysteries of biology, especially in the areas of synthetic biology and biotechnology.',
+                'educationTitle': 'Academic Background',
+                'educationBioDegree': 'Bachelor\'s Degree in Biological Sciences (Licentiate)',
+                'educationBioUniversity': 'Federal University of Minas Gerais (UFMG)',
+                'educationBioDate': '2021/2 - Currently enrolled (Expected graduation: July/2026)',
+                'educationElecDegree': 'Electronics Technician',
+                'educationElecUniversity': 'CEFET-MG - Federal Center for Technological Education of Minas Gerais',
+                'educationElecDate': '2016 - 2018',
+                'experienceTitle': 'Professional Experience',
+                // Experience 1
+                'exp1Title': 'Scientific Initiation Student',
+                'exp1Company': 'Basic and Applied Virology Lab (LVBA)/UFMG & CT Vacinas/UFMG',
+                'exp1Date': 'August/2023 – March/2024',
+                'exp1Bullet1': 'Studies of academic literature (virology, immunology, molecular biology).',
+                'exp1Bullet2': 'Execution of laboratory procedures: PCR, polyacrylamide gel, protein purification, cell/bacterial culture, viral infection/titration, DNA extraction, bacterial transformation.',
+                'exp1Bullet3': 'Support for machine learning projects and viral vector vaccine development.',
+                'exp1Bullet4': 'Software development for input and protocol management (GLP).',
+                'exp1Bullet5': 'Support in the development and inspection of GLP processes and clinical trial sample management.',
+                // Experience 2
+                'exp2Title': 'Junior Programmer',
+                'exp2Company': 'Jabil do Brasil',
+                'exp2Date': 'February/2021 – January/2023',
+                'exp2Bullet1': 'Development of REST APIs (creation, editing, data reading, integration, authentication, real-time events).',
+                'exp2Bullet2': 'Creation of responsive Front-end applications with Angular, SCSS, and Bootstrap.',
+                'exp2Bullet3': 'Deployment of applications on IIS, applying agile methodologies (SCRUM), SOLID principles, and Clean Code.',
+                // Experience 3
+                'exp3Title': 'Electronics Technologist',
+                'exp3Company': 'Center for Research and Technological Development in Informatics and Electro-electronics of Ilhéus',
+                'exp3Date': 'June/2020 – February/2021',
+                'exp3Bullet1': 'Development of technologies for battery control, charging, testing, and quality.',
+                'exp3Bullet2': 'Design of charging circuits, firmware control programs, and web applications for HMI.',
+                'exp3Bullet3': 'Integration of production control systems and creation of scripts for results analysis.',
+                'exp3Bullet4': 'Project planning, management, and documentation, technical support, and presentations.',
+                // Experience 4
+                'exp4Title': 'Intern',
+                'exp4Company': 'Jabil do Brasil',
+                'exp4Date': 'February/2019 – May/2020',
+                'exp4Bullet1': 'Development of projects for process optimization in the production line.',
+                'exp4Bullet2': 'Design of electrical, pneumatic, and mechanical circuits; programming of controllers and firmware.',
+                'exp4Bullet3': 'Creation of web applications for HMI and integration of production control systems.',
+                'skillsTitle': 'Skills',
+                'skillsBioTitle': 'Biological Sciences & Laboratory',
+                'skillsBioBullet1': 'PCR, rtPCR, and dPCR',
+                'skillsBioBullet2': 'Protein Purification',
+                'skillsBioBullet3': 'Cell and Bacterial Culture',
+                'skillsBioBullet4': 'Viral Infection and Titration',
+                'skillsBioBullet5': 'DNA Extraction and Bacterial Transformation',
+                'skillsBioBullet6': 'Immunology and Virology Concepts',
+                'skillsBioBullet7': 'Good Laboratory Practices (GLP)',
+                'skillsDevTitle': 'Software Development',
+                'skillsDevBullet1': 'Languages:',
+                'skillsDevBullet2': 'Frameworks/Libraries:',
+                'skillsDevBullet3': 'Databases:',
+                'skillsDevBullet4': 'Tools/Concepts:',
+                'skillsDevBullet5': 'Others:',
+                'skillsGeneralTitle': 'General Competencies',
+                'skillsGeneralBullet1': 'Teamwork',
+                'skillsGeneralBullet2': 'Effective communication',
+                'skillsGeneralBullet3': 'Organization and Autonomy',
+                'skillsGeneralBullet4': 'Problem-solving',
+                'skillsGeneralBullet5': 'Analytical thinking',
+                'languagesTitle': 'Languages',
+                'languagesBullet1': 'Portuguese (Native)',
+                'languagesBullet2': 'English (Intermediate)',
+                'languagesBullet3': 'French (Basic)',
+                'contactTitle': 'Get in Touch',
+                'contactDescription': 'I am always open to new opportunities, collaborations, and interesting discussions. Feel free to contact me!',
+                'contactLocation': 'Belo Horizonte, Brazil',
+                'imageAlt': 'Ítalo Faria Dória - Professional Photo',
+                'imageUnavailable': 'Image Unavailable'
+            }
+        };
+
+        // Função para definir o idioma
+        function setLanguage(lang) {
+            document.documentElement.lang = lang; // Define o atributo lang do HTML
+            localStorage.setItem('selectedLanguage', lang); // Salva a preferência do usuário
+
+            // Atualiza o título da página
+            document.title = translations[lang].pageTitle;
+
+            // Atualiza os links de navegação
+            document.querySelector('[data-translate="navAbout"]').textContent = translations[lang].navAbout;
+            document.querySelector('[data-translate="navExperience"]').textContent = translations[lang].navExperience;
+            document.querySelector('[data-translate="navSkills"]').textContent = translations[lang].navSkills;
+            document.querySelector('[data-translate="navContact"]').textContent = translations[lang].navContact;
+
+            // Atualiza o cabeçalho
+            document.querySelector('[data-translate="heroTitle"]').textContent = translations[lang].heroTitle;
+            document.querySelector('[data-translate="heroSubtitle"]').textContent = translations[lang].heroSubtitle;
+            document.querySelector('[data-translate="heroDescription"]').textContent = translations[lang].heroDescription;
+
+            // Atualiza a seção Sobre Mim
+            document.querySelector('[data-translate="aboutTitle"]').textContent = translations[lang].aboutTitle;
+            document.querySelector('[data-translate="aboutText1"]').textContent = translations[lang].aboutText1;
+            document.querySelector('[data-translate="aboutText2"]').textContent = translations[lang].aboutText2;
+            document.querySelector('[data-translate="educationTitle"]').textContent = translations[lang].educationTitle;
+            document.querySelector('[data-translate="educationBioDegree"]').textContent = translations[lang].educationBioDegree;
+            document.querySelector('[data-translate="educationBioUniversity"]').textContent = translations[lang].educationBioUniversity;
+            document.querySelector('[data-translate="educationBioDate"]').textContent = translations[lang].educationBioDate;
+            document.querySelector('[data-translate="educationElecDegree"]').textContent = translations[lang].educationElecDegree;
+            document.querySelector('[data-translate="educationElecUniversity"]').textContent = translations[lang].educationElecUniversity;
+            document.querySelector('[data-translate="educationElecDate"]').textContent = translations[lang].educationElecDate;
+            
+            // Atualiza a imagem de perfil
+            const profileImage = document.getElementById('profileImage');
+            if (profileImage) {
+                profileImage.alt = translations[lang].imageAlt;
+                profileImage.onerror = function() {
+                    this.src = 'https://placehold.co/600x400/2C5282/FFFFFF?text=' + encodeURIComponent(translations[lang].imageUnavailable);
+                };
+            }
+
+            // Atualiza a seção Experiência Profissional
+            document.querySelector('[data-translate="experienceTitle"]').textContent = translations[lang].experienceTitle;
+            document.querySelector('[data-translate="exp1Title"]').textContent = translations[lang].exp1Title;
+            document.querySelector('[data-translate="exp1Company"]').textContent = translations[lang].exp1Company;
+            document.querySelector('[data-translate="exp1Date"]').textContent = translations[lang].exp1Date;
+            document.querySelector('[data-translate="exp1Bullet1"]').textContent = translations[lang].exp1Bullet1;
+            document.querySelector('[data-translate="exp1Bullet2"]').textContent = translations[lang].exp1Bullet2;
+            document.querySelector('[data-translate="exp1Bullet3"]').textContent = translations[lang].exp1Bullet3;
+            document.querySelector('[data-translate="exp1Bullet4"]').textContent = translations[lang].exp1Bullet4;
+            document.querySelector('[data-translate="exp1Bullet5"]').textContent = translations[lang].exp1Bullet5;
+
+            document.querySelector('[data-translate="exp2Title"]').textContent = translations[lang].exp2Title;
+            document.querySelector('[data-translate="exp2Company"]').textContent = translations[lang].exp2Company;
+            document.querySelector('[data-translate="exp2Date"]').textContent = translations[lang].exp2Date;
+            document.querySelector('[data-translate="exp2Bullet1"]').textContent = translations[lang].exp2Bullet1;
+            document.querySelector('[data-translate="exp2Bullet2"]').textContent = translations[lang].exp2Bullet2;
+            document.querySelector('[data-translate="exp2Bullet3"]').textContent = translations[lang].exp2Bullet3;
+
+            document.querySelector('[data-translate="exp3Title"]').textContent = translations[lang].exp3Title;
+            document.querySelector('[data-translate="exp3Company"]').textContent = translations[lang].exp3Company;
+            document.querySelector('[data-translate="exp3Date"]').textContent = translations[lang].exp3Date;
+            document.querySelector('[data-translate="exp3Bullet1"]').textContent = translations[lang].exp3Bullet1;
+            document.querySelector('[data-translate="exp3Bullet2"]').textContent = translations[lang].exp3Bullet2;
+            document.querySelector('[data-translate="exp3Bullet3"]').textContent = translations[lang].exp3Bullet3;
+            document.querySelector('[data-translate="exp3Bullet4"]').textContent = translations[lang].exp3Bullet4;
+
+            document.querySelector('[data-translate="exp4Title"]').textContent = translations[lang].exp4Title;
+            document.querySelector('[data-translate="exp4Company"]').textContent = translations[lang].exp4Company;
+            document.querySelector('[data-translate="exp4Date"]').textContent = translations[lang].exp4Date;
+            document.querySelector('[data-translate="exp4Bullet1"]').textContent = translations[lang].exp4Bullet1;
+            document.querySelector('[data-translate="exp4Bullet2"]').textContent = translations[lang].exp4Bullet2;
+            document.querySelector('[data-translate="exp4Bullet3"]').textContent = translations[lang].exp4Bullet3;
+
+            // Atualiza a seção Habilidades
+            document.querySelector('[data-translate="skillsTitle"]').textContent = translations[lang].skillsTitle;
+            document.querySelector('[data-translate="skillsBioTitle"]').textContent = translations[lang].skillsBioTitle;
+            document.querySelector('[data-translate="skillsBioBullet1"]').textContent = translations[lang].skillsBioBullet1;
+            document.querySelector('[data-translate="skillsBioBullet2"]').textContent = translations[lang].skillsBioBullet2;
+            document.querySelector('[data-translate="skillsBioBullet3"]').textContent = translations[lang].skillsBioBullet3;
+            document.querySelector('[data-translate="skillsBioBullet4"]').textContent = translations[lang].skillsBioBullet4;
+            document.querySelector('[data-translate="skillsBioBullet5"]').textContent = translations[lang].skillsBioBullet5;
+            document.querySelector('[data-translate="skillsBioBullet6"]').textContent = translations[lang].skillsBioBullet6;
+            document.querySelector('[data-translate="skillsBioBullet7"]').textContent = translations[lang].skillsBioBullet7;
+
+            document.querySelector('[data-translate="skillsDevTitle"]').textContent = translations[lang].skillsDevTitle;
+            document.querySelector('[data-translate="skillsDevBullet1"]').textContent = translations[lang].skillsDevBullet1;
+            document.querySelector('[data-translate="skillsDevBullet2"]').textContent = translations[lang].skillsDevBullet2;
+            document.querySelector('[data-translate="skillsDevBullet3"]').textContent = translations[lang].skillsDevBullet3;
+            document.querySelector('[data-translate="skillsDevBullet4"]').textContent = translations[lang].skillsDevBullet4;
+            document.querySelector('[data-translate="skillsDevBullet5"]').textContent = translations[lang].skillsDevBullet5;
+
+            document.querySelector('[data-translate="skillsGeneralTitle"]').textContent = translations[lang].skillsGeneralTitle;
+            document.querySelector('[data-translate="skillsGeneralBullet1"]').textContent = translations[lang].skillsGeneralBullet1;
+            document.querySelector('[data-translate="skillsGeneralBullet2"]').textContent = translations[lang].skillsGeneralBullet2;
+            document.querySelector('[data-translate="skillsGeneralBullet3"]').textContent = translations[lang].skillsGeneralBullet3;
+            document.querySelector('[data-translate="skillsGeneralBullet4"]').textContent = translations[lang].skillsGeneralBullet4;
+            document.querySelector('[data-translate="skillsGeneralBullet5"]').textContent = translations[lang].skillsGeneralBullet5;
+
+            document.querySelector('[data-translate="languagesTitle"]').textContent = translations[lang].languagesTitle;
+            document.querySelector('[data-translate="languagesBullet1"]').textContent = translations[lang].languagesBullet1;
+            document.querySelector('[data-translate="languagesBullet2"]').textContent = translations[lang].languagesBullet2;
+            document.querySelector('[data-translate="languagesBullet3"]').textContent = translations[lang].languagesBullet3;
+
+
+            // Atualiza a seção Contato
+            document.querySelector('[data-translate="contactTitle"]').textContent = translations[lang].contactTitle;
+            document.querySelector('[data-translate="contactDescription"]').textContent = translations[lang].contactDescription;
+            document.querySelector('[data-translate="contactLocation"]').textContent = translations[lang].contactLocation;
+        }
+
+        // Event listener para o toggle de idioma
+        document.addEventListener('DOMContentLoaded', () => {
+            const langToggle = document.getElementById('language-toggle');
+            const savedLang = localStorage.getItem('selectedLanguage') || 'pt-BR'; // Idioma padrão
+
+            if (savedLang === 'en-US') {
+                langToggle.checked = true;
+            }
+            setLanguage(savedLang); // Define o idioma inicial
+
+            langToggle.addEventListener('change', (event) => {
+                if (event.target.checked) {
+                    setLanguage('en-US');
+                } else {
+                    setLanguage('pt-BR');
+                }
+            });
+
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+        });
     </script>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -80,20 +428,26 @@
     <nav class="bg-white shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-6 py-3 flex justify-between items-center">
             <a href="#" class="text-2xl font-bold text-custom-indigo">Ítalo Faria Dória</a>
-            <div class="space-x-4">
-                <a href="#sobre" class="text-gray-600 hover:text-custom-teal transition-colors duration-300">Sobre</a>
-                <a href="#experiencia" class="text-gray-600 hover:text-custom-teal transition-colors duration-300">Experiência</a>
-                <a href="#habilidades" class="text-gray-600 hover:text-custom-teal transition-colors duration-300">Habilidades</a>
-                <a href="#contato" class="text-gray-600 hover:text-custom-teal transition-colors duration-300">Contato</a>
+            <div class="flex items-center space-x-4">
+                <a href="#sobre" class="text-gray-600 hover:text-custom-teal transition-colors duration-300" data-translate="navAbout">Sobre</a>
+                <a href="#experiencia" class="text-gray-600 hover:text-custom-teal transition-colors duration-300" data-translate="navExperience">Experiência</a>
+                <a href="#habilidades" class="text-gray-600 hover:text-custom-teal transition-colors duration-300" data-translate="navSkills">Habilidades</a>
+                <a href="#contato" class="text-gray-600 hover:text-custom-teal transition-colors duration-300" data-translate="navContact">Contato</a>
+                
+                <label class="language-toggle">
+                    <span>PT</span>
+                    <input type="checkbox" id="language-toggle">
+                    <span>EN</span>
+                </label>
             </div>
         </div>
     </nav>
 
     <header class="hero-bg text-white py-20 md:py-32">
         <div class="container mx-auto px-6 text-center">
-            <h1 class="text-4xl md:text-6xl font-bold mb-4">Ítalo Faria Dória</h1>
-            <p class="text-xl md:text-2xl mb-8 text-gray-300">Biólogo | Desenvolvedor Web | Entusiasta de Biologia Sintética e Biotecnologia</p>
-            <p class="text-lg max-w-3xl mx-auto mb-10 text-gray-400">
+            <h1 class="text-4xl md:text-6xl font-bold mb-4" data-translate="heroTitle">Ítalo Faria Dória</h1>
+            <p class="text-xl md:text-2xl mb-8 text-gray-300" data-translate="heroSubtitle">Biólogo | Desenvolvedor Web | Entusiasta de Biologia Sintética e Biotecnologia</p>
+            <p class="text-lg max-w-3xl mx-auto mb-10 text-gray-400" data-translate="heroDescription">
                 Apaixonado por tecnologia, pesquisa científica e inovação, buscando integrar conhecimentos multidisciplinares para criar soluções eficientes e impactantes na interface da biologia com a programação.
             </p>
         </div>
@@ -101,33 +455,33 @@
 
     <section id="sobre" class="py-16 md:py-24 bg-white">
         <div class="container mx-auto px-6">
-            <h2 class="text-3xl md:text-4xl font-bold text-center mb-12 section-title">Sobre Mim</h2>
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-12 section-title" data-translate="aboutTitle">Sobre Mim</h2>
             <div class="grid md:grid-cols-2 gap-10 items-center">
                 <div>
-                    <img src="https://placehold.co/600x400/2C5282/FFFFFF?text=Ítalo+F.+Dória" alt="Ítalo Faria Dória - Foto Profissional" class="rounded-lg shadow-xl mx-auto" onerror="this.src='https://placehold.co/600x400/2C5282/FFFFFF?text=Imagem+Indisponível'">
+                    <img id="profileImage" src="https://placehold.co/600x400/2C5282/FFFFFF?text=Ítalo+F.+Dória" alt="Ítalo Faria Dória - Foto Profissional" class="rounded-lg shadow-xl mx-auto">
                 </div>
                 <div class="text-lg text-gray-700 space-y-6">
-                    <p>
+                    <p data-translate="aboutText1">
                         Sou um Desenvolvedor Web com sólida formação técnica em Eletrônica e uma crescente trajetória em Ciências Biológicas. Minha paixão reside na interseção da tecnologia com a pesquisa científica, onde busco aplicar e integrar conhecimentos multidisciplinares para desenvolver soluções inovadoras, eficientes e com impacto significativo.
                     </p>
-                    <p>
+                    <p data-translate="aboutText2">
                         Minha jornada acadêmica e profissional tem sido marcada pela busca constante por desafios que me permitam combinar minhas habilidades em programação com os fascinantes mistérios da biologia, especialmente nas áreas de biologia sintética e biotecnologia.
                     </p>
                     <div>
-                        <h3 class="text-2xl font-semibold text-custom-indigo mb-4">Formação Acadêmica</h3>
+                        <h3 class="text-2xl font-semibold text-custom-indigo mb-4" data-translate="educationTitle">Formação Acadêmica</h3>
                         <ul class="space-y-3">
                             <li class="flex items-start">
                                 <svg class="w-6 h-6 text-custom-teal mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v11.494m0 0A23.978 23.978 0 012.25 12c0-8.358 6.708-15.107 14.992-15.107S31.733 3.642 31.733 12a23.978 23.978 0 01-14.741 5.747m0 0a23.978 23.978 0 00-14.741-5.747m14.741 5.747L5.25 12m14.741 5.747L5.25 12"></path></svg> <div>
-                                    <strong class="block">Graduação em Ciências Biológicas (Licenciatura)</strong>
-                                    Universidade Federal de Minas Gerais (UFMG)
-                                    <span class="block text-sm text-gray-500">2021/2 - Cursando (Previsão de formatura: Julho/2026)</span>
+                                    <strong class="block" data-translate="educationBioDegree">Graduação em Ciências Biológicas (Licenciatura)</strong>
+                                    <span data-translate="educationBioUniversity">Universidade Federal de Minas Gerais (UFMG)</span>
+                                    <span class="block text-sm text-gray-500" data-translate="educationBioDate">2021/2 - Cursando (Previsão de formatura: Julho/2026)</span>
                                 </div>
                             </li>
                             <li class="flex items-start">
                                 <svg class="w-6 h-6 text-custom-teal mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg> <div>
-                                    <strong class="block">Técnico em Eletroeletrônica</strong>
-                                    CEFET-MG - Centro Federal de Educação e Tecnologia de Minas Gerais
-                                    <span class="block text-sm text-gray-500">2016 - 2018</span>
+                                    <strong class="block" data-translate="educationElecDegree">Técnico em Eletroeletrônica</strong>
+                                    <span data-translate="educationElecUniversity">CEFET-MG - Centro Federal de Educação e Tecnologia de Minas Gerais</span>
+                                    <span class="block text-sm text-gray-500" data-translate="educationElecDate">2016 - 2018</span>
                                 </div>
                             </li>
                         </ul>
@@ -139,29 +493,29 @@
 
     <section id="experiencia" class="py-16 md:py-24 bg-gray-100">
         <div class="container mx-auto px-6">
-            <h2 class="text-3xl md:text-4xl font-bold text-center mb-16 section-title">Experiência Profissional</h2>
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-16 section-title" data-translate="experienceTitle">Experiência Profissional</h2>
             <div class="space-y-12">
                 <div class="card p-6 md:p-8">
-                    <h3 class="text-2xl font-semibold text-custom-indigo mb-1">Aluno de Iniciação Científica</h3>
-                    <p class="text-custom-teal font-medium mb-2">Lab. de Virologia Básica e Aplicada (LVBA)/UFMG & CT Vacinas/UFMG</p>
-                    <p class="text-sm text-gray-500 mb-4">Agosto/2023 – Março/2024</p>
+                    <h3 class="text-2xl font-semibold text-custom-indigo mb-1" data-translate="exp1Title">Aluno de Iniciação Científica</h3>
+                    <p class="text-custom-teal font-medium mb-2" data-translate="exp1Company">Lab. de Virologia Básica e Aplicada (LVBA)/UFMG & CT Vacinas/UFMG</p>
+                    <p class="text-sm text-gray-500 mb-4" data-translate="exp1Date">Agosto/2023 – Março/2024</p>
                     <ul class="list-disc list-inside text-gray-700 space-y-2 mb-4">
-                        <li>Estudos de literatura acadêmica (virologia, imunologia, biologia molecular).</li>
-                        <li>Execução de procedimentos laboratoriais: PCR, gel de poliacrilamida, purificação de proteínas, cultivo celular/bacteriano, infecção/titulação viral, extração de DNA, transformação bacteriana.</li>
-                        <li>Apoio a projetos de aprendizado de máquinas e desenvolvimento de vacinas de vetor viral.</li>
-                        <li>Desenvolvimento de software para gerenciamento de insumos e protocolos (BPL).</li>
-                        <li>Apoio no desenvolvimento e inspeção de processos BPL e gerenciamento de amostras de ensaios clínicos.</li>
+                        <li data-translate="exp1Bullet1">Estudos de literatura acadêmica (virologia, imunologia, biologia molecular).</li>
+                        <li data-translate="exp1Bullet2">Execução de procedimentos laboratoriais: PCR, gel de poliacrilamida, purificação de proteínas, cultivo celular/bacteriano, infecção/titulação viral, extração de DNA, transformação bacteriana.</li>
+                        <li data-translate="exp1Bullet3">Apoio a projetos de aprendizado de máquinas e desenvolvimento de vacinas de vetor viral.</li>
+                        <li data-translate="exp1Bullet4">Desenvolvimento de software para gerenciamento de insumos e protocolos (BPL).</li>
+                        <li data-translate="exp1Bullet5">Apoio no desenvolvimento e inspeção de processos BPL e gerenciamento de amostras de ensaios clínicos.</li>
                     </ul>
                 </div>
 
                 <div class="card p-6 md:p-8">
-                    <h3 class="text-2xl font-semibold text-custom-indigo mb-1">Programador Júnior</h3>
-                    <p class="text-custom-teal font-medium mb-2">Jabil do Brasil</p>
-                    <p class="text-sm text-gray-500 mb-4">Fevereiro/2021 – Janeiro/2023</p>
+                    <h3 class="text-2xl font-semibold text-custom-indigo mb-1" data-translate="exp2Title">Programador Júnior</h3>
+                    <p class="text-custom-teal font-medium mb-2" data-translate="exp2Company">Jabil do Brasil</p>
+                    <p class="text-sm text-gray-500 mb-4" data-translate="exp2Date">Fevereiro/2021 – Janeiro/2023</p>
                     <ul class="list-disc list-inside text-gray-700 space-y-2 mb-4">
-                        <li>Desenvolvimento de APIs REST (criação, edição, leitura de dados, integração, autenticação, eventos em tempo real).</li>
-                        <li>Criação de aplicações Front-end responsivas com Angular, SCSS e Bootstrap.</li>
-                        <li>Deploy de aplicações no IIS, aplicando metodologias ágeis (SCRUM), princípios SOLID e Clean Code.</li>
+                        <li data-translate="exp2Bullet1">Desenvolvimento de APIs REST (criação, edição, leitura de dados, integração, autenticação, eventos em tempo real).</li>
+                        <li data-translate="exp2Bullet2">Criação de aplicações Front-end responsivas com Angular, SCSS e Bootstrap.</li>
+                        <li data-translate="exp2Bullet3">Deploy de aplicações no IIS, aplicando metodologias ágeis (SCRUM), princípios SOLID e Clean Code.</li>
                     </ul>
                     <div class="mt-4">
                         <span class="tag">.NET</span> <span class="tag">Angular</span> <span class="tag">Entity Framework</span> <span class="tag">PostgreSQL</span> <span class="tag">SignalR</span> <span class="tag">Hangfire</span>
@@ -169,14 +523,14 @@
                 </div>
 
                 <div class="card p-6 md:p-8">
-                    <h3 class="text-2xl font-semibold text-custom-indigo mb-1">Tecnólogo em Eletrônica</h3>
-                    <p class="text-custom-teal font-medium mb-2">Centro de Pesquisa e Desenvolvimento Tecnológico em Informática e Eletroeletrônica de Ilhéus</p>
-                    <p class="text-sm text-gray-500 mb-4">Junho/2020 – Fevereiro/2021</p>
+                    <h3 class="text-2xl font-semibold text-custom-indigo mb-1" data-translate="exp3Title">Tecnólogo em Eletrônica</h3>
+                    <p class="text-custom-teal font-medium mb-2" data-translate="exp3Company">Centro de Pesquisa e Desenvolvimento Tecnológico em Informática e Eletroeletrônica de Ilhéus</p>
+                    <p class="text-sm text-gray-500 mb-4" data-translate="exp3Date">Junho/2020 – Fevereiro/2021</p>
                     <ul class="list-disc list-inside text-gray-700 space-y-2 mb-4">
-                        <li>Desenvolvimento de tecnologias para controle, carga, teste e qualidade de baterias.</li>
-                        <li>Projeto de circuitos de carga, programas de controle de firmware e aplicações web para IHM.</li>
-                        <li>Integração de sistemas de controle de produção e criação de scripts para análise de resultados.</li>
-                        <li>Planejamento, gerenciamento e documentação de projetos, suporte técnico e apresentações.</li>
+                        <li data-translate="exp3Bullet1">Desenvolvimento de tecnologias para controle, carga, teste e qualidade de baterias.</li>
+                        <li data-translate="exp3Bullet2">Projeto de circuitos de carga, programas de controle de firmware e aplicações web para IHM.</li>
+                        <li data-translate="exp3Bullet3">Integração de sistemas de controle de produção e criação de scripts para análise de resultados.</li>
+                        <li data-translate="exp3Bullet4">Planejamento, gerenciamento e documentação de projetos, suporte técnico e apresentações.</li>
                     </ul>
                     <div class="mt-4">
                         <span class="tag">Python</span> <span class="tag">JavaScript</span> <span class="tag">C++</span> <span class="tag">HTML</span> <span class="tag">CSS</span> <span class="tag">Excel</span>
@@ -184,13 +538,13 @@
                 </div>
                 
                 <div class="card p-6 md:p-8">
-                    <h3 class="text-2xl font-semibold text-custom-indigo mb-1">Estágio</h3>
-                    <p class="text-custom-teal font-medium mb-2">Jabil do Brasil</p>
-                    <p class="text-sm text-gray-500 mb-4">Fevereiro/2019 – Maio/2020</p>
+                    <h3 class="text-2xl font-semibold text-custom-indigo mb-1" data-translate="exp4Title">Estágio</h3>
+                    <p class="text-custom-teal font-medium mb-2" data-translate="exp4Company">Jabil do Brasil</p>
+                    <p class="text-sm text-gray-500 mb-4" data-translate="exp4Date">Fevereiro/2019 – Maio/2020</p>
                     <ul class="list-disc list-inside text-gray-700 space-y-2 mb-4">
-                        <li>Desenvolvimento de projetos para otimização de processos na linha de produção.</li>
-                        <li>Projeto de circuitos elétricos, pneumáticos e mecânicos; programação de controladores e firmware.</li>
-                        <li>Criação de aplicações web para IHM e integração de sistemas de controle de produção.</li>
+                        <li data-translate="exp4Bullet1">Desenvolvimento de projetos para otimização de processos na linha de produção.</li>
+                        <li data-translate="exp4Bullet2">Projeto de circuitos elétricos, pneumáticos e mecânicos; programação de controladores e firmware.</li>
+                        <li data-translate="exp4Bullet3">Criação de aplicações web para IHM e integração de sistemas de controle de produção.</li>
                     </ul>
                     <div class="mt-4">
                         <span class="tag">Python</span> <span class="tag">JavaScript</span> <span class="tag">C++</span> <span class="tag">HTML</span> <span class="tag">CSS</span> <span class="tag">Excel</span> <span class="tag">OpenCV</span>
@@ -202,54 +556,54 @@
 
     <section id="habilidades" class="py-16 md:py-24 bg-white">
         <div class="container mx-auto px-6">
-            <h2 class="text-3xl md:text-4xl font-bold text-center mb-16 section-title">Habilidades</h2>
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-16 section-title" data-translate="skillsTitle">Habilidades</h2>
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <div class="card p-6">
                     <div class="flex items-center mb-4">
-                        <svg class="w-8 h-8 text-custom-teal mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2.25 2.25 0 003.182 0l1.142-1.142a2.25 2.25 0 000-3.182L18.23 5.572a2.25 2.25 0 00-3.182 0l-1.142 1.142a2.25 2.25 0 000 3.182zM4.572 8.572a2.25 2.25 0 000-3.182L5.714 4.248a2.25 2.25 0 00-3.182 0L1.39 5.39a2.25 2.25 0 000 3.182l5.522 5.522a2.25 2.25 0 003.182 0l1.142-1.142a2.25 2.25 0 000-3.182L5.714 7.428a2.25 2.25 0 00-3.182 0z"></path></svg> <h3 class="text-xl font-semibold text-custom-indigo">Ciências Biológicas & Laboratório</h3>
+                        <svg class="w-8 h-8 text-custom-teal mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2.25 2.25 0 003.182 0l1.142-1.142a2.25 2.25 0 000-3.182L18.23 5.572a2.25 2.25 0 00-3.182 0l-1.142 1.142a2.25 2.25 0 000 3.182zM4.572 8.572a2.25 2.25 0 000-3.182L5.714 4.248a2.25 2.25 0 00-3.182 0L1.39 5.39a2.25 2.25 0 000 3.182l5.522 5.522a2.25 2.25 0 003.182 0l1.142-1.142a2.25 2.25 0 000-3.182L5.714 7.428a2.25 2.25 0 00-3.182 0z"></path></svg> <h3 class="text-xl font-semibold text-custom-indigo" data-translate="skillsBioTitle">Ciências Biológicas & Laboratório</h3>
                     </div>
                     <ul class="space-y-2 text-gray-700">
-                        <li>PCR, rtPCR e dPCR</li>
-                        <li>Purificação de Proteínas</li>
-                        <li>Cultivo Celular e Bacteriano</li>
-                        <li>Infecção e Titulação Viral</li>
-                        <li>Extração de DNA e Transformação Bacteriana</li>
-                        <li>Conceitos de Imunologia e Virologia</li>
-                        <li>Boas Práticas de Laboratório (BPL)</li>
+                        <li data-translate="skillsBioBullet1">PCR, rtPCR e dPCR</li>
+                        <li data-translate="skillsBioBullet2">Purificação de Proteínas</li>
+                        <li data-translate="skillsBioBullet3">Cultivo Celular e Bacteriano</li>
+                        <li data-translate="skillsBioBullet4">Infecção e Titulação Viral</li>
+                        <li data-translate="skillsBioBullet5">Extração de DNA e Transformação Bacteriana</li>
+                        <li data-translate="skillsBioBullet6">Conceitos de Imunologia e Virologia</li>
+                        <li data-translate="skillsBioBullet7">Boas Práticas de Laboratório (BPL)</li>
                     </ul>
                 </div>
 
                 <div class="card p-6">
                     <div class="flex items-center mb-4">
-                        <svg class="w-8 h-8 text-custom-teal mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg> <h3 class="text-xl font-semibold text-custom-indigo">Desenvolvimento de Software</h3>
+                        <svg class="w-8 h-8 text-custom-teal mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg> <h3 class="text-xl font-semibold text-custom-indigo" data-translate="skillsDevTitle">Desenvolvimento de Software</h3>
                     </div>
                     <ul class="space-y-2 text-gray-700">
-                        <li><strong>Linguagens:</strong> Python, JavaScript, C#, C++, HTML, CSS</li>
-                        <li><strong>Frameworks/Bibliotecas:</strong> .NET, Angular, Entity Framework, SignalR, Hangfire, Bootstrap, Tailwind CSS</li>
-                        <li><strong>Bancos de Dados:</strong> PostgreSQL</li>
-                        <li><strong>Ferramentas/Conceitos:</strong> APIs REST, SOLID, Clean Code, SCRUM, Git, IIS, OpenCV</li>
-                        <li><strong>Outros:</strong> Firmware, IHM</li>
+                        <li><strong data-translate="skillsDevBullet1">Linguagens:</strong> Python, JavaScript, C#, C++, HTML, CSS</li>
+                        <li><strong data-translate="skillsDevBullet2">Frameworks/Bibliotecas:</strong> .NET, Angular, Entity Framework, SignalR, Hangfire, Bootstrap, Tailwind CSS</li>
+                        <li><strong data-translate="skillsDevBullet3">Bancos de Dados:</strong> PostgreSQL</li>
+                        <li><strong data-translate="skillsDevBullet4">Ferramentas/Conceitos:</strong> APIs REST, SOLID, Clean Code, SCRUM, Git, IIS, OpenCV</li>
+                        <li><strong data-translate="skillsDevBullet5">Outros:</strong> Firmware, IHM</li>
                     </ul>
                 </div>
 
                 <div class="card p-6">
                     <div class="flex items-center mb-4">
-                         <svg class="w-8 h-8 text-custom-teal mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg> <h3 class="text-xl font-semibold text-custom-indigo">Competências Gerais</h3>
+                         <svg class="w-8 h-8 text-custom-teal mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg> <h3 class="text-xl font-semibold text-custom-indigo" data-translate="skillsGeneralTitle">Competências Gerais</h3>
                     </div>
                     <ul class="space-y-2 text-gray-700 mb-6">
-                        <li>Trabalho em equipe</li>
-                        <li>Comunicação eficaz</li>
-                        <li>Organização e Autonomia</li>
-                        <li>Resolução de problemas</li>
-                        <li>Pensamento analítico</li>
+                        <li data-translate="skillsGeneralBullet1">Trabalho em equipe</li>
+                        <li data-translate="skillsGeneralBullet2">Comunicação eficaz</li>
+                        <li data-translate="skillsGeneralBullet3">Organização e Autonomia</li>
+                        <li data-translate="skillsGeneralBullet4">Resolução de problemas</li>
+                        <li data-translate="skillsGeneralBullet5">Pensamento analítico</li>
                     </ul>
                     <div class="flex items-center mb-4 mt-6">
-                        <svg class="w-8 h-8 text-custom-teal mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m4 0V3m4 4H5m14 0V7m0 4h-5m-4-4H3m15 12v-2m0 4H5v-2m0 0h5m10 0v2M3 21v-2m0 0V5m12 16v-2m0 0h5m-5 0v2"></path></svg> <h3 class="text-xl font-semibold text-custom-indigo">Idiomas</h3>
+                        <svg class="w-8 h-8 text-custom-teal mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m4 0V3m4 4H5m14 0V7m0 4h-5m-4-4H3m15 12v-2m0 4H5v-2m0 0h5m10 0v2M3 21v-2m0 0V5m12 16v-2m0 0h5m-5 0v2"></path></svg> <h3 class="text-xl font-semibold text-custom-indigo" data-translate="languagesTitle">Idiomas</h3>
                     </div>
                     <ul class="space-y-2 text-gray-700">
-                        <li>Português (Nativo)</li>
-                        <li>Inglês (Intermediário)</li>
-                        <li>Francês (Básico)</li>
+                        <li data-translate="languagesBullet1">Português (Nativo)</li>
+                        <li data-translate="languagesBullet2">Inglês (Intermediário)</li>
+                        <li data-translate="languagesBullet3">Francês (Básico)</li>
                     </ul>
                 </div>
             </div>
@@ -258,8 +612,8 @@
 
     <section id="contato" class="py-16 md:py-24 bg-custom-dark-gray text-gray-200">
         <div class="container mx-auto px-6 text-center">
-            <h2 class="text-3xl md:text-4xl font-bold mb-6">Entre em Contato</h2>
-            <p class="text-lg mb-10 max-w-xl mx-auto text-gray-400">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6" data-translate="contactTitle">Entre em Contato</h2>
+            <p class="text-lg mb-10 max-w-xl mx-auto text-gray-400" data-translate="contactDescription">
                 Estou sempre aberto a novas oportunidades, colaborações e discussões interessantes. Sinta-se à vontade para me contatar!
             </p>
             <div class="space-y-6 md:space-y-0 md:flex md:justify-center md:space-x-10">
@@ -273,7 +627,7 @@
                 </div>
                  <div class="flex items-center justify-center md:justify-start">
                     <svg class="w-7 h-7 text-custom-teal mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    <span class="text-lg">Belo Horizonte, Brasil</span>
+                    <span class="text-lg" data-translate="contactLocation">Belo Horizonte, Brasil</span>
                 </div>
             </div>
             <div class="mt-12 flex justify-center space-x-6">
@@ -292,15 +646,5 @@
             </div>
         </div>
     </section>
-
-    <footer class="bg-gray-800 text-gray-400 py-8 text-center">
-        <div class="container mx-auto px-6">
-            <p>&copy; <span id="currentYear"></span> Ítalo Faria Dória. Todos os direitos reservados.</p>
-        </div>
-    </footer>
-
-    <script>
-        document.getElementById('currentYear').textContent = new Date().getFullYear();
-    </script>
 </body>
 </html>
