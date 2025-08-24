@@ -1,0 +1,212 @@
+{
+  "pt-BR": {
+    "profile": {
+      "name": "Ítalo Faria Dória",
+      "job_titles": "Desenvolvedor Web | Biólogo",
+      "bio_part1": "Procurando soluções web inovadoras para o seu negócio?",
+      "bio_part2": "Transformo ideias em realidade digital. Com uma abordagem focada em entender profundamente suas necessidades, crio aplicações web personalizadas, robustas e intuitivas, projetadas para resolver seus problemas específicos e impulsionar o seu sucesso.",
+      "bio_part3": "Vamos trabalhar juntos para construir a solução perfeita para você!"
+    },
+    "social_links": {
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "email": "Italo.faria0@gmail.com"
+    },
+    "skills": {
+      "heading": "Habilidades",
+      "hard_skills_heading": "Hard Skills",
+      "soft_skills_heading": "Soft Skills",
+      "hard_skills_list": [
+        "Python, Excel, .NET",
+        "React, Node.js, PostgreSQL",
+        "JavaScript, HTML, CSS",
+        "Git, Docker",
+        "Português, Inglês, Francês"
+      ],
+      "soft_skills_list": [
+        "Comunicação eficaz",
+        "Resolução de problemas",
+        "Trabalho em equipe",
+        "Organização e Autonomia"
+      ]
+    },
+    "experience": {
+      "heading": "Experiência",
+      "job1": {
+        "title": "Aluno de Iniciação Científica",
+        "company": "Lab. de Virologia Básica e Aplicada (LVBA)/UFMG & CT Vacinas/UFMG",
+        "dates": "Agosto/2023 – Agosto/2025",
+        "description_list": [
+          "Apoio a projetos de aprendizado de máquinas e desenvolvimento de vacinas de vetor viral.",
+          "Desenvolvimento de software para gerenciamento de insumos e protocolos (BPL).",
+          "Execução de procedimentos laboratoriais: PCR, gel de poliacrilamida, purificação de proteínas, cultivo celular/bacteriano, infecção/titulação viral, extração de DNA, transformação bacteriana.",
+          "Apoio no desenvolvimento e inspeção de processos BPL e gerenciamento de amostras de ensaios clínicos.",
+          "Estudos de literatura acadêmica (virologia, imunologia, biologia molecular)."
+        ]
+      },
+      "job2": {
+        "title": "Programador Júnior",
+        "company": "Jabil do Brasil",
+        "dates": "Fevereiro/2019 – Janeiro/2023",
+        "description_list": [
+          "Desenvolvimento de APIs REST (criação, edição, leitura de dados, integração, autenticação, eventos em tempo real).",
+          "Criação de aplicações Front-end responsivas com Angular, SCSS e Bootstrap.",
+          "Deploy de aplicações no IIS, aplicando metodologias ágeis (SCRUM), princípios SOLID e Clean Code."
+        ]
+      }
+    },
+    "education": {
+      "heading": "Educação",
+      "degree1": {
+        "name": "Graduação em Ciências Biológicas (Licenciatura)",
+        "university": "Universidade Federal de Minas Gerais (UFMG)",
+        "dates": "2021/2 - Cursando (Previsão de formatura: Julho/2026)"
+      },
+      "degree2": {
+        "name": "Técnico em Eletroeletrônica",
+        "university": "CEFET-MG - Centro Federal de Educação e Tecnologia de Minas Gerais",
+        "dates": "2016 - 2018"
+      }
+    }
+  },
+  "en-US": {
+    "profile": {
+      "name": "Ítalo Faria Dória",
+      "job_titles": "Web Developer | Biologist",
+      "bio_part1": "Looking for innovative web solutions for your business?",
+      "bio_part2": "I transform ideas into digital reality. With an approach focused on deeply understanding your needs, I create personalized, robust, and intuitive web applications designed to solve your specific problems and drive your success.",
+      "bio_part3": "Let's work together to build the perfect solution for you!"
+    },
+    "social_links": {
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "email": "Italo.faria0@gmail.com"
+    },
+    "skills": {
+      "heading": "Skills",
+      "hard_skills_heading": "Hard Skills",
+      "soft_skills_heading": "Soft Skills",
+      "hard_skills_list": [
+        "Python, Excel, .NET",
+        "React, Node.js, PostgreSQL",
+        "JavaScript, HTML, CSS",
+        "Git, Docker",
+        "Portuguese, English, French"
+      ],
+      "soft_skills_list": [
+        "Effective communication",
+        "Problem-solving",
+        "Teamwork",
+        "Organization and Autonomy"
+      ]
+    },
+    "experience": {
+      "heading": "Experience",
+      "job1": {
+        "title": "Scientific Initiation Student",
+        "company": "Laboratory of Basic and Applied Virology (LVBA)/UFMG & Vaccine Technology Center (CT Vacinas)/UFMG",
+        "dates": "August/2023 – August/2025",
+        "description_list": [
+          "Support for machine learning and viral vector vaccine development projects.",
+          "Development of software for managing supplies and protocols (GLP).",
+          "Execution of laboratory procedures: PCR, polyacrylamide gel, protein purification, cell/bacterial culture, viral infection/titration, DNA extraction, bacterial transformation.",
+          "Support in the development and inspection of GLP processes and management of clinical trial samples.",
+          "Studies of academic literature (virology, immunology, molecular biology)."
+        ]
+      },
+      "job2": {
+        "title": "Junior Programmer",
+        "company": "Jabil do Brasil",
+        "dates": "February/2019 – January/2023",
+        "description_list": [
+          "Development of REST APIs (creation, editing, data reading, integration, authentication, real-time events).",
+          "Creation of responsive Front-end applications with Angular, SCSS and Bootstrap.",
+          "Application deployment on IIS, applying agile methodologies (SCRUM), SOLID principles and Clean Code."
+        ]
+      }
+    },
+    "education": {
+      "heading": "Education",
+      "degree1": {
+        "name": "Bachelor's Degree in Biological Sciences (Licentiate)",
+        "university": "Federal University of Minas Gerais (UFMG)",
+        "dates": "2021/2 - Ongoing (Expected graduation: July/2026)"
+      },
+      "degree2": {
+        "name": "Electrotechnical Technician",
+        "university": "CEFET-MG - Federal Center for Technological Education of Minas Gerais",
+        "dates": "2016 - 2018"
+      }
+    }
+  },
+  "fr-FR": {
+    "profile": {
+      "name": "Ítalo Faria Dória",
+      "job_titles": "Développeur Web | Biologiste",
+      "bio_part1": "Vous recherchez des solutions web innovantes pour votre entreprise?",
+      "bio_part2": "Je transforme les idées en réalité numérique. Avec une approche axée sur la compréhension approfondie de vos besoins, je crée des applications web personnalisées, robustes et intuitives, conçues pour résoudre vos problèmes spécifiques et stimuler votre succès.",
+      "bio_part3": "Travaillons ensemble pour construire la solution parfaite pour vous!"
+    },
+    "social_links": {
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "email": "Italo.faria0@gmail.com"
+    },
+    "skills": {
+      "heading": "Compétences",
+      "hard_skills_heading": "Compétences techniques",
+      "soft_skills_heading": "Compétences non techniques",
+      "hard_skills_list": [
+        "Python, Excel, .NET",
+        "React, Node.js, PostgreSQL",
+        "JavaScript, HTML, CSS",
+        "Git, Docker",
+        "Portugais, Anglais, Français"
+      ],
+      "soft_skills_list": [
+        "Communication efficace",
+        "Résolution de problèmes",
+        "Travail d'équipe",
+        "Organisation et autonomie"
+      ]
+    },
+    "experience": {
+      "heading": "Expérience",
+      "job1": {
+        "title": "Étudiant en initiation scientifique",
+        "company": "Laboratoire de Virologie Fondamentale et Appliquée (LVBA)/UFMG & Centre de Technologie des Vaccins (CT Vacinas)/UFMG",
+        "dates": "Août 2023 – Août 2025",
+        "description_list": [
+          "Soutien aux projets d'apprentissage automatique et de développement de vaccins à vecteur viral.",
+          "Développement de logiciels pour la gestion des fournitures et des protocoles (BPL).",
+          "Exécution des procédures de laboratoire: PCR, gel de polyacrylamide, purification des protéines, culture cellulaire/bactérienne, infection/titrage viral, extraction d'ADN, transformation bactérienne.",
+          "Soutien au développement et à l'inspection des processus BPL et à la gestion des échantillons d'essais cliniques.",
+          "Études de la littérature académique (virologie, immunologie, biologie moléculaire)."
+        ]
+      },
+      "job2": {
+        "title": "Programmeur Junior",
+        "company": "Jabil do Brasil",
+        "dates": "Février 2019 – Janvier 2023",
+        "description_list": [
+          "Développement d'API REST (création, édition, lecture de données, intégration, authentification, événements en temps réel).",
+          "Création d'applications Front-end réactives avec Angular, SCSS et Bootstrap.",
+          "Déploiement d'applications sur IIS, en appliquant des méthodologies agiles (SCRUM), les principes SOLID et Clean Code."
+        ]
+      }
+    },
+    "education": {
+      "heading": "Formation",
+      "degree1": {
+        "name": "Licence en Sciences Biologiques",
+        "university": "Université Fédérale de Minas Gerais (UFMG)",
+        "dates": "2021/2 - En cours (Diplôme prévu: juillet 2026)"
+      },
+      "degree2": {
+        "name": "Technicien en Électronique",
+        "university": "CEFET-MG - Centre Fédéral d'Éducation Technologique de Minas Gerais",
+        "dates": "2016 - 2018"
+      }
+    }
+  }
+}
