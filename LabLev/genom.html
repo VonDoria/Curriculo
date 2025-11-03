@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador Genômico v2.0</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Google Font: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos personalizados para complementar o Tailwind */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #334155; /* slate-700 */
+        }
+        /* Animação suave para as abas */
+        .tab-content {
+            transition: opacity 0.3s ease-in-out;
+        }
+        /* Estilo para a aba ativa */
+        .tab.active {
+            border-color: #0d9488; /* teal-600 */
+            color: #0d9488;
+        }
+        /* Estilo para a aba inativa */
+        .tab {
+            border-color: transparent;
+            color: #64748b; /* slate-500 */
+        }
+        /* Garante que a navegação por abas seja rolável em telas pequenas */
+        .tabs-nav-container {
+            overflow-x: auto;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .tabs-nav-container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        .tabs-nav {
+            flex-wrap: nowrap;
+            white-space: nowrap;
+        }
+        /* Modal Transitions */
+        .modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal.hidden {
+            pointer-events: none;
+        }
+        /* Estilos do Visualizador de Sequência */
+        #sequence-render-area {
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+        }
+        .base {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            line-height: 24px;
+            font-size: 1rem;
+            transition: all 0.1s ease-in-out;
+            border-radius: 3px;
+            color: #333;
+            position: relative;
+        }
+        /* Tooltip melhorado */
+        .base::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            background-color: #1e293b;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 1000;
+        }
+        .base:hover::before {
+            opacity: 1;
+        }
+        /* Cores das Bases */
+        .base-A { background-color: #dcfce7; color: #166534; } /* Green */
+        .base-T { background-color: #ffe4e6; color: #9f1239; } /* Red */
+        .base-G { background-color: #fef9c3; color: #854d0e; } /* Yellow */
+        .base-C { background-color: #dbeafe; color: #1e40af; } /* Blue */
+        .base-U { background-color: #f3e8ff; color: #581c87; } /* Purple */
+        .base-N { background-color: #e5e5e5; color: #404040; } /* Gray */
+        .highlight-search {
+            background-color: #facc15 !important; /* yellow-400 */
+            color: #1e293b !important; /* slate-800 */
+            box-shadow: 0 0 0 2px #facc15;
+            transform: scale(1.1);
+            z-index: 10;
+            position: relative;
+        }
+        /* Estilo para o accordion do tutorial */
+        details summary { list-style: none; }
+        details summary::-webkit-details-marker { display: none; }
+        details summary .arrow-icon { transition: transform 0.2s; }
+        details[open] summary .arrow-icon { transform: rotate(90deg); }
+        /* Estilo para fitas "desbotadas" */
+        .strand-row.faded { opacity: 0.2; filter: grayscale(80); }
+        .strand-row { transition: opacity 0.3s ease, filter 0.3s ease; }
+        /* Checkbox customizado pequeno */
+        .strand-toggle {
+            width: 0.875rem; /* 14px */
+            height: 0.875rem; /* 14px */
+            accent-color: #0d9488; /* teal-600 */
+        }
+        /* Estilos da Aba de Análise */
+        .analysis-card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .stat-item:last-child { border-bottom: none; }
+        .stat-label { font-weight: 500; color: #475569; }
+        .stat-value { font-weight: 600; color: #1e293b; font-family: 'Courier New', monospace; }
+        .translation-frame {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.6;
+            font-size: 0.9rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .translation-label { font-weight: 600; color: #1e293b; margin-bottom: 0.5rem; }
+        .orf-result {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        /* Estilo para upload de arquivo */
+        .file-upload-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.25rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            background-color: #f1f5f9; /* slate-100 */
+            color: #334155; /* slate-700 */
+            border: 1px solid #cbd5e1; /* slate-300 */
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .file-upload-btn:hover {
+            background-color: #e2e8f0; /* slate-200 */
+        }
+        .file-upload-btn i {
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        <!-- Cabeçalho -->
+        <header class="text-center mb-8 p-6 bg-white rounded-xl shadow-md border border-slate-200">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-800 flex items-center justify-center gap-3">
+                <i class="ph-bold ph-dna text-teal-600"></i>
+                Visualizador Genômico v2.0
+            </h1>
+            <p class="text-slate-500 mt-2">Analise, visualize e traduza sequências de DNA/RNA.</p>
+        </header>
+        <!-- Navegação por Abas -->
+        <div class="mb-6 border-b border-slate-200 tabs-nav-container">
+            <nav class="flex -mb-px space-x-6 tabs-nav" aria-label="Tabs">
+                <button class="tab active" data-tab="tutorial">
+                    <i class="ph-bold ph-book-open"></i> Tutorial
+                </button>
+                <button class="tab" data-tab="visualizador">
+                    <i class="ph-bold ph-dna"></i> Visualizador
+                </button>
+                <button class="tab" data-tab="analise">
+                    <i class="ph-bold ph-atom"></i> Análise
+                </button>
+                <button class="tab" data-tab="definicoes">
+                    <i class="ph-bold ph-pencil-line"></i> Definições
+                </button>
+                <button class="tab" data-tab="dados">
+                    <i class="ph-bold ph-arrows-clockwise"></i> Dados
+                </button>
+            </nav>
+        </div>
+        <!-- Conteúdo das Abas -->
+        <main>
+            <!-- Aba de Tutorial -->
+            <div id="tutorial-tab" class="tab-content active">
+                <div class="card space-y-8 max-w-4xl mx-auto">
+                    <div>
+                        <h2 class="section-title"><i class="ph-bold ph-rocket-launch text-teal-600"></i> Bem-vindo à v2.0!</h2>
+                        <p class="text-slate-600 mt-2">Esta ferramenta foi atualizada para incluir análise biológica e suporte a sequências longas. Veja como usar:</p>
+                    </div>
+                    <div class="space-y-4">
+                        <details class="bg-slate-50 p-4 rounded-lg border">
+                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
+                                <span>Passo 1: Carregar sua Sequência</span>
+                                <i class="ph ph-caret-right arrow-icon text-xl"></i>
+                            </summary>
+                            <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
+                                <p>Na aba <strong>"Visualizador"</strong>, você tem duas opções:</p>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li><strong>Colar Sequência:</strong> Cole sua sequência de DNA ou RNA na área de texto.</li>
+                                    <li><strong>Carregar Arquivo FASTA:</strong> Clique em "Carregar Arquivo .FASTA" para carregar uma sequência longa. O limite de 10k bases foi removido para processamento.</li>
+                                </ul>
+                                <p class="font-medium text-teal-600">A visualização agora é paginada! Use os botões <i class="ph-bold ph-arrow-left"></i> e <i class="ph-bold ph-arrow-right"></i> abaixo da sequência para navegar por "janelas" de 500 bases.</p>
+                            </div>
+                        </details>
+                        <details class="bg-slate-50 p-4 rounded-lg border">
+                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
+                                <span>Passo 2: Definir Marcadores (Aprimorado)</span>
+                                 <i class="ph ph-caret-right arrow-icon text-xl"></i>
+                            </summary>
+                             <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
+                                <p>Na aba <strong>"Definições"</strong>, você pode cadastrar marcadores (como promotores, primers, enhancers, etc.).</p>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li><strong>Tipo de Marcador:</strong> Agora você pode categorizar seu marcador (ex: "Primer", "Promotor", "Enhancer").</li>
+                                    <li><strong>Nome e Sequência:</strong> Identifique seu marcador.</li>
+                                </ul>
+                                <p>Marcadores definidos serão destacados automaticamente na visualização.</p>
+                            </div>
+                        </details>
+                         <details class="bg-slate-50 p-4 rounded-lg border">
+                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
+                                <span>Passo 3: Analisar a Sequência</span>
+                                 <i class="ph ph-caret-right arrow-icon text-xl"></i>
+                            </summary>
+                             <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
+                                 <p>A nova aba <strong>"Análise"</strong> fornece insights sobre sua sequência (limite de 50.000 bases para análise intensiva):</p>
+                                <ul class="list-disc list-inside space-y-1">
+                                     <li><strong>Estatísticas:</strong> Veja o comprimento, Conteúdo GC e contagem de cada base.</li>
+                                     <li><strong>Tradução (6 Fases):</strong> Veja a tradução em proteína para as 3 fases de leitura diretas (F1, F2, F3) e 3 reversas (R1, R2, R3).</li>
+                                     <li><strong>Localizador de ORF:</strong> Encontra "Open Reading Frames" (quadros de leitura abertos) - sequências de um códon de INÍCIO (ATG) até um códon de PARADA.</li>
+                                </ul>
+                            </div>
+                        </details>
+                        <details class="bg-slate-50 p-4 rounded-lg border">
+                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
+                                <span>Passo 4: Visualizar e Buscar</span>
+                                 <i class="ph ph-caret-right arrow-icon text-xl"></i>
+                            </summary>
+                             <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
+                                <p>Na aba <strong>"Visualizador"</strong>:</p>
+                                 <ul class="list-disc list-inside space-y-1">
+                                     <li><strong>Busca Rápida:</strong> A busca agora funciona em sequências longas. Se um resultado for encontrado fora da sua "janela" atual, a visualização pulará para a página correta.</li>
+                                     <li><strong>Complemento Reverso:</strong> Clique no botão "Complemento Reverso" para inverter e complementar a sequência inteira no campo de texto.</li>
+                                     <li><strong>Controles:</strong> Oculte ou mostre as fitas (Input, Template, mRNA) como antes.</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            </div>
+            <!-- Aba do Visualizador -->
+            <div id="visualizador-tab" class="tab-content hidden">
+                <div class="card space-y-6">
+                    <!-- Seção 1: Input -->
+                    <div>
+                        <label for="sequence-input" class="block text-sm font-medium text-slate-600 mb-2">Cole sua sequência (DNA/RNA) ou carregue um arquivo FASTA:</label>
+                        <textarea id="sequence-input" class="data-input-area min-h-[8rem]" placeholder="Cole a sequência aqui ou use o botão de upload..."></textarea>
+                        <div class="mt-3 flex flex-col sm:flex-row gap-3">
+                            <label class="file-upload-btn">
+                                <i class="ph-bold ph-upload-simple"></i>
+                                Carregar Arquivo .FASTA
+                                <input type="file" id="fasta-upload" class="hidden" accept=".fasta,.fa,.fna,.txt">
+                            </label>
+                            <button id="btn-rev-comp" class="btn btn-secondary">
+                                <i class="ph-bold ph-arrows-counter-clockwise"></i>
+                                Complemento Reverso
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Seção 2: Controles -->
+                    <div class="border-t pt-4 mb-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="search-term" class="block text-sm font-medium text-slate-600 mb-2">Buscar na sequência:</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="search-term" placeholder="Buscar subsequência (ex: ATG)..." class="flex-1">
+                                <div class="flex gap-2">
+                                    <button id="search-prev" class="btn btn-secondary !px-4" disabled>
+                                        <i class="ph-bold ph-caret-left"></i>
+                                    </button>
+                                    <button id="search-next" class="btn btn-secondary !px-4" disabled>
+                                        <i class="ph-bold ph-caret-right"></i>
+                                    </button>
+                                    <span id="search-results-info" class="flex items-center justify-center text-sm text-slate-500 bg-slate-100 px-4 rounded-lg">0 / 0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Seção 3: Renderização -->
+                    <div id="render-wrapper" class="border-t pt-4">
+                        <h3 class="font-semibold text-lg text-slate-700 mb-3">Visualização da Sequência</h3>
+                        
+                        <!-- Placeholder -->
+                        <div id="render-placeholder" class="text-center text-slate-500 py-10">
+                            <i class="ph-bold ph-dna text-4xl text-slate-400"></i>
+                            <p>Insira uma sequência para visualizá-la aqui.</p>
+                        </div>
+
+                        <!-- Container de Renderização (inicialmente oculto) -->
+                        <div id="render-container" class="hidden">
+                            <div class="grid grid-cols-[auto_1fr] gap-x-4">
+                                <!-- Labels -->
+                                <div class="font-semibold text-sm text-right space-y-2 sticky left-0 z-20 bg-white pr-2">
+                                    <div id="input-label" class="h-6 flex items-center justify-end gap-2" style="height: 24px;">
+                                        <input type="checkbox" id="toggle-input-strand" class="strand-toggle" data-target="input-strand-row" checked>
+                                        <span>Input 5'→3'</span>
+                                    </div>
+                                    <div id="template-label" class="h-6 flex items-center justify-end gap-2" style="height: 24px;">
+                                        <input type="checkbox" id="toggle-template-strand" class="strand-toggle" data-target="template-strand-row" checked>
+                                        <span>Template 3'→5'</span>
+                                    </div>
+                                    <div id="mrna-label" class="h-6 items-center justify-end gap-2" style="height: 24px;">
+                                        <input type="checkbox" id="toggle-mrna-strand" class="strand-toggle" data-target="mrna-strand-row" checked>
+                                        <span>mRNA 5'→3'</span>
+                                    </div>
+                                </div>
+                                <!-- Scrollable Content -->
+                                <div id="sequence-render-area" class="overflow-x-auto whitespace-nowrap bg-slate-50 p-2 rounded-lg border border-slate-200">
+                                    <div id="input-strand-row" class="strand-row flex flex-row gap-px"></div>
+                                    <div id="template-strand-row" class="strand-row flex flex-row gap-px"></div>
+                                    <div id="mrna-strand-row" class="strand-row flex flex-row gap-px hidden"></div>
+                                </div>
+                            </div>
+                            <!-- Controles de Paginação -->
+                            <div id="pagination-controls" class="flex items-center justify-between mt-4">
+                                <button id="btn-page-prev" class="btn btn-secondary" disabled>
+                                    <i class="ph-bold ph-arrow-left"></i> Anterior
+                                </button>
+                                <span id="pagination-info" class="text-sm font-medium text-slate-600">
+                                    Mostrando bases 0 - 0 de 0
+                                </span>
+                                <button id="btn-page-next" class="btn btn-secondary" disabled>
+                                    Próximo <i class="ph-bold ph-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Aba de Análise -->
+            <div id="analise-tab" class="tab-content hidden">
+                <!-- Conteúdo da Análise (gerado por JS) -->
+                <div id="analysis-content-wrapper"></div>
+                
+                <!-- Placeholder da Análise -->
+                <div id="analysis-placeholder" class="card text-center text-slate-500 py-10">
+                    <i class="ph-bold ph-atom text-4xl text-slate-400"></i>
+                    <p class="mt-2">Carregue uma sequência na aba "Visualizador" para analisá-la aqui.</p>
+                </div>
+                
+                <!-- Template da Análise (clonado por JS) -->
+                <template id="analysis-template">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Coluna 1: Estatísticas e ORFs -->
+                        <div class="lg:col-span-1 space-y-6">
+                            <!-- Card: Estatísticas -->
+                            <div class="analysis-card">
+                                <h2 class="section-title"><i class="ph-bold ph-chart-bar text-teal-600"></i> Estatísticas</h2>
+                                <div id="analysis-stats" class="mt-4 space-y-2">
+                                    <!-- Stats Injetados aqui -->
+                                </div>
+                            </div>
+                            <!-- Card: Localizador de ORF -->
+                            <div class="analysis-card">
+                                <h2 class="section-title"><i class="ph-bold ph-magnifying-glass text-teal-600"></i> Localizador de ORF</h2>
+                                <p class="text-sm text-slate-500 mt-2">Maiores quadros de leitura abertos (ATG...Stop) encontrados nas 6 fases. (Máx. 10)</p>
+                                <div id="orf-results" class="mt-4 space-y-3 max-h-96 overflow-y-auto">
+                                    <!-- Resultados de ORF injetados aqui -->
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Coluna 2: Tradução -->
+                        <div class="lg:col-span-2 analysis-card">
+                            <h2 class="section-title"><i class="ph-bold ph-translate text-teal-600"></i> Tradução (6 Fases de Leitura)</h2>
+                            <p class="text-sm text-slate-500 mt-2">Tradução da sequência em proteína. 'X' = códon desconhecido, '_' = Stop.</p>
+                            <div id="translation-frames" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Fases Diretas -->
+                                <div class="space-y-4">
+                                    <div>
+                                        <div class="translation-label">Fase Direta +1</div>
+                                        <div id="frame-f1" class="translation-frame"></div>
+                                    </div>
+                                    <div>
+                                        <div class="translation-label">Fase Direta +2</div>
+                                        <div id="frame-f2" class="translation-frame"></div>
+                                    </div>
+                                    <div>
+                                        <div class="translation-label">Fase Direta +3</div>
+                                        <div id="frame-f3" class="translation-frame"></div>
+                                    </div>
+                                </div>
+                                <!-- Fases Reversas -->
+                                <div class="space-y-4">
+                                     <div>
+                                        <div class="translation-label">Fase Reversa +1</div>
+                                        <div id="frame-r1" class="translation-frame"></div>
+                                    </div>
+                                    <div>
+                                        <div class="translation-label">Fase Reversa +2</div>
+                                        <div id="frame-r2" class="translation-frame"></div>
+                                    </div>
+                                    <div>
+                                        <div class="translation-label">Fase Reversa +3</div>
+                                        <div id="frame-r3" class="translation-frame"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            <!-- Aba de Definições -->
+            <div id="definicoes-tab" class="tab-content hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Card 1: Cadastrar Marcador -->
+                    <div class="card">
+                        <h2 class="section-title"><i class="ph-bold ph-tag text-teal-600"></i> Cadastrar Marcador</h2>
+                        <form id="form-add-definition" class="mt-4 space-y-4">
+                            <div>
+                                <label for="def-type" class="block text-sm font-medium text-slate-600 mb-1">Tipo de Marcador</label>
+                                <select id="def-type">
+                                    <option value="Misc">Outro (Misc)</option>
+                                    <option value="Gene">Gene</option>
+                                    <option value="Promoter">Promotor</option>
+                                    <option value="Enhancer">Enhancer</option>
+                                    <option value="Primer">Primer</option>
+                                    <option value="Initiator">Iniciador (ex: ATG)</option>
+                                </select>
+                            </div>
+                            <input type="text" id="def-name" placeholder="Nome (ex: Promotor TATA)" required>
+                            <input type="text" id="def-sequence" placeholder="Sequência (ex: TATAAA)" required>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-1">Cor de Destaque</label>
+                                <input type="color" id="def-color" value="#a7f3d0" class="w-full h-10 p-1 border border-slate-300 rounded-lg">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-full">Adicionar Marcador</button>
+                        </form>
+                    </div>
+                    <!-- Card 2: Marcadores Salvos -->
+                    <div class="card">
+                        <h2 class="section-title"><i class="ph-bold ph-list-bullets text-teal-600"></i> Marcadores Salvos</h2>
+                        <div id="definitions-list" class="mt-4 space-y-3">
+                            <!-- Lista de definições renderizada aqui -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Aba de Dados (Transferência) -->
+            <div id="dados-tab" class="tab-content hidden">
+                <div class="card max-w-2xl mx-auto">
+                    <h2 class="section-title"><i class="ph-bold ph-arrows-clockwise text-teal-600"></i> Transferência de Dados</h2>
+                    <div class="mt-4 space-y-3">
+                        <h3 class="font-semibold text-slate-700">Exportar Dados</h3>
+                        <p class="text-sm text-slate-500">Copie seus dados (definições e sequência atual) para a área de transferência.</p>
+                        <button id="exportDataBtn" class="btn btn-secondary w-full">
+                            <i class="ph-bold ph-copy"></i> Copiar meus dados
+                        </button>
+                    </div>
+                    <hr class="my-6">
+                    <div class="space-y-3">
+                         <h3 class="font-semibold text-slate-700">Importar Dados</h3>
+                         <p class="text-sm text-slate-500">Cole os dados exportados aqui. <strong class="text-red-600">Atenção:</strong> Isso substituirá todas as definições e a sequência atual.</p>
+                         <textarea id="importDataArea" class="data-input-area min-h-[8rem]" placeholder="Cole os dados exportados aqui..."></textarea>
+                        <button id="importDataBtn" class="btn btn-primary w-full">
+                            <i class="ph-bold ph-sign-in"></i> Sincronizar Dados
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- Container para Alertas -->
+        <div id="alertsContainer" class="fixed bottom-24 sm:bottom-5 right-5 w-full max-w-xs sm:max-w-sm space-y-3 z-50"></div>
+    </div>
+    <!-- Modal de Confirmação de Importação -->
+    <div id="modal-confirm-import" class="modal hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center p-4 z-40 opacity-0">
+        <div class="modal-content bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative transform scale-95 opacity-0">
+             <button class="modal-fechar absolute top-3 right-3 text-slate-400 hover:text-slate-600">
+                <i class="ph-bold ph-x text-2xl"></i>
+            </button>
+            <div class="text-center">
+                <i class="ph-bold ph-warning-octagon text-5xl text-red-500 mb-3"></i>
+                <h2 class="text-xl font-bold text-slate-800 mb-2">Confirmar Importação?</h2>
+                <p class="text-slate-600 mb-6">Todos os dados atuais (definições e sequência) serão <strong class="text-red-600">permanentemente substituídos</strong>. Esta ação não pode ser desfeita.</p>
+                <div class="flex justify-center gap-4">
+                    <button id="btn-cancel-import" class="btn btn-secondary flex-1">Cancelar</button>
+                    <button id="btn-confirm-import" class="btn btn-danger flex-1">Confirmar e Substituir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Script principal da aplicação -->
+    <script>
+        // --- Estilos Reutilizáveis (Tailwind) ---
+        const cardStyle = 'bg-white p-4 md:p-6 rounded-xl shadow-md border border-slate-200';
+        const inputStyle = 'w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-slate-700 placeholder:text-slate-400';
+        const selectStyle = 'w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition text-slate-700 bg-white';
+        const btnBase = 'px-5 py-3 rounded-lg font-semibold text-base flex items-center justify-center gap-2 transition duration-200 ease-in-out transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed';
+        const btnPrimary = `${btnBase} bg-teal-600 text-white hover:bg-teal-700 shadow-sm`;
+        const btnSecondary = `${btnBase} bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300`;
+        const btnDanger = `${btnBase} bg-red-600 text-white hover:bg-red-700 shadow-sm`;
+        const tabBase = 'py-4 px-3 border-b-2 font-medium text-sm transition-colors duration-200 flex items-center gap-2';
+        const tabActiveStyle = 'border-teal-600 text-teal-600';
+        const tabInactiveStyle = 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300';
+        
+        // --- Constantes Biológicas ---
+        const VIEWPORT_SIZE = 500; // Visualizar 500 bases de cada vez
+        const MAX_ANALYSIS_LENGTH = 50000; // Limite para análises pesadas (Tradução, ORF)
+        const GENETIC_CODE = {
+            'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L',
+            'CTT': 'L', 'CTC': 'L', 'CTA': 'L', 'CTG': 'L',
+            'ATT': 'I', 'ATC': 'I', 'ATA': 'I', 'ATG': 'M',
+            'GTT': 'V', 'GTC': 'V', 'GTA': 'V', 'GTG': 'V',
+            'TCT': 'S', 'TCC': 'S', 'TCA': 'S', 'TCG': 'S',
+            'CCT': 'P', 'CCC': 'P', 'CCA': 'P', 'CCG': 'P',
+            'ACT': 'T', 'ACC': 'T', 'ACA': 'T', 'ACG': 'T',
+            'GCT': 'A', 'GCC': 'A', 'GCA': 'A', 'GCG': 'A',
+            'TAT': 'Y', 'TAC': 'Y', 'TAA': '_', 'TAG': '_',
+            'CAT': 'H', 'CAC': 'H', 'CAA': 'Q', 'CAG': 'Q',
+            'AAT': 'N', 'AAC': 'N', 'AAA': 'K', 'AAG': 'K',
+            'GAT': 'D', 'GAC': 'D', 'GAA': 'E', 'GAG': 'E',
+            'TGT': 'C', 'TGC': 'C', 'TGA': '_', 'TGG': 'W',
+            'CGT': 'R', 'CGC': 'R', 'CGA': 'R', 'CGG': 'R',
+            'AGT': 'S', 'AGC': 'S', 'AGA': 'R', 'AGG': 'R',
+            'GGT': 'G', 'GGC': 'G', 'GGA': 'G', 'GGG': 'G',
+        };
+        const START_CODONS = ['ATG'];
+        const STOP_CODONS = ['TAA', 'TAG', 'TGA'];
+        const DEFINITION_TYPE_COLORS = {
+            "Gene": "bg-blue-200 text-blue-800",
+            "Promoter": "bg-green-200 text-green-800",
+            "Enhancer": "bg-yellow-200 text-yellow-800",
+            "Primer": "bg-purple-200 text-purple-800",
+            "Initiator": "bg-orange-200 text-orange-800",
+            "Misc": "bg-slate-200 text-slate-800",
+        };
+
+        // --- Variáveis de Estado Global ---
+        let definitions = [];
+        let currentSequence = "";
+        let sequenceType = 'dna'; // 'dna' ou 'rna'
+        let currentViewportStart = 0;
+        let searchIndex = -1;
+        let searchResults = [];
+
+        // --- Seletores do DOM ---
+        let dom = {};
+
+        // --- Funções de Renderização (Atualização da UI) ---
+        function aplicarEstilosDinamicos() {
+            document.querySelectorAll('.card').forEach(el => { el.className = cardStyle });
+            document.querySelectorAll('input[type="text"], input[type="tel"], input[type="number"], input[type="date"], input[type="search"]').forEach(el => { 
+                if (!el.classList.contains('p-3')) {
+                    el.className = `${el.className} ${inputStyle}`.trim();
+                }
+            });
+            document.querySelectorAll('select').forEach(el => { el.className = selectStyle });
+            document.querySelectorAll('textarea').forEach(el => { el.className = `${inputStyle} min-h-[8rem]` });
+            document.querySelectorAll('.btn-primary').forEach(el => { el.className = `${el.className.replace(btnPrimary, '')} ${btnPrimary}` });
+            document.querySelectorAll('.btn-secondary').forEach(el => { el.className = `${el.className.replace(btnSecondary, '')} ${btnSecondary}` });
+            document.querySelectorAll('.btn-danger').forEach(el => { el.className = `${el.className.replace(btnDanger, '')} ${btnDanger}` });
+            document.querySelectorAll('.tab').forEach(el => { el.className = `tab ${el.classList.contains('active') ? 'active ' : ''}${tabBase} ${el.classList.contains('active') ? tabActiveStyle : tabInactiveStyle}` });
+        }
+        
+        function atualizarTudo() {
+            renderDefinitionsList();
+            if (currentSequence) {
+                renderSequenceView();
+                updatePaginationControls();
+            }
+            aplicarEstilosDinamicos();
+        }
+
+        /**
+         * Renderiza a lista de marcadores salvos na aba "Definições".
+         */
+        function renderDefinitionsList() {
+            dom.definitionsList.innerHTML = '';
+            if (definitions.length === 0) {
+                dom.definitionsList.innerHTML = '<p class="text-slate-500 text-center text-sm">Nenhum marcador cadastrado.</p>';
+                return;
+            }
+            definitions.forEach(def => {
+                const typeClass = DEFINITION_TYPE_COLORS[def.type] || DEFINITION_TYPE_COLORS["Misc"];
+                dom.definitionsList.innerHTML += `
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <div class="flex items-center gap-3">
+                            <div class="w-5 h-5 rounded border border-slate-300" style="background-color: ${def.color}"></div>
+                            <div>
+                                <strong class="text-slate-700">${def.name}</strong>
+                                <small class="block text-slate-500 font-mono">${def.sequence}</small>
+                            </div>
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded ${typeClass}">${def.type}</span>
+                        </div>
+                        <button class="btn-remove-def text-red-500 hover:text-red-700 p-2" data-id="${def.id}">
+                            <i class="ph-bold ph-trash"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            dom.definitionsList.querySelectorAll('.btn-remove-def').forEach(btn => {
+                btn.addEventListener('click', () => removeDefinition(btn.dataset.id));
+            });
+        }
+
+        /**
+         * Renderiza a "janela" (viewport) atual da sequência.
+         */
+        function renderSequenceView() {
+            if (!currentSequence) {
+                dom.renderContainer.classList.add('hidden');
+                dom.renderPlaceholder.classList.remove('hidden');
+                return;
+            }
+            dom.renderContainer.classList.remove('hidden');
+            dom.renderPlaceholder.classList.add('hidden');
+
+            const seqSlice = currentSequence.substring(currentViewportStart, currentViewportStart + VIEWPORT_SIZE);
+            sequenceType = currentSequence.includes('U') ? 'rna' : 'dna'; // Inferir tipo pela sequência inteira
+
+            const inputStrand = seqSlice.split('');
+            const templateStrand = inputStrand.map(b => getComplement(b, 'dna')); // Template é sempre DNA
+            
+            let mrnaStrand = [];
+            if (sequenceType === 'dna') {
+                mrnaStrand = inputStrand.map(b => getComplement(b, 'rna')); // mRNA é RNA
+            }
+
+            const highlightMap = getHighlightMap(seqSlice, currentViewportStart);
+            
+            let inputHtml = '', templateHtml = '', mrnaHtml = '';
+
+            for (let i = 0; i < seqSlice.length; i++) {
+                const globalIndex = i + currentViewportStart;
+                const highlight = highlightMap[i];
+                let style = '';
+                let tooltip = `Posição ${globalIndex + 1}`;
+                let classes = 'base';
+
+                if (highlight) {
+                    if (highlight.type === 'search') {
+                        classes += ' highlight-search';
+                        tooltip = highlight.name;
+                    } else if (highlight.type === 'definition') {
+                        style = `background-color: ${highlight.color}; color: ${getContrastingTextColor(highlight.color)};`;
+                        tooltip = highlight.name;
+                    }
+                }
+
+                // Bases
+                const inputBase = inputStrand[i];
+                const templateBase = templateStrand[i];
+                
+                inputHtml += `<span class="${classes} base-${inputBase}" style="${style}" data-tooltip="${tooltip}" data-index="${globalIndex}">${inputBase}</span>`;
+                templateHtml += `<span class="${classes.replace('highlight-search', '')} base-${templateBase}" data-tooltip="Posição ${globalIndex + 1}" data-index="${globalIndex}">${templateBase}</span>`;
+                
+                if (sequenceType === 'dna') {
+                    const mrnaBase = mrnaStrand[i];
+                    mrnaHtml += `<span class="${classes.replace('highlight-search', '')} base-${mrnaBase}" data-tooltip="Posição ${globalIndex + 1}" data-index="${globalIndex}">${mrnaBase}</span>`;
+                }
+            }
+
+            dom.inputStrandRow.innerHTML = inputHtml;
+            dom.templateStrandRow.innerHTML = templateHtml;
+
+            if (sequenceType === 'dna') {
+                dom.mrnaStrandRow.innerHTML = mrnaHtml;
+                dom.mrnaStrandRow.classList.remove('hidden');
+                dom.mrnaLabel.style.display = 'flex';
+                dom.templateLabel.querySelector('span').textContent = 'Template 3'+"'"+'→5'+"'";
+            } else {
+                dom.mrnaStrandRow.innerHTML = '';
+                dom.mrnaStrandRow.classList.add('hidden');
+                dom.mrnaLabel.style.display = 'none';
+                dom.templateLabel.querySelector('span').textContent = 'Complementar 3'+"'"+'→5'+"'";
+            }
+        }
+
+        /**
+         * Atualiza os controles e o texto da paginação.
+         */
+        function updatePaginationControls() {
+            if (!currentSequence) {
+                dom.paginationControls.classList.add('hidden');
+                return;
+            }
+            dom.paginationControls.classList.remove('hidden');
+            const end = Math.min(currentViewportStart + VIEWPORT_SIZE, currentSequence.length);
+            dom.paginationInfo.textContent = `Mostrando ${currentViewportStart + 1} - ${end} de ${currentSequence.length}`;
+            dom.btnPagePrev.disabled = currentViewportStart === 0;
+            dom.btnPageNext.disabled = end === currentSequence.length;
+        }
+
+        // --- Funções de Lógica de Negócio (Event Handlers) ---
+
+        /**
+         * Processa o input da sequência (colado ou de arquivo).
+         */
+        function handleSequenceInput(e) {
+            let rawSeq = dom.sequenceInput.value;
+            currentSequence = rawSeq.trim().replace(/[\s\n\r\d]/g, '').toUpperCase();
+            
+            // Não limpamos o textarea para o usuário não perder a formatação original,
+            // mas 'currentSequence' está sempre limpo.
+            
+            currentViewportStart = 0;
+            handleSearch(); // Atualiza busca
+            updatePaginationControls();
+            atualizarTudo();
+        }
+
+        /**
+         * Carrega e processa um arquivo FASTA.
+         */
+        function handleFastaUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const fastaContent = event.target.result;
+                    // Remove linhas de cabeçalho (começam com '>') e limpa
+                    const sequence = fastaContent.replace(/>.*\n/g, '').replace(/[\s\n\r\d]/g, '').toUpperCase();
+                    dom.sequenceInput.value = sequence;
+                    handleSequenceInput(); // Processa a nova sequência
+                    showAlert('Arquivo FASTA carregado com sucesso.', 'success');
+                } catch (err) {
+                    console.error("Erro ao ler FASTA: ", err);
+                    showAlert('Não foi possível ler o arquivo FASTA.', 'error');
+                }
+            };
+            reader.onerror = () => {
+                showAlert('Erro ao carregar o arquivo.', 'error');
+            };
+            reader.readAsText(file);
+            
+            // Reseta o input para permitir carregar o mesmo arquivo novamente
+            e.target.value = null;
+        }
+
+        function handleAddDefinition(e) {
+            e.preventDefault();
+            const name = dom.defName.value.trim();
+            const sequence = dom.defSequence.value.trim().toUpperCase().replace(/[\s\n\r\d]/g, '');
+            const color = dom.defColor.value;
+            const type = dom.defType.value;
+            
+            if (!name || !sequence) {
+                showAlert('Nome e Sequência são obrigatórios.', 'error');
+                return;
+            }
+            if (definitions.some(d => d.name === name || d.sequence === sequence)) {
+                showAlert('Já existe um marcador com este nome ou sequência.', 'error');
+                return;
+            }
+            definitions.push({
+                id: `def-${Date.now()}`,
+                name,
+                sequence,
+                color,
+                type
+            });
+            showAlert(`Marcador "${name}" adicionado.`, 'success');
+            e.target.reset();
+            dom.defColor.value = '#a7f3d0'; // Reseta a cor padrão
+            dom.defType.value = 'Misc'; // Reseta o tipo
+            atualizarTudo();
+        }
+
+        function removeDefinition(id) {
+            definitions = definitions.filter(d => d.id !== id);
+            showAlert('Marcador removido.', 'success');
+            atualizarTudo();
+        }
+
+        /**
+         * Realiza a busca na sequência INTEIRA.
+         */
+        function handleSearch() {
+            const term = dom.searchTerm.value.trim().toUpperCase();
+            searchResults = [];
+            searchIndex = -1;
+            if (term && currentSequence) {
+                const regex = new RegExp(term, 'g');
+                let match;
+                while ((match = regex.exec(currentSequence)) != null) {
+                    searchResults.push(match.index);
+                }
+            }
+            
+            if (searchResults.length > 0) {
+                searchIndex = 0;
+                dom.searchNext.disabled = searchResults.length <= 1;
+                dom.searchPrev.disabled = true;
+                jumpToSearchResult(0); // Pula para o primeiro resultado
+            } else {
+                dom.searchNext.disabled = true;
+                dom.searchPrev.disabled = true;
+                updateSearchInfo();
+                renderSequenceView(); // Re-renderiza para limpar highlights
+            }
+        }
+        
+        /**
+         * Pula a visualização para a página que contém o resultado da busca.
+         */
+        function jumpToSearchResult(index) {
+            if (index < 0 || index >= searchResults.length) return;
+            
+            searchIndex = index;
+            const targetPos = searchResults[searchIndex];
+            
+            // Calcula a página (viewport) que contém o resultado
+            const targetPageStart = Math.floor(targetPos / VIEWPORT_SIZE) * VIEWPORT_SIZE;
+            
+            currentViewportStart = targetPageStart;
+            
+            updatePaginationControls();
+            renderSequenceView();
+            updateSearchInfo();
+            
+            // Rola a base específica para a visão
+            setTimeout(() => scrollToHighlight(targetPos), 100);
+        }
+
+        function handleSearchNav(direction) {
+            if (searchResults.length === 0) return;
+            
+            let newIndex = searchIndex;
+            if (direction === 'next') {
+                newIndex = (searchIndex + 1) % searchResults.length;
+            } else {
+                newIndex = (searchIndex - 1 + searchResults.length) % searchResults.length;
+            }
+            
+            dom.searchPrev.disabled = newIndex === 0;
+            dom.searchNext.disabled = newIndex === searchResults.length - 1;
+            
+            jumpToSearchResult(newIndex);
+        }
+
+        function updateSearchInfo() {
+            const total = searchResults.length;
+            const current = (total > 0) ? searchIndex + 1 : 0;
+            dom.searchResultsInfo.textContent = `${current} / ${total}`;
+        }
+
+        function scrollToHighlight(globalIndex) {
+            const targetBase = dom.inputStrandRow.querySelector(`[data-index="${globalIndex}"]`);
+            if (targetBase) {
+                targetBase.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                    inline: 'center'
+                });
+            }
+        }
+        
+        function handlePagination(direction) {
+            if (direction === 'next') {
+                currentViewportStart += VIEWPORT_SIZE;
+            } else {
+                currentViewportStart -= VIEWPORT_SIZE;
+            }
+            // Clamp (garantir que não saia dos limites)
+            currentViewportStart = Math.max(0, currentViewportStart);
+            if (currentViewportStart >= currentSequence.length) {
+                 currentViewportStart -= VIEWPORT_SIZE;
+            }
+            
+            renderSequenceView();
+            updatePaginationControls();
+        }
+        
+        function handleRevCompClick() {
+            if (!currentSequence) {
+                showAlert('Não há sequência para inverter.', 'info');
+                return;
+            }
+            dom.sequenceInput.value = getReverseComplement(currentSequence);
+            handleSequenceInput();
+            showAlert('Sequência invertida e complementada.', 'success');
+        }
+
+        function handleStrandToggle(e) {
+            const checkbox = e.target;
+            const targetId = checkbox.dataset.target;
+            const targetRow = document.getElementById(targetId);
+            if (targetRow) {
+                if (checkbox.checked) {
+                    targetRow.classList.remove('faded');
+                } else {
+                    targetRow.classList.add('faded');
+                }
+            }
+        }
+
+        // --- Funções Auxiliares (Biologia) ---
+
+        /**
+         * Retorna a base complementar.
+         * @param {string} base - A, T, C, G, U
+         * @param {string} targetType - 'dna' ou 'rna' (para saber se A vira T ou U)
+         */
+        function getComplement(base, targetType = 'dna') {
+            const rnaTarget = targetType === 'rna';
+            switch (base.toUpperCase()) {
+                case 'A': return rnaTarget ? 'U' : 'T';
+                case 'T': return 'A';
+                case 'U': return 'A';
+                case 'G': return 'C';
+                case 'C': return 'G';
+                default: return 'N';
+            }
+        }
+
+        /**
+         * Retorna o complemento reverso da sequência.
+         */
+        function getReverseComplement(seq) {
+            const targetType = seq.includes('U') ? 'rna' : 'dna';
+            return seq.split('').reverse().map(b => getComplement(b, targetType)).join('');
+        }
+
+        /**
+         * Cria um mapa de destaques para a "janela" (viewport) atual.
+         * @param {string} sequenceSlice - O pedaço da sequência sendo visualizado.
+         * @param {number} offset - O índice inicial global da 'sequenceSlice'.
+         */
+        function getHighlightMap(sequenceSlice, offset) {
+            const map = new Array(sequenceSlice.length).fill(null);
+            const sliceEnd = offset + sequenceSlice.length;
+
+            // 1. Aplica definições
+            definitions.forEach(def => {
+                const regex = new RegExp(def.sequence, 'g');
+                let match;
+                // Busca na sequência inteira
+                while ((match = regex.exec(currentSequence)) != null) {
+                    const matchStart = match.index;
+                    const matchEnd = matchStart + def.sequence.length;
+
+                    // Verifica se há sobreposição com a janela atual
+                    if (matchStart < sliceEnd && matchEnd > offset) {
+                        // Calcula os índices locais (dentro da janela)
+                        const localStart = Math.max(0, matchStart - offset);
+                        const localEnd = Math.min(sequenceSlice.length, matchEnd - offset);
+                        
+                        for (let i = localStart; i < localEnd; i++) {
+                            if (map[i] === null || (map[i].type === 'definition' && map[i].sequence.length < def.sequence.length)) {
+                                map[i] = { type: 'definition', name: def.name, color: def.color, sequence: def.sequence };
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 2. Aplica busca (prioridade mais alta)
+            const term = dom.searchTerm.value.trim().toUpperCase();
+            if (term && searchIndex > -1) {
+                const activeSearchStart = searchResults[searchIndex];
+                const activeSearchEnd = activeSearchStart + term.length;
+
+                if (activeSearchStart < sliceEnd && activeSearchEnd > offset) {
+                    const localStart = Math.max(0, activeSearchStart - offset);
+                    const localEnd = Math.min(sequenceSlice.length, activeSearchEnd - offset);
+
+                    for (let i = localStart; i < localEnd; i++) {
+                        map[i] = { type: 'search', name: `Busca: "${term}"` };
+                    }
+                }
+            }
+            return map;
+        }
+
+        /**
+         * Decide se o texto sobre uma cor de fundo deve ser preto ou branco.
+         */
+        function getContrastingTextColor(hexColor) {
+            try {
+                const hex = hexColor.replace('#', '');
+                const r = parseInt(hex.substring(0, 2), 16);
+                const g = parseInt(hex.substring(2, 4), 16);
+                const b = parseInt(hex.substring(4, 6), 16);
+                const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+                return (yiq >= 128) ? '#020617' : '#ffffff'; // slate-950 ou white
+            } catch (e) {
+                return '#020617';
+            }
+        }
+
+        // --- Funções da Aba "Análise" ---
+
+        /**
+         * Ponto de entrada para todas as análises. Chamado ao trocar para a aba.
+         */
+        function runFullAnalysis() {
+            if (!currentSequence) {
+                dom.analysisContentWrapper.innerHTML = '';
+                dom.analysisPlaceholder.classList.remove('hidden');
+                return;
+            }
+            
+            dom.analysisPlaceholder.classList.add('hidden');
+            
+            // Clona o template de análise
+            const template = dom.analysisTemplate.content.cloneNode(true);
+            dom.analysisContentWrapper.innerHTML = '';
+            dom.analysisContentWrapper.appendChild(template);
+            
+            // Seleciona os elementos recém-criados
+            const statsEl = dom.analysisContentWrapper.querySelector('#analysis-stats');
+            const orfEl = dom.analysisContentWrapper.querySelector('#orf-results');
+            const f1 = dom.analysisContentWrapper.querySelector('#frame-f1');
+            const f2 = dom.analysisContentWrapper.querySelector('#frame-f2');
+            const f3 = dom.analysisContentWrapper.querySelector('#frame-f3');
+            const r1 = dom.analysisContentWrapper.querySelector('#frame-r1');
+            const r2 = dom.analysisContentWrapper.querySelector('#frame-r2');
+            const r3 = dom.analysisContentWrapper.querySelector('#frame-r3');
+
+            // 1. Calcular Estatísticas
+            calculateStats(statsEl);
+            
+            // 2. Checar limite de tamanho para análises pesadas
+            if (currentSequence.length > MAX_ANALYSIS_LENGTH) {
+                showAlert(`Análise de Tradução e ORF desativada para sequências > ${MAX_ANALYSIS_LENGTH} bases.`, 'info');
+                dom.analysisContentWrapper.querySelector('#translation-frames').innerHTML = `<p class="text-slate-500 text-sm">Análise desativada. A sequência é muito longa (${currentSequence.length} bases).</p>`;
+                 dom.analysisContentWrapper.querySelector('#orf-results').innerHTML = `<p class="text-slate-500 text-sm">Análise desativada.</p>`;
+                return;
+            }
+
+            // 3. Rodar Tradução e ORF
+            // Garantir que a sequência é DNA para tradução (troca U por T se for RNA)
+            const dnaSeq = currentSequence.replace(/U/g, 'T');
+            const revComp = getReverseComplement(dnaSeq);
+
+            // Tradução
+            f1.textContent = translateSequence(dnaSeq, 0);
+            f2.textContent = translateSequence(dnaSeq, 1);
+            f3.textContent = translateSequence(dnaSeq, 2);
+            r1.textContent = translateSequence(revComp, 0);
+            r2.textContent = translateSequence(revComp, 1);
+            r3.textContent = translateSequence(revComp, 2);
+            
+            // Localização de ORF
+            findORFs(dnaSeq, revComp, orfEl);
+        }
+
+        /**
+         * Calcula e exibe estatísticas básicas.
+         */
+        function calculateStats(container) {
+            const len = currentSequence.length;
+            const counts = { 'A': 0, 'T': 0, 'G': 0, 'C': 0, 'U': 0, 'N': 0 };
+            for (const base of currentSequence) {
+                counts[base] = (counts[base] || 0) + 1;
+            }
+            
+            const gcCount = counts['G'] + counts['C'];
+            const atCount = counts['A'] + counts['T'] + counts['U'];
+            const gcPercent = len > 0 ? ((gcCount / (gcCount + atCount)) * 100).toFixed(1) : 0;
+            
+            container.innerHTML = `
+                <div class="stat-item"><span class="stat-label">Comprimento</span> <span class="stat-value">${len} bp</span></div>
+                <div class="stat-item"><span class="stat-label">Conteúdo GC</span> <span class="stat-value">${gcPercent}%</span></div>
+                <div class="stat-item"><span class="stat-label">Base 'A'</span> <span class="stat-value">${counts['A']}</span></div>
+                <div class="stat-item"><span class="stat-label">Base 'T'</span> <span class="stat-value">${counts['T']}</span></div>
+                <div class="stat-item"><span class="stat-label">Base 'U'</span> <span class="stat-value">${counts['U']}</span></div>
+                <div class="stat-item"><span class="stat-label">Base 'G'</span> <span class="stat-value">${counts['G']}</span></div>
+                <div class="stat-item"><span class="stat-label">Base 'C'</span> <span class="stat-value">${counts['C']}</span></div>
+                <div class="stat-item"><span class="stat-label">Outras ('N')</span> <span class="stat-value">${counts['N']}</span></div>
+            `;
+        }
+        
+        /**
+         * Traduz uma sequência de DNA em proteína.
+         * @param {string} seq - Sequência de DNA.
+         * @param {number} frame - Fase de leitura (0, 1, ou 2).
+         */
+        function translateSequence(seq, frame) {
+            let protein = '';
+            for (let i = frame; i < seq.length - 2; i += 3) {
+                const codon = seq.substring(i, i + 3);
+                protein += GENETIC_CODE[codon] || 'X';
+            }
+            return protein;
+        }
+
+        /**
+         * Encontra e exibe ORFs (Open Reading Frames).
+         */
+        function findORFs(fwdSeq, revSeq, container) {
+            let orfs = [];
+            const sequences = [
+                { seq: fwdSeq, frame: 'F+1', offset: 0 },
+                { seq: fwdSeq, frame: 'F+2', offset: 1 },
+                { seq: fwdSeq, frame: 'F+3', offset: 2 },
+                { seq: revSeq, frame: 'R+1', offset: 0 },
+                { seq: revSeq, frame: 'R+2', offset: 1 },
+                { seq: revSeq, frame: 'R+3', offset: 2 },
+            ];
+
+            sequences.forEach(item => {
+                const seq = item.seq;
+                for (let i = item.offset; i < seq.length - 2; i += 3) {
+                    const codon = seq.substring(i, i + 3);
+                    
+                    if (START_CODONS.includes(codon)) {
+                        // Encontrou um Start
+                        let protein = 'M';
+                        for (let j = i + 3; j < seq.length - 2; j += 3) {
+                            const innerCodon = seq.substring(j, j + 3);
+                            const amino = GENETIC_CODE[innerCodon] || 'X';
+                            
+                            if (amino === '_') { // Encontrou um Stop
+                                const len = (j + 3) - i;
+                                const startPos = item.frame.startsWith('F') ? i + 1 : fwdSeq.length - i;
+                                const endPos = item.frame.startsWith('F') ? j + 3 : fwdSeq.length - (j + 2);
+                                
+                                orfs.push({
+                                    frame: item.frame,
+                                    start: item.frame.startsWith('F') ? startPos : endPos, // Ajusta início/fim para reverso
+                                    end: item.frame.startsWith('F') ? endPos : startPos,
+                                    len: len,
+                                    protein: protein
+                                });
+                                i = j; // Pula para depois do Stop
+                                break;
+                            }
+                            protein += amino;
+                        }
+                    }
+                }
+            });
+            
+            // Ordena por tamanho, decrescente, e pega os 10 maiores
+            orfs.sort((a, b) => b.len - a.len);
+            orfs = orfs.slice(0, 10);
+
+            if (orfs.length === 0) {
+                container.innerHTML = '<p class="text-slate-500 text-sm">Nenhum ORF (ATG...Stop) encontrado.</p>';
+                return;
+            }
+
+            container.innerHTML = orfs.map(orf => `
+                <div class="orf-result">
+                    <div><strong>Fase:</strong> ${orf.frame}</div>
+                    <div><strong>Posição:</strong> ${orf.start}..${orf.end}</div>
+                    <div><strong>Tamanho:</strong> ${orf.len} bp (${orf.protein.length} aa)</div>
+                </div>
+            `).join('');
+        }
+
+        // --- Funções de UI (Modais, Alertas, Abas) ---
+        function showAlert(message, type = 'info') {
+            const icons = { success: '<i class="ph-bold ph-check-circle text-xl"></i>', error: '<i class="ph-bold ph-x-circle text-xl"></i>', info: '<i class="ph-bold ph-info text-xl"></i>' };
+            const colors = { success: 'bg-green-100 text-green-800 border-green-300', error: 'bg-red-100 text-red-800 border-red-300', info: 'bg-blue-100 text-blue-800 border-blue-300' };
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `flex items-center gap-4 p-4 rounded-lg shadow-lg border ${colors[type]} transform transition-all duration-300 translate-x-full opacity-0`;
+            alertDiv.innerHTML = `${icons[type]}<span>${message}</span>`;
+            document.getElementById('alertsContainer').appendChild(alertDiv);
+            setTimeout(() => alertDiv.classList.remove('translate-x-full', 'opacity-0'), 10);
+            setTimeout(() => {
+                alertDiv.classList.add('opacity-0', 'translate-x-full');
+                setTimeout(() => alertDiv.remove(), 300);
+            }, 5000);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden', 'opacity-0'));
+            const content = document.getElementById(`${tabId}-tab`);
+            content.classList.remove('hidden');
+            setTimeout(() => content.classList.remove('opacity-0'), 10);
+            document.querySelectorAll('.tab').forEach(el => {
+                el.classList.remove(...tabActiveStyle.split(' '));
+                el.classList.add(...tabInactiveStyle.split(' '));
+                el.classList.remove('active');
+            });
+            const activeTab = document.querySelector(`.tab[data-tab="${tabId}"]`);
+            activeTab.classList.add(...tabActiveStyle.split(' '));
+            activeTab.classList.remove(...tabInactiveStyle.split(' '));
+            activeTab.classList.add('active');
+            
+            // Se trocou para a aba "Análise", roda a análise
+            if (tabId === 'analise') {
+                runFullAnalysis();
+            }
+        }
+        
+        function toggleModal(modalId, show) {
+            const modal = document.getElementById(modalId);
+            const content = modal.querySelector('.modal-content');
+            if (show) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    content.classList.remove('scale-95', 'opacity-0');
+                }, 10);
+            } else {
+                content.classList.add('scale-95', 'opacity-0');
+                modal.classList.add('opacity-0');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+        }
+        
+        // --- Funções de Armazenamento e Transferência ---
+        function exportData() {
+            try {
+                const data = { definitions, currentSequence };
+                const dataString = JSON.stringify(data);
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(dataString).then(() => {
+                        showAlert('Dados copiados para a área de transferência!', 'success');
+                    }, () => execCopy(dataString));
+                } else {
+                    execCopy(dataString);
+                }
+            } catch (err) {
+                console.error('Falha ao copiar dados: ', err);
+                showAlert('Falha ao copiar dados.', 'error');
+            }
+        }
+
+        function execCopy(dataString) {
+             const textArea = document.createElement("textarea");
+            textArea.value = dataString;
+            textArea.style.position = "fixed"; textArea.style.top = "-9999px"; textArea.style.left = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.focus(); 
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showAlert('Dados copiados para a área de transferência!', 'success');
+            } catch (err) {
+                 showAlert('Falha ao copiar dados.', 'error');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function handleImportClick() {
+            const dataString = dom.importDataArea.value;
+            if (!dataString.trim()) {
+                showAlert('A área de importação está vazia.', 'error');
+                return;
+            }
+            toggleModal('modal-confirm-import', true);
+        }
+
+        function confirmImport() {
+            const dataString = dom.importDataArea.value;
+            try {
+                const data = JSON.parse(dataString);
+                if (data && Array.isArray(data.definitions) && typeof data.currentSequence === 'string') {
+                    definitions = data.definitions;
+                    currentSequence = data.currentSequence;
+                    dom.sequenceInput.value = currentSequence;
+                    
+                    dom.importDataArea.value = '';
+                    toggleModal('modal-confirm-import', false);
+                    showAlert('Dados importados com sucesso!', 'success');
+                    
+                    // Processa a sequência importada
+                    currentViewportStart = 0;
+                    handleSearch();
+                    updatePaginationControls();
+                    atualizarTudo();
+                    switchTab('visualizador');
+                } else {
+                    throw new Error('Formato de dados inválido.');
+                }
+            } catch (err) {
+                console.error('Erro ao importar dados: ', err);
+                showAlert('Falha ao importar. Verifique os dados.', 'error');
+                toggleModal('modal-confirm-import', false);
+            }
+        }
+
+        // --- Inicialização da Aplicação ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Mapeia os seletores do DOM
+            dom = {
+                sequenceInput: document.getElementById('sequence-input'),
+                fastaUpload: document.getElementById('fasta-upload'),
+                btnRevComp: document.getElementById('btn-rev-comp'),
+                searchTerm: document.getElementById('search-term'),
+                searchPrev: document.getElementById('search-prev'),
+                searchNext: document.getElementById('search-next'),
+                searchResultsInfo: document.getElementById('search-results-info'),
+                renderWrapper: document.getElementById('render-wrapper'),
+                renderContainer: document.getElementById('render-container'),
+                renderPlaceholder: document.getElementById('render-placeholder'),
+                inputStrandRow: document.getElementById('input-strand-row'),
+                templateStrandRow: document.getElementById('template-strand-row'),
+                mrnaStrandRow: document.getElementById('mrna-strand-row'),
+                inputLabel: document.getElementById('input-label'),
+                templateLabel: document.getElementById('template-label'),
+                mrnaLabel: document.getElementById('mrna-label'),
+                paginationControls: document.getElementById('pagination-controls'),
+                btnPagePrev: document.getElementById('btn-page-prev'),
+                btnPageNext: document.getElementById('btn-page-next'),
+                paginationInfo: document.getElementById('pagination-info'),
+                formAddDefinition: document.getElementById('form-add-definition'),
+                defName: document.getElementById('def-name'),
+                defSequence: document.getElementById('def-sequence'),
+                defColor: document.getElementById('def-color'),
+                defType: document.getElementById('def-type'),
+                definitionsList: document.getElementById('definitions-list'),
+                exportDataBtn: document.getElementById('exportDataBtn'),
+                importDataBtn: document.getElementById('importDataBtn'),
+                importDataArea: document.getElementById('importDataArea'),
+                btnConfirmImport: document.getElementById('btn-confirm-import'),
+                btnCancelImport: document.getElementById('btn-cancel-import'),
+                strandToggles: document.querySelectorAll('.strand-toggle'),
+                analysisContentWrapper: document.getElementById('analysis-content-wrapper'),
+                analysisPlaceholder: document.getElementById('analysis-placeholder'),
+                analysisTemplate: document.getElementById('analysis-template'),
+            };
+            
+            aplicarEstilosDinamicos();
+            atualizarTudo();
+            switchTab('tutorial');
+
+            // --- Adiciona Event Listeners ---
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+            });
+            // Visualizador
+            dom.sequenceInput.addEventListener('input', handleSequenceInput);
+            dom.fastaUpload.addEventListener('change', handleFastaUpload);
+            dom.btnRevComp.addEventListener('click', handleRevCompClick);
+            dom.searchTerm.addEventListener('input', handleSearch);
+            dom.searchPrev.addEventListener('click', () => handleSearchNav('prev'));
+            dom.searchNext.addEventListener('click', () => handleSearchNav('next'));
+            dom.strandToggles.forEach(toggle => {
+                toggle.addEventListener('change', handleStrandToggle);
+            });
+            dom.btnPagePrev.addEventListener('click', () => handlePagination('prev'));
+            dom.btnPageNext.addEventListener('click', () => handlePagination('next'));
+            // Definições
+            dom.formAddDefinition.addEventListener('submit', handleAddDefinition);
+            // Transferência de Dados
+            dom.exportDataBtn.addEventListener('click', exportData);
+            dom.importDataBtn.addEventListener('click', handleImportClick);
+            // Modal de Confirmação de Importação
+            dom.btnConfirmImport.addEventListener('click', confirmImport);
+            dom.btnCancelImport.addEventListener('click', () => toggleModal('modal-confirm-import', false));
+            document.querySelector('#modal-confirm-import .modal-fechar').addEventListener('click', () => toggleModal('modal-confirm-import', false));
+        });
+    </script>
+</body>
+</html>

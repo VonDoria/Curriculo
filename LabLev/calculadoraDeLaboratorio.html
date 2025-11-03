@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LabCalc Pro — Calculadora Científica Universal</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧪</text></svg>">
+    <meta name="theme-color" content="#f0f9ff">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        .tab-content { transition: opacity 0.3s ease-in-out; }
+        .tabs-nav-container {
+            overflow-x: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .tabs-nav-container::-webkit-scrollbar { display: none; }
+        .tabs-nav { flex-wrap: nowrap; white-space: nowrap; }
+        .card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+            padding: 1.25rem;
+        }
+        @media (min-width: 768px) {
+            .card { padding: 1.5rem; }
+        }
+        .input-group {
+            margin-bottom: 1rem;
+        }
+        .input-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.375rem;
+            color: #334155;
+        }
+        .result-box {
+            background: #f1f5f9;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1.25rem;
+            font-weight: 600;
+            position: relative;
+        }
+        .unit-badge {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            margin-left: 0.25rem;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .result-box:hover .copy-btn {
+            opacity: 1;
+        }
+        .notification {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .notification.success { background-color: #10b981; }
+        .notification.error { background-color: #ef4444; }
+        .notification.info { background-color: #3b82f6; }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto px-4 py-6 max-w-4xl">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-2xl md:text-3xl font-bold flex items-center justify-center gap-2">
+                <i class="ph-bold ph-flask text-blue-500"></i>
+                LabCalc Pro
+            </h1>
+            <p class="text-slate-600 mt-1 text-sm md:text-base">
+                Calculadora científica universal — adapte-se a qualquer laboratório, de biologia molecular a química analítica.
+            </p>
+        </header>
+
+        <!-- Tabs Navigation -->
+        <div class="mb-6 border-b border-slate-200 tabs-nav-container">
+            <nav class="flex -mb-px space-x-3 md:space-x-4 tabs-nav" aria-label="Tabs">
+                <button class="tab active" data-tab="dilution">
+                    <i class="ph-bold ph-water"></i> Diluição
+                </button>
+                <button class="tab" data-tab="pcr">
+                    <i class="ph-bold ph-dna"></i> Reações
+                </button>
+                <button class="tab" data-tab="tm">
+                    <i class="ph-bold ph-thermometer"></i> Tm Primer
+                </button>
+                <button class="tab" data-tab="molarity">
+                    <i class="ph-bold ph-beaker"></i> Molaridade
+                </button>
+                <button class="tab" data-tab="buffer">
+                    <i class="ph-bold ph-flask"></i> Buffer
+                </button>
+                <button class="tab" data-tab="unit">
+                    <i class="ph-bold ph-arrows-down-up"></i> Conversão
+                </button>
+            </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <main>
+            <!-- Diluição -->
+            <div id="dilution-tab" class="tab-content active">
+                <div class="card">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <i class="ph-bold ph-water text-blue-500"></i> Calculadora de Diluição (C₁V₁ = C₂V₂)
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <label for="dilution-c1">Concentração Inicial (C₁)</label>
+                            <div class="flex gap-2">
+                                <input type="number" id="dilution-c1" placeholder="Ex: 10" class="flex-1 p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                                <select id="dilution-c1-unit" class="w-24 p-3 border border-slate-300 rounded-lg">
+                                    <option value="M">M</option>
+                                    <option value="mM">mM</option>
+                                    <option value="µM">µM</option>
+                                    <option value="nM">nM</option>
+                                    <option value="ng/µL">ng/µL</option>
+                                    <option value="µg/µL">µg/µL</option>
+                                    <option value="mg/mL">mg/mL</option>
+                                    <option value="%">%</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="dilution-v2">Volume Final (V₂)</label>
+                            <div class="flex gap-2">
+                                <input type="number" id="dilution-v2" placeholder="Ex: 100" class="flex-1 p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                                <select id="dilution-v2-unit" class="w-24 p-3 border border-slate-300 rounded-lg">
+                                    <option value="µL">µL</option>
+                                    <option value="mL" selected>mL</option>
+                                    <option value="L">L</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="dilution-c2">Concentração Final (C₂)</label>
+                            <div class="flex gap-2">
+                                <input type="number" id="dilution-c2" placeholder="Ex: 1" class="flex-1 p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                                <select id="dilution-c2-unit" class="w-24 p-3 border border-slate-300 rounded-lg">
+                                    <option value="M">M</option>
+                                    <option value="mM" selected>mM</option>
+                                    <option value="µM">µM</option>
+                                    <option value="nM">nM</option>
+                                    <option value="ng/µL">ng/µL</option>
+                                    <option value="µg/µL">µg/µL</option>
+                                    <option value="mg/mL">mg/mL</option>
+                                    <option value="%">%</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="calc-dilution" class="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium transition">
+                        Calcular Volume Inicial (V₁)
+                    </button>
+                    <div id="dilution-result" class="result-box hidden">
+                        Volume necessário: <span id="dilution-v1-result">—</span>
+                        <button class="copy-btn text-blue-600 hover:text-blue-800" onclick="copyToClipboard('dilution-v1-result')">
+                            <i class="ph ph-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reações (PCR + Genérico) -->
+            <div id="pcr-tab" class="tab-content hidden">
+                <div class="card">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <i class="ph-bold ph-dna text-blue-500"></i> Planejador de Reações
+                    </h2>
+                    <div class="input-group">
+                        <label for="reaction-type">Tipo de Reação</label>
+                        <select id="reaction-type" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                            <option value="pcr">PCR</option>
+                            <option value="qpcr">qPCR</option>
+                            <option value="digest">Digestão Enzimática</option>
+                            <option value="ligation">Ligação</option>
+                            <option value="custom">Personalizado</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="reaction-count">Número de Reações</label>
+                        <input type="number" id="reaction-count" value="10" min="1" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                    </div>
+                    <div id="reaction-fields" class="mt-4 space-y-3">
+                        <!-- Campos dinâmicos serão inseridos aqui -->
+                    </div>
+                    <button id="calc-reaction" class="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium transition">
+                        Calcular Mix Total
+                    </button>
+                    <div id="reaction-result" class="result-box hidden mt-4">
+                        <div id="reaction-result-content"></div>
+                        <button class="copy-btn text-blue-600 hover:text-blue-800" onclick="copyResultToClipboard('reaction-result-content')">
+                            <i class="ph ph-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tm Primer -->
+            <div id="tm-tab" class="tab-content hidden">
+                <div class="card">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <i class="ph-bold ph-thermometer text-blue-500"></i> Temperatura de Anelamento (Tm)
+                    </h2>
+                    <div class="input-group">
+                        <label for="primer-sequence">Sequência do Primer (5' → 3')</label>
+                        <input type="text" id="primer-sequence" placeholder="Ex: ATGCGTA" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none uppercase">
+                        <p class="text-xs text-slate-500 mt-1">Apenas letras A, T, G, C</p>
+                    </div>
+                    <div class="input-group">
+                        <label for="tm-salt">Concentração de Sal (mM)</label>
+                        <input type="number" id="tm-salt" value="50" min="0" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                    </div>
+                    <button id="calc-tm" class="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium transition">
+                        Calcular Tm
+                    </button>
+                    <div id="tm-result" class="result-box hidden">
+                        Temperatura de anelamento: <span id="tm-value">—</span> °C
+                        <button class="copy-btn text-blue-600 hover:text-blue-800" onclick="copyToClipboard('tm-value')">
+                            <i class="ph ph-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Molaridade -->
+            <div id="molarity-tab" class="tab-content hidden">
+                <div class="card">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <i class="ph-bold ph-beaker text-blue-500"></i> Calculadora de Molaridade
+                    </h2>
+                    <div class="input-group">
+                        <label for="molar-mass">Massa Molar (g/mol)</label>
+                        <input type="number" id="molar-mass" placeholder="Ex: 58.44" step="0.01" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div class="input-group">
+                            <label for="molar-mass-grams">Massa (g)</label>
+                            <input type="number" id="molar-mass-grams" placeholder="Ex: 5.844" step="0.001" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                        </div>
+                        <div class="input-group">
+                            <label for="molar-volume">Volume (L)</label>
+                            <input type="number" id="molar-volume" placeholder="Ex: 1" step="0.001" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                        </div>
+                    </div>
+                    <button id="calc-molarity" class="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium transition">
+                        Calcular Molaridade (mol/L)
+                    </button>
+                    <div id="molarity-result" class="result-box hidden">
+                        Molaridade: <span id="molarity-value">—</span> M
+                        <button class="copy-btn text-blue-600 hover:text-blue-800" onclick="copyToClipboard('molarity-value')">
+                            <i class="ph ph-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buffer -->
+            <div id="buffer-tab" class="tab-content hidden">
+                <div class="card">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <i class="ph-bold ph-flask text-blue-500"></i> Preparo de Buffer
+                    </h2>
+                    <div class="input-group">
+                        <label for="buffer-volume">Volume Final (mL)</label>
+                        <input type="number" id="buffer-volume" value="100" min="1" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                    </div>
+                    <div class="input-group">
+                        <label for="buffer-ph">pH Desejado</label>
+                        <input type="number" id="buffer-ph" step="0.1" value="7.4" min="1" max="14" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                    </div>
+                    <div class="input-group">
+                        <label for="buffer-type">Tipo de Buffer</label>
+                        <select id="buffer-type" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                            <option value="pbs">PBS</option>
+                            <option value="tris">Tris-HCl</option>
+                            <option value="hepes">HEPES</option>
+                            <option value="acetate">Acetato</option>
+                            <option value="carbonate">Carbonato</option>
+                        </select>
+                    </div>
+                    <button id="calc-buffer" class="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium transition">
+                        Calcular Composição
+                    </button>
+                    <div id="buffer-result" class="result-box hidden mt-4">
+                        <div id="buffer-result-content"></div>
+                        <button class="copy-btn text-blue-600 hover:text-blue-800" onclick="copyResultToClipboard('buffer-result-content')">
+                            <i class="ph ph-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conversão de Unidades -->
+            <div id="unit-tab" class="tab-content hidden">
+                <div class="card">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <i class="ph-bold ph-arrows-down-up text-blue-500"></i> Conversão de Unidades
+                    </h2>
+                    <div class="input-group">
+                        <label for="convert-value">Valor</label>
+                        <input type="number" id="convert-value" placeholder="Ex: 1000" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <label for="convert-from">De</label>
+                            <select id="convert-from" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                                <option value="ng">ng</option>
+                                <option value="µg">µg</option>
+                                <option value="mg">mg</option>
+                                <option value="g">g</option>
+                                <option value="kg">kg</option>
+                                <option value="µL">µL</option>
+                                <option value="mL">mL</option>
+                                <option value="L">L</option>
+                                <option value="M">M</option>
+                                <option value="mM">mM</option>
+                                <option value="µM">µM</option>
+                                <option value="nM">nM</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="convert-to">Para</label>
+                            <select id="convert-to" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                                <option value="ng">ng</option>
+                                <option value="µg" selected>µg</option>
+                                <option value="mg">mg</option>
+                                <option value="g">g</option>
+                                <option value="kg">kg</option>
+                                <option value="µL">µL</option>
+                                <option value="mL">mL</option>
+                                <option value="L">L</option>
+                                <option value="M">M</option>
+                                <option value="mM">mM</option>
+                                <option value="µM">µM</option>
+                                <option value="nM">nM</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button id="calc-convert" class="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg font-medium transition">
+                        Converter
+                    </button>
+                    <div id="convert-result" class="result-box hidden">
+                        Resultado: <span id="convert-value-result">—</span>
+                        <button class="copy-btn text-blue-600 hover:text-blue-800" onclick="copyToClipboard('convert-value-result')">
+                            <i class="ph ph-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="mt-8 text-center text-slate-500 text-sm">
+            <p>LabCalc Pro — Feito com ❤️ por pesquisadores, para pesquisadores.</p>
+            <p class="mt-1">© 2025 Todos os direitos reservados.</p>
+        </footer>
+    </div>
+
+    <script>
+        // UI Helpers
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`${tabId}-tab`).classList.remove('hidden');
+            document.querySelectorAll('.tab').forEach(el => {
+                const isActive = el.dataset.tab === tabId;
+                el.classList.toggle('text-blue-600', isActive);
+                el.classList.toggle('border-blue-500', isActive);
+                if (!isActive) {
+                    el.classList.remove('text-blue-600', 'border-blue-500');
+                    el.classList.add('text-slate-500');
+                }
+            });
+        }
+
+        function showNotification(message, type = 'info') {
+            const notif = document.createElement('div');
+            notif.className = `notification ${type}`;
+            notif.innerText = message;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 3000);
+        }
+
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification('Copiado!', 'success');
+            }).catch(() => {
+                showNotification('Falha ao copiar.', 'error');
+            });
+        }
+
+        function copyResultToClipboard(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification('Copiado!', 'success');
+            }).catch(() => {
+                showNotification('Falha ao copiar.', 'error');
+            });
+        }
+
+        // Dilution Calculator
+        document.getElementById('calc-dilution').addEventListener('click', () => {
+            const c1 = parseFloat(document.getElementById('dilution-c1').value);
+            const c2 = parseFloat(document.getElementById('dilution-c2').value);
+            const v2 = parseFloat(document.getElementById('dilution-v2').value);
+            const c1Unit = document.getElementById('dilution-c1-unit').value;
+            const c2Unit = document.getElementById('dilution-c2-unit').value;
+            const v2Unit = document.getElementById('dilution-v2-unit').value;
+
+            if (!c1 || !c2 || !v2) {
+                showNotification('Preencha todos os campos.', 'error');
+                return;
+            }
+
+            // Unit conversion factors
+            const concFactors = {
+                'M': 1, 'mM': 1e-3, 'µM': 1e-6, 'nM': 1e-9,
+                'ng/µL': 1e-6, 'µg/µL': 1e-3, 'mg/mL': 1, '%': 10 // Approximate for % w/v
+            };
+            const volFactors = { 'µL': 1e-3, 'mL': 1, 'L': 1000 };
+
+            const c1Factor = concFactors[c1Unit] || 1;
+            const c2Factor = concFactors[c2Unit] || 1;
+            const v2Factor = volFactors[v2Unit] || 1;
+
+            const v1 = (c2 * c2Factor * v2 * v2Factor) / (c1 * c1Factor);
+            const v1Unit = v2Unit;
+
+            document.getElementById('dilution-v1-result').innerText = `${v1.toFixed(3)} ${v1Unit}`;
+            document.getElementById('dilution-result').classList.remove('hidden');
+        });
+
+        // Reaction Planner
+        const reactionTemplates = {
+            pcr: [
+                { name: 'Template DNA', id: 'template', vol: 2, unit: 'µL' },
+                { name: 'Primer Forward', id: 'primer-f', vol: 1, unit: 'µL' },
+                { name: 'Primer Reverse', id: 'primer-r', vol: 1, unit: 'µL' },
+                { name: 'dNTPs (10 mM)', id: 'dntp', vol: 0.5, unit: 'µL' },
+                { name: 'Buffer 10X', id: 'buffer', vol: 2.5, unit: 'µL' },
+                { name: 'MgCl₂ (25 mM)', id: 'mg', vol: 1.5, unit: 'µL' },
+                { name: 'Taq Pol (5 U/µL)', id: 'taq', vol: 0.2, unit: 'µL' },
+                { name: 'Água Nuclease-free', id: 'water', vol: null, unit: 'µL', isWater: true }
+            ],
+            qpcr: [
+                { name: 'Template DNA', id: 'template', vol: 2, unit: 'µL' },
+                { name: 'Primer Forward', id: 'primer-f', vol: 0.5, unit: 'µL' },
+                { name: 'Primer Reverse', id: 'primer-r', vol: 0.5, unit: 'µL' },
+                { name: 'Master Mix 2X', id: 'master', vol: 10, unit: 'µL' },
+                { name: 'Água Nuclease-free', id: 'water', vol: null, unit: 'µL', isWater: true }
+            ],
+            digest: [
+                { name: 'DNA', id: 'dna', vol: 1, unit: 'µg' },
+                { name: 'Buffer 10X', id: 'buffer', vol: 2, unit: 'µL' },
+                { name: 'Enzima de Restrição', id: 'enzyme', vol: 1, unit: 'µL' },
+                { name: 'Água Nuclease-free', id: 'water', vol: null, unit: 'µL', isWater: true }
+            ],
+            ligation: [
+                { name: 'Insert DNA', id: 'insert', vol: 50, unit: 'ng' },
+                { name: 'Vector DNA', id: 'vector', vol: 25, unit: 'ng' },
+                { name: 'T4 DNA Ligase Buffer', id: 'buffer', vol: 2, unit: 'µL' },
+                { name: 'T4 DNA Ligase', id: 'ligase', vol: 1, unit: 'µL' },
+                { name: 'Água Nuclease-free', id: 'water', vol: null, unit: 'µL', isWater: true }
+            ]
+        };
+
+        function renderReactionFields() {
+            const type = document.getElementById('reaction-type').value;
+            const container = document.getElementById('reaction-fields');
+            if (type === 'custom') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <label>Adicione componentes personalizados (um por linha):</label>
+                        <textarea id="custom-components" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none min-h-[100px]" placeholder="Componente, Volume por reação (µL)&#10;Ex: Buffer 10X, 5"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="custom-final-vol">Volume Final por Reação (µL)</label>
+                        <input type="number" id="custom-final-vol" value="25" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                    </div>
+                `;
+                return;
+            }
+
+            const template = reactionTemplates[type] || reactionTemplates.pcr;
+            let html = '';
+            template.forEach(comp => {
+                html += `
+                    <div class="input-group">
+                        <label>${comp.name} (${comp.unit})</label>
+                        <input type="number" 
+                               id="comp-${comp.id}" 
+                               value="${comp.vol !== null ? comp.vol : ''}" 
+                               ${comp.isWater ? 'readonly placeholder="Calculado automaticamente"' : ''}
+                               class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                    </div>
+                `;
+            });
+            html += `
+                <div class="input-group">
+                    <label for="reaction-final-vol">Volume Final por Reação (µL)</label>
+                    <input type="number" id="reaction-final-vol" value="25" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-400 outline-none">
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        document.getElementById('reaction-type').addEventListener('change', renderReactionFields);
+        renderReactionFields();
+
+        document.getElementById('calc-reaction').addEventListener('click', () => {
+            const n = parseFloat(document.getElementById('reaction-count').value);
+            const type = document.getElementById('reaction-type').value;
+
+            if (type === 'custom') {
+                const customText = document.getElementById('custom-components').value;
+                const finalVol = parseFloat(document.getElementById('custom-final-vol').value) || 25;
+                const lines = customText.split('\n').filter(l => l.trim());
+                const components = [];
+                let totalVol = 0;
+
+                lines.forEach(line => {
+                    const parts = line.split(',');
+                    if (parts.length >= 2) {
+                        const name = parts[0].trim();
+                        const vol = parseFloat(parts[1]);
+                        if (!isNaN(vol)) {
+                            components.push({ name, vol });
+                            totalVol += vol;
+                        }
+                    }
+                });
+
+                const waterVol = Math.max(0, finalVol - totalVol);
+                if (waterVol > 0) {
+                    components.push({ name: 'Água Nuclease-free', vol: waterVol });
+                }
+
+                let html = '<div class="text-sm"><ul class="list-disc pl-5 space-y-1">';
+                components.forEach(comp => {
+                    html += `<li>${comp.name}: ${(comp.vol * n).toFixed(2)} µL</li>`;
+                });
+                html += `<li><strong>Total:</strong> ${(finalVol * n).toFixed(2)} µL</li></ul></div>`;
+                document.getElementById('reaction-result-content').innerHTML = html;
+                document.getElementById('reaction-result').classList.remove('hidden');
+                return;
+            }
+
+            const template = reactionTemplates[type] || reactionTemplates.pcr;
+            const finalVol = parseFloat(document.getElementById('reaction-final-vol').value) || 25;
+            let totalVol = 0;
+            const results = [];
+
+            template.forEach(comp => {
+                if (comp.isWater) return;
+                const vol = parseFloat(document.getElementById(`comp-${comp.id}`).value);
+                if (!isNaN(vol)) {
+                    totalVol += vol;
+                    results.push({ name: comp.name, vol: vol, unit: comp.unit });
+                }
+            });
+
+            const waterVol = Math.max(0, finalVol - totalVol);
+            if (waterVol > 0) {
+                results.push({ name: 'Água Nuclease-free', vol: waterVol, unit: 'µL' });
+            }
+
+            let html = '<div class="text-sm"><ul class="list-disc pl-5 space-y-1">';
+            results.forEach(comp => {
+                html += `<li>${comp.name}: ${(comp.vol * n).toFixed(2)} ${comp.unit}</li>`;
+            });
+            html += `<li><strong>Total:</strong> ${(finalVol * n).toFixed(2)} µL</li></ul></div>`;
+            document.getElementById('reaction-result-content').innerHTML = html;
+            document.getElementById('reaction-result').classList.remove('hidden');
+        });
+
+        // Tm Calculator (Improved)
+        document.getElementById('calc-tm').addEventListener('click', () => {
+            let seq = document.getElementById('primer-sequence').value.trim().toUpperCase();
+            seq = seq.replace(/[^ATGC]/g, '');
+            if (!seq) {
+                showNotification('Insira uma sequência válida (A, T, G, C).', 'error');
+                return;
+            }
+
+            const salt = parseFloat(document.getElementById('tm-salt').value) || 50;
+            const a = (seq.match(/A/g) || []).length;
+            const t = (seq.match(/T/g) || []).length;
+            const g = (seq.match(/G/g) || []).length;
+            const c = (seq.match(/C/g) || []).length;
+            const length = seq.length;
+
+            // Wallace Rule (basic)
+            let tm = 2 * (a + t) + 4 * (g + c);
+
+            // Adjust for salt concentration (simplified)
+            if (salt !== 50) {
+                tm += 16.6 * Math.log10(salt / 1000);
+            }
+
+            // Clamp realistic values
+            tm = Math.max(0, Math.min(100, tm));
+
+            document.getElementById('tm-value').innerText = tm.toFixed(1);
+            document.getElementById('tm-result').classList.remove('hidden');
+        });
+
+        // Molarity Calculator
+        document.getElementById('calc-molarity').addEventListener('click', () => {
+            const massMolar = parseFloat(document.getElementById('molar-mass').value);
+            const massGrams = parseFloat(document.getElementById('molar-mass-grams').value);
+            const volumeLiters = parseFloat(document.getElementById('molar-volume').value);
+
+            if (!massMolar || !massGrams || !volumeLiters) {
+                showNotification('Preencha todos os campos.', 'error');
+                return;
+            }
+
+            const molarity = massGrams / (massMolar * volumeLiters);
+            document.getElementById('molarity-value').innerText = molarity.toExponential(3);
+            document.getElementById('molarity-result').classList.remove('hidden');
+        });
+
+        // Buffer Calculator
+        document.getElementById('calc-buffer').addEventListener('click', () => {
+            const volume = parseFloat(document.getElementById('buffer-volume').value);
+            const ph = parseFloat(document.getElementById('buffer-ph').value);
+            const type = document.getElementById('buffer-type').value;
+
+            if (!volume || !ph) {
+                showNotification('Preencha todos os campos.', 'error');
+                return;
+            }
+
+            let html = '';
+            if (type === 'pbs') {
+                const nacl = (137 * volume) / 1000; // 137 mM
+                const kcl = (2.7 * volume) / 1000;  // 2.7 mM
+                const na2hpo4 = (10 * volume) / 1000; // 10 mM
+                const kh2po4 = (1.8 * volume) / 1000; // 1.8 mM
+                html = `
+                    <div class="text-sm">
+                        <p><strong>PBS 1X, pH ${ph.toFixed(1)}:</strong></p>
+                        <ul class="list-disc pl-5 mt-2 space-y-1">
+                            <li>NaCl: ${nacl.toFixed(3)} g</li>
+                            <li>KCl: ${kcl.toFixed(3)} g</li>
+                            <li>Na₂HPO₄: ${na2hpo4.toFixed(3)} g</li>
+                            <li>KH₂PO₄: ${kh2po4.toFixed(3)} g</li>
+                            <li>Água destilada q.s.p. ${volume} mL</li>
+                        </ul>
+                        <p class="mt-2 text-xs text-slate-600">Ajuste o pH com HCl ou NaOH se necessário.</p>
+                    </div>
+                `;
+            } else if (type === 'tris') {
+                const trisMass = (121.14 * volume * 0.01) / 1000; // 10 mM Tris
+                html = `
+                    <div class="text-sm">
+                        <p><strong>Tris-HCl ${ph.toFixed(1)}:</strong></p>
+                        <ul class="list-disc pl-5 mt-2 space-y-1">
+                            <li>Tris Base: ${trisMass.toFixed(3)} g</li>
+                            <li>Água destilada q.s.p. ${volume} mL</li>
+                        </ul>
+                        <p class="mt-2 text-xs text-slate-600">Ajuste o pH com HCl concentrado.</p>
+                    </div>
+                `;
+            } else if (type === 'hepes') {
+                const hepesMass = (238.3 * volume * 0.01) / 1000; // 10 mM HEPES
+                html = `
+                    <div class="text-sm">
+                        <p><strong>HEPES ${ph.toFixed(1)}:</strong></p>
+                        <ul class="list-disc pl-5 mt-2 space-y-1">
+                            <li>HEPES: ${hepesMass.toFixed(3)} g</li>
+                            <li>Água destilada q.s.p. ${volume} mL</li>
+                        </ul>
+                        <p class="mt-2 text-xs text-slate-600">Ajuste o pH com NaOH.</p>
+                    </div>
+                `;
+            } else if (type === 'acetate') {
+                html = `
+                    <div class="text-sm">
+                        <p><strong>Buffer Acetato ${ph.toFixed(1)}:</strong></p>
+                        <p class="mt-2">Use solução de ácido acético 0,1M e acetato de sódio 0,1M.</p>
+                        <p>Consulte tabela de Henderson-Hasselbalch para proporções exatas.</p>
+                    </div>
+                `;
+            } else if (type === 'carbonate') {
+                html = `
+                    <div class="text-sm">
+                        <p><strong>Buffer Carbonato ${ph.toFixed(1)}:</strong></p>
+                        <p class="mt-2">Use Na₂CO₃ e NaHCO₃.</p>
+                        <p>Consulte tabela de proporções para pH desejado.</p>
+                    </div>
+                `;
+            }
+
+            document.getElementById('buffer-result-content').innerHTML = html;
+            document.getElementById('buffer-result').classList.remove('hidden');
+        });
+
+        // Unit Converter
+        document.getElementById('calc-convert').addEventListener('click', () => {
+            const value = parseFloat(document.getElementById('convert-value').value);
+            const from = document.getElementById('convert-from').value;
+            const to = document.getElementById('convert-to').value;
+
+            if (isNaN(value)) {
+                showNotification('Insira um valor válido.', 'error');
+                return;
+            }
+
+            // Mass and volume conversion
+            const massUnits = { 'ng': 1e-9, 'µg': 1e-6, 'mg': 1e-3, 'g': 1, 'kg': 1e3 };
+            const volUnits = { 'µL': 1e-6, 'mL': 1e-3, 'L': 1 };
+            const concUnits = { 'M': 1, 'mM': 1e-3, 'µM': 1e-6, 'nM': 1e-9 };
+
+            let result;
+            if (massUnits[from] && massUnits[to]) {
+                result = (value * massUnits[from]) / massUnits[to];
+            } else if (volUnits[from] && volUnits[to]) {
+                result = (value * volUnits[from]) / volUnits[to];
+            } else if (concUnits[from] && concUnits[to]) {
+                result = (value * concUnits[from]) / concUnits[to];
+            } else {
+                showNotification('Conversão não suportada entre essas unidades.', 'error');
+                return;
+            }
+
+            document.getElementById('convert-value-result').innerText = result.toExponential(3);
+            document.getElementById('convert-result').classList.remove('hidden');
+        });
+
+        // Initialize
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+        });
+    </script>
+</body>
+</html>
+

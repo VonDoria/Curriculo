@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Variância (ANOVA)</title>
+    <link rel="icon" href="../assets/logoanova.png">
+    
+    <!-- Tailwind CSS para um design moderno e responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js para a criação de gráficos interativos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Plugin de anotação para o Chart.js (para a significância) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js" xintegrity="sha512-H0J3sDrqabFEHhNPQ/NotDyxIvKctw8iAnK34jGziNvMusR1GGFJ3DBYLB/V/4s/4L/uQonbRE8P3anMh3yA7w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <!-- jStat para cálculos estatísticos (ANOVA / P-Value) -->
+    <script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
+
+    <!-- Phosphor Icons para ícones -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style>
+        /* Estilos personalizados para complementar o Tailwind */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* cinza claro */
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        /* Animação suave para as abas */
+        .tab-content {
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        /* Estilo para o seletor de amostras no gráfico e na aba de amostras */
+        .sample-checkbox-list {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+        }
+
+        /* Garante que a navegação por abas seja rolável em telas pequenas */
+        .tabs-nav-container {
+            overflow-x: auto;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .tabs-nav-container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        .tabs-nav {
+            flex-wrap: nowrap;
+            white-space: nowrap;
+        }
+
+        /* Estilos para a tabela de resultados */
+        .results-table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+        .results-table th, .results-table td {
+            border-bottom: 1px solid #e2e8f0; /* slate-200 */
+        }
+        .results-table th {
+            position: sticky;
+            top: 0;
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        .results-table td:first-child, .results-table th:first-child {
+            border-left: 1px solid #e2e8f0;
+        }
+        .results-table td:last-child, .results-table th:last-child {
+            border-right: 1px solid #e2e8f0;
+        }
+        .results-table th:first-child { border-top-left-radius: 0.5rem; }
+        .results-table th:last-child { border-top-right-radius: 0.5rem; }
+        .results-table tr:last-child td:first-child { border-bottom-left-radius: 0.5rem; }
+        .results-table tr:last-child td:last-child { border-bottom-right-radius: 0.5rem; }
+        
+        /* Estilos para o accordion de amostras (da app de referência) */
+        details summary {
+            cursor: pointer;
+            list-style: none; /* Remove a seta padrão */
+        }
+        details summary::-webkit-details-marker {
+            display: none; /* Remove a seta padrão no Chrome/Safari */
+        }
+        details summary .arrow {
+            transition: transform 0.2s;
+        }
+        details[open] summary .arrow {
+            transform: rotate(90deg);
+        }
+        #donation-modal {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+        #donation-icon:hover #donation-modal {
+            opacity: 1;
+            transform: scale(1) translateX(-10px);
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="antialiased text-slate-700">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        <!-- Cabeçalho -->
+        <header class="text-center mb-8 p-6 bg-white rounded-xl shadow-md border border-slate-200">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-800 flex items-center justify-center gap-3">
+                <i class="ph-bold ph-function text-indigo-500"></i>
+                Calculadora ANOVA
+            </h1>
+            <p class="text-slate-500 mt-2">Uma ferramenta otimizada para análise estatística de variância.</p>
+        </header>
+
+        <!-- Navegação por Abas -->
+        <div class="mb-6 border-b border-slate-200 tabs-nav-container">
+            <nav class="flex -mb-px space-x-6 tabs-nav" aria-label="Tabs">
+                <button class="tab active" data-tab="tutorial">
+                    <i class="ph-bold ph-book-open"></i> Tutorial
+                </button>
+                <button class="tab" data-tab="samples">
+                    <i class="ph-bold ph-test-tube"></i> Amostras
+                </button>
+                <button class="tab" data-tab="results-anova">
+                    <i class="ph-bold ph-table"></i> Resultados & ANOVA
+                </button>
+                <button class="tab" data-tab="chart">
+                    <i class="ph-bold ph-chart-bar"></i> Gráfico
+                </button>
+            </nav>
+        </div>
+
+        <!-- Conteúdo das Abas -->
+        <main>
+            <!-- Aba de Tutorial -->
+            <div id="tutorial-tab" class="tab-content active">
+                <div class="card space-y-6">
+                    <div>
+                        <h2 class="section-title"><i class="ph-bold ph-rocket-launch text-indigo-500"></i> Guia de Início Rápido</h2>
+                        <p class="text-slate-600 mt-2">Bem-vindo(a) à Calculadora ANOVA! Esta ferramenta foi redesenhada para simplificar suas análises estatísticas.</p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <details class="bg-slate-50 p-4 rounded-lg border">
+                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
+                                <span>Passo 1: Cadastrar Amostras</span>
+                                <i class="ph ph-caret-right arrow text-xl"></i>
+                            </summary>
+                            <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
+                                <p>Na aba <strong>"Amostras"</strong>, você cadastra seus dados:</p>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>Cole seus dados (2 colunas: Identificador e Valor) na área de texto da esquerda.</li>
+                                    <li>A pré-visualização à direita é atualizada automaticamente, agrupando os valores pelo identificador.</li>
+                                    <li>Verifique se os grupos (N, Média, DP) estão corretos.</li>
+                                    <li>Clique em "Salvar Amostras" para processar. As amostras salvas aparecerão abaixo.</li>
+                                </ul>
+                            </div>
+                        </details>
+
+                        <details class="bg-slate-50 p-4 rounded-lg border">
+                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
+                                <span>Passo 2: Ver Resultados e Calcular ANOVA</span>
+                                <i class="ph ph-caret-right arrow text-xl"></i>
+                            </summary>
+                             <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
+                                <p>Na aba <strong>"Resultados & ANOVA"</strong>, você analisa os dados:</p>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>A tabela superior mostra o resumo estatístico (N, Média, DP) de cada amostra.</li>
+                                    <li>Use o campo "Buscar..." para filtrar essa tabela.</li>
+                                    <li>Use os checkboxes na primeira coluna da tabela.</li>
+                                    <li>Ao selecionar 2 ou mais amostras, a tabela ANOVA é gerada e atualizada instantaneamente abaixo.</li>
+                                </ul>
+                            </div>
+                        </details>
+                        
+                         <details class="bg-slate-50 p-4 rounded-lg border">
+                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
+                                <span>Passo 3: Gerar Gráficos Avançados</span>
+                                 <i class="ph ph-caret-right arrow text-xl"></i>
+                            </summary>
+                             <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
+                                <p>Na aba <strong>"Gráfico"</strong>, você visualiza os dados:</p>
+                                 <ul class="list-disc list-inside space-y-1">
+                                     <li>Clique em "Adicionar Conjunto" para criar um grupo de plotagem (ex: uma linha no gráfico).</li>
+                                     <li>Para cada conjunto, selecione a Métrica (Média, DP ou N).</li>
+                                     <li>Selecione as amostras que deseja plotar na ordem desejada.</li>
+                                     <li>Se você tiver exatamente 2 conjuntos de dados e a métrica "Média" selecionada, pode marcar "Exibir Significância" para ver o resultado do Teste t (*, **, ***) entre os pontos/barras.</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+                    <div class="border-t pt-6 mt-6 text-center text-slate-600">
+                        <h3 class="font-semibold text-lg text-slate-800">Uma mensagem do criador</h3>
+                        <p class="mt-2">Olá! Eu sou o Ítalo, estudante de biologia e entusiasta da ciência e da programação. Criei esta ferramenta com o objetivo de simplificar a vida de pesquisadores e estudantes, transformando uma tarefa tediosa em algo rápido e visual. Ela foi feita com muito carinho e atenção aos detalhes, pensando em como eu mesmo gostaria de analisar meus dados.</p>
+                        <p class="mt-2">Se esta ferramenta te ajudou a economizar tempo e a facilitar seu trabalho, considere apoiar o projeto. Sua contribuição me ajuda a manter a ferramenta funcionando, a desenvolver novas funcionalidades e, claro, a pagar o café que move tudo isso!</p>
+                        <div class="mt-4">
+                            <p class="font-bold text-indigo-600">Qualquer valor faz uma grande diferença. Muito obrigado!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba de Amostras -->
+            <div id="samples-tab" class="tab-content hidden">
+                <div class="card">
+                    <h2 class="section-title"><i class="ph-bold ph-pencil-line"></i> Cadastrar Amostras</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                        <!-- Lado Esquerdo: Input -->
+                        <div class="space-y-4">
+                            <div>
+                                <label for="rawDataInput" class="block text-sm font-medium text-slate-600 mb-1">Passo 1: Cole seus dados (2 colunas: Identificador e Valor)</label>
+                                <textarea id="rawDataInput" class="data-input-area min-h-[16rem]" placeholder="Ex: Controle    10.5&#10;Controle          10.2&#10;Tratamento A   15.1&#10;Tratamento A   18.5&#10;Tratamento B   11.2&#10;..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Lado Direito: Preview e Salvar -->
+                        <div class="space-y-4">
+                            <label class="block text-sm font-medium text-slate-600 mb-1">Passo 2: Pré-visualização (automática)</label>
+                            <div id="previewContainer" class="sample-checkbox-list bg-slate-50 min-h-[12rem]">
+                                <p class="text-slate-400 text-center p-4">Cole dados à esquerda...</p>
+                            </div>
+                            <button id="saveDataButton" class="btn btn-primary w-full disabled:opacity-50" disabled>
+                                <i class="ph-bold ph-save-floppy"></i> Salvar Amostras
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Lista de Amostras Salvas -->
+                    <div class="mt-8 pt-6 border-t border-slate-200">
+                        <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+                             <h3 class="text-lg font-semibold">Amostras Salvas</h3>
+                             <button id="clearAllSamplesButton" class="btn btn-secondary bg-red-500 hover:bg-red-600 text-sm">
+                                 <i class="ph-bold ph-trash"></i> Limpar Todas Amostras
+                             </button>
+                        </div>
+                        <input type="text" id="processedSamplesSearch" placeholder="Buscar amostras salvas..." class="mb-4 w-full md:w-1/3">
+                        <div id="processedSamplesList" class="mt-4 space-y-2">
+                             <p class="text-slate-500 text-center py-4">Nenhuma amostra salva.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba de Resultados & ANOVA -->
+            <div id="results-anova-tab" class="tab-content hidden">
+                <div class="card">
+                    <!-- Tabela de Resultados Descritivos -->
+                    <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+                         <h2 class="section-title mb-0"><i class="ph-bold ph-presentation-chart"></i> Resultados Descritivos</h2>
+                         <button id="copyResultsButton" class="btn btn-secondary">
+                             <i class="ph-bold ph-copy"></i> Copiar Tabela
+                         </button>
+                    </div>
+                    <p class="text-slate-600 -mt-4 mb-4">Selecione 2 ou mais amostras na tabela abaixo para calcular a ANOVA.</p>
+                    <input type="text" id="resultsSearchInput" placeholder="Buscar amostra na tabela..." class="mb-4 w-full md:w-1/3">
+                    <div id="resultsTableContainer" class="overflow-x-auto mt-2">
+                        <!-- Tabela de Média/Desvio Padrão é inserida aqui -->
+                    </div>
+                    
+                    <!-- Tabela ANOVA -->
+                    <div id="anovaAnalysisContainer" class="mt-10 pt-6 border-t border-slate-200">
+                        <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+                            <h2 class="section-title mb-0"><i class="ph-bold ph-scales"></i> Análise de Variância (ANOVA)</h2>
+                             <button id="copyAnovaButton" class="btn btn-secondary">
+                                 <i class="ph-bold ph-copy"></i> Copiar Tabela
+                             </button>
+                        </div>
+                         <div id="anovaTableContainer" class="overflow-x-auto">
+                            <!-- Tabela ANOVA é inserida aqui -->
+                         </div>
+                         <div class="mt-4 text-sm text-slate-500">
+                            <p><strong>Significância:</strong> *** $p < 0.001$ | ** $p < 0.01$ | * $p < 0.05$ | n.s. (não significativo) $p \ge 0.05$</p>
+                         </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Aba de Gráfico -->
+            <div id="chart-tab" class="tab-content hidden">
+                 <div class="card">
+                    <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
+                        <h2 class="section-title mb-0"><i class="ph-bold ph-chart-bar"></i> Construtor de Gráfico Comparativo</h2>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" id="showSignificanceCheckbox" class="h-5 w-5 rounded text-indigo-600">
+                            <span class="font-medium text-slate-700">Exibir Significância (Teste t)</span>
+                        </label>
+                    </div>
+
+                    <div class="flex flex-col gap-6 mb-6">
+                        <div class="flex-1">
+                            <label class="font-semibold mb-2 block">1. Selecione o tipo de gráfico:</label>
+                            <div id="chartTypeSelect" class="flex space-x-2">
+                                <button data-type="bar" class="chart-type-btn active"><i class="ph-bold ph-chart-bar"></i> Barras</button>
+                                <button data-type="line" class="chart-type-btn"><i class="ph-bold ph-chart-line"></i> Linhas</button>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-2">
+                            <label class="font-semibold mb-2 block">2. Monte os conjuntos de amostras para comparação:</label>
+                            <div id="datasetSelectorsContainer" class="space-y-4 md:space-y-0 md:flex md:flex-wrap md:items-stretch md:gap-4">
+                                <!-- Seletores de dataset serão inseridos aqui -->
+                            </div>
+                            <button id="addDatasetBtn" class="btn btn-secondary mt-4 text-sm">
+                                <i class="ph-bold ph-plus"></i> Adicionar Conjunto de Amostras
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-2 sm:p-4 rounded-lg mt-4" style="min-height: 400px; position: relative;">
+                        <canvas id="resultsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Container para Alertas -->
+        <div id="alertsContainer" class="fixed bottom-24 sm:bottom-5 right-5 w-full max-w-xs sm:max-w-sm space-y-3 z-50"></div>
+        <div id="donation-icon" class="fixed bottom-5 right-5 group">
+            <div id="donation-modal" class="absolute bottom-full right-0 mb-2 w-72 bg-white p-4 rounded-lg shadow-lg opacity-0 transform scale-95 pointer-events-none origin-bottom-right">
+                <h4 class="font-bold text-slate-800">Gostou da ferramenta?</h4>
+                <p class="text-sm text-slate-600 mt-1">Seu apoio ajuda a manter este projeto vivo e crescendo. Que tal pagar um café para o dev?</p>
+                <p class="text-center font-bold text-indigo-600 mt-2">PIX: <span class="select-all">italo.faria0@gmail.com</span></p>
+            </div>
+            <button class="w-10 h-10 bg-indigo-500 text-white rounded-full flex items-center justify-center shadow-lg transform transition-transform group-hover:scale-110">
+                <i class="ph-bold ph-coffee text-2xl"></i>
+            </button>
+        </div>
+        <!-- Barra de Armazenamento -->
+        <footer class="mt-8">
+            <div class="bg-white p-3 rounded-xl shadow-md border border-slate-200">
+                <div class="w-full bg-slate-200 rounded-full h-2.5">
+                    <div id="storageProgress" class="bg-indigo-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-slate-500 mt-2">
+                    <span>Uso do Armazenamento Local</span>
+                    <span id="storageInfo">0% (0 KB / 5 MB)</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Script principal da aplicação -->
+    <script>
+        // --- ESTILOS GLOBAIS (Baseado no app de referência) ---
+        const cardStyle = 'bg-white p-4 md:p-6 rounded-xl shadow-md border border-slate-200';
+        const inputStyle = 'w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition';
+        const btnBase = 'px-4 py-2.5 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition duration-200 ease-in-out transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none';
+        const btnPrimary = `${btnBase} bg-indigo-500 hover:bg-indigo-600 shadow-sm`;
+        const btnSecondary = `${btnBase} bg-slate-500 hover:bg-slate-600 shadow-sm`;
+        const tabStyle = 'py-4 px-3 border-b-2 font-medium text-sm transition-colors duration-200 flex items-center gap-2';
+        const tabActiveStyle = 'border-indigo-500 text-indigo-600';
+        const tabInactiveStyle = 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300';
+        
+        // Aplica estilos dinamicamente
+        function applyBaseStyles() {
+            document.querySelectorAll('.card').forEach(el => { el.className = cardStyle });
+            document.querySelectorAll('input[type="text"], input[type="number"], select, textarea').forEach(el => { 
+                if (!el.className.includes('chart-type-btn') && !el.className.includes('chart-sample-checkbox') && !el.className.includes('anova-select-checkbox')) {
+                    el.className = `${inputStyle} ${el.className.includes('data-input-area') ? 'data-input-area min-h-[16rem]' : ''}`;
+                }
+            });
+            document.querySelectorAll('.btn-primary').forEach(el => { el.className = `${el.className.replace(btnPrimary, '')} ${btnPrimary}` });
+            document.querySelectorAll('.btn-secondary').forEach(el => { el.className = `${el.className.replace(btnSecondary, '')} ${btnSecondary}` });
+            document.querySelectorAll('.tab').forEach(el => { el.className = `tab ${el.classList.contains('active') ? 'active ' : ''}${tabStyle} ${el.classList.contains('active') ? tabActiveStyle : tabInactiveStyle}` });
+            document.querySelectorAll('.chart-type-btn').forEach(el => { el.className = `${el.className.replace(/w-full text-sm.*$/, '')} w-full text-sm ${btnBase} ${el.classList.contains('active') ? 'bg-indigo-500' : 'bg-slate-300 text-slate-700 hover:bg-slate-400'}` });
+        }
+
+        // --- ESTADO DA APLICAÇÃO E ARMAZENAMENTO ---
+        let appState = { 
+            sampleSets: [], // Formato: { id, name, parsedValues, n, mean, stdDev }
+            chartConfig: {}
+        };
+        let previewData = {}; // { "Amostra 1": [1, 2, 3], "Amostra 2": [4, 5, 6] }
+        let anovaSelection = new Set(); // Contém os IDs das amostras selecionadas para ANOVA
+        let resultsChart = null;
+        let datasetCount = 0;
+
+
+        function showAlert(message, type = 'info') {
+            const icons = { success: '<i class="ph-bold ph-check-circle text-xl"></i>', error: '<i class="ph-bold ph-x-circle text-xl"></i>', info: '<i class="ph-bold ph-info text-xl"></i>' };
+            const colors = { success: 'bg-green-100 text-green-800 border-green-300', error: 'bg-red-100 text-red-800 border-red-300', info: 'bg-blue-100 text-blue-800 border-blue-300' };
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `flex items-center gap-4 p-4 rounded-lg shadow-lg border ${colors[type]} transform transition-all duration-300 translate-x-full opacity-0`;
+            alertDiv.innerHTML = `${icons[type]}<span>${message}</span>`;
+            document.getElementById('alertsContainer').appendChild(alertDiv);
+            setTimeout(() => alertDiv.classList.remove('translate-x-full', 'opacity-0'), 10);
+            setTimeout(() => {
+                alertDiv.classList.add('opacity-0', 'translate-x-full');
+                setTimeout(() => alertDiv.remove(), 300);
+            }, 5000);
+        }
+
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        function updateStorageBar() {
+            try {
+                const dataStr = JSON.stringify(localStorage);
+                const sizeInBytes = new Blob([dataStr]).size;
+                const totalSize = 5 * 1024 * 1024; // 5MB
+                const usedPercent = Math.min(100, (sizeInBytes / totalSize) * 100);
+                document.getElementById('storageProgress').style.width = `${usedPercent}%`;
+                document.getElementById('storageInfo').textContent = `${usedPercent.toFixed(1)}% (${formatBytes(sizeInBytes, 0)} / ${formatBytes(totalSize, 0)})`;
+            } catch (e) {
+                console.warn("Não foi possível calcular o uso de armazenamento.");
+            }
+        }
+
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('anovaData', JSON.stringify(appState));
+                updateStorageBar();
+            } catch (e) {
+                showAlert('Erro ao salvar: Limite de armazenamento excedido.', 'error');
+            }
+        }
+
+        function loadFromLocalStorage() {
+            const data = localStorage.getItem('anovaData');
+            if (data) {
+                try {
+                    const parsed = JSON.parse(data);
+                    if (parsed && Array.isArray(parsed.sampleSets)) {
+                        appState.sampleSets = parsed.sampleSets || [];
+                        appState.chartConfig = parsed.chartConfig || {};
+                    }
+                } catch (e) {
+                    console.error("Erro ao ler dados do localStorage.", e);
+                    appState = { sampleSets: [], chartConfig: {} };
+                }
+            }
+            renderAll();
+            updateStorageBar();
+        }
+
+        // --- RENDERIZAÇÃO PRINCIPAL ---
+
+        function renderAll() {
+            const resultsFilter = document.getElementById('resultsSearchInput')?.value || '';
+            renderProcessedSamplesList();
+            renderResultsTable(resultsFilter);
+            initializeChartSelectors(); // Isso também chama renderChart()
+            applyBaseStyles(); 
+            runAnovaCalculation(); // Atualiza a tabela ANOVA
+        }
+
+        // --- ABA 1: AMOSTRAS (Workflow Novo) ---
+
+        function parseValues(rawText) {
+            if (!rawText) return [];
+            const textWithDots = rawText.replace(/,/g, '.');
+            const numbers = textWithDots.match(/-?\d+(\.\d+)?/g);
+            if (!numbers) return [];
+            return numbers.map(parseFloat).filter(n => !isNaN(n));
+        }
+
+        function parseAndPreviewData() {
+            const text = document.getElementById('rawDataInput').value;
+            const lines = text.split('\n').filter(Boolean);
+            const saveDataButton = document.getElementById('saveDataButton');
+            
+            previewData = {}; // Reseta a pré-visualização
+            let parsingErrors = 0;
+            
+            lines.forEach(line => {
+                const parts = line.split(/\s+/); // Divide por tab ou espaços
+                if (parts.length < 2) return;
+
+                const valueStr = parts.pop(); // Pega o último elemento como valor
+                const name = parts.join(' '); // Junta o resto como nome
+                const value = parseValues(valueStr)[0]; // Usa parseValues para tratar vírgula e extrair número
+                
+                if (name && !isNaN(value)) {
+                    if (!previewData[name]) {
+                        previewData[name] = [];
+                    }
+                    previewData[name].push(value);
+                } else {
+                    parsingErrors++;
+                }
+            });
+
+            renderPreview();
+            
+            if (Object.keys(previewData).length > 0) {
+                saveDataButton.disabled = false;
+                if (parsingErrors > 0) {
+                    showAlert(`${parsingErrors} linhas não puderam ser lidas.`, 'info');
+                }
+            } else {
+                saveDataButton.disabled = true;
+            }
+        }
+        
+        function renderPreview() {
+            const container = document.getElementById('previewContainer');
+            container.innerHTML = '';
+            
+            if (Object.keys(previewData).length === 0) {
+                container.innerHTML = '<p class="text-slate-400 text-center p-4">Cole dados à esquerda...</p>';
+                return;
+            }
+
+            Object.entries(previewData).forEach(([name, values]) => {
+                const stats = calculateStatistics(values);
+                const isExisting = appState.sampleSets.some(s => s.name === name);
+                
+                container.innerHTML += `
+                    <div class="p-2.5 rounded-lg ${isExisting ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-200'} border">
+                        <p class="font-semibold text-sm text-slate-800">${name}</p>
+                        <p class="text-xs text-slate-500">N=${stats.n} | Média=${stats.mean.toFixed(4)} | DP=${stats.stdDev.toFixed(4)}</p>
+                        ${isExisting ? '<p class="text-xs font-semibold text-amber-600">Amostra já existe e será sobrescrita.</p>' : ''}
+                    </div>
+                `;
+            });
+        }
+        
+        function savePreviewData() {
+            if (Object.keys(previewData).length === 0) {
+                showAlert('Nada para salvar. Pré-visualize os dados primeiro.', 'error');
+                return;
+            }
+
+            let newCount = 0;
+            let updateCount = 0;
+
+            Object.entries(previewData).forEach(([name, values]) => {
+                const stats = calculateStatistics(values);
+                const existingSample = appState.sampleSets.find(s => s.name === name);
+                
+                if (existingSample) {
+                    // Atualiza amostra existente
+                    existingSample.parsedValues = values;
+                    existingSample.n = stats.n;
+                    existingSample.mean = stats.mean;
+                    existingSample.stdDev = stats.stdDev;
+                    updateCount++;
+                } else {
+                    // Adiciona nova amostra
+                    appState.sampleSets.push({
+                        id: Date.now() + newCount, // Garante ID único
+                        name: name,
+                        parsedValues: values,
+                        n: stats.n,
+                        mean: stats.mean,
+                        stdDev: stats.stdDev
+                    });
+                    newCount++;
+                }
+            });
+
+            // Limpa a interface
+            previewData = {};
+            document.getElementById('rawDataInput').value = '';
+            document.getElementById('saveDataButton').disabled = true;
+            renderPreview(); // Limpa o container de preview
+            
+            showAlert(`${newCount} amostra(s) salva(s), ${updateCount} amostra(s) atualizada(s).`, 'success');
+            renderAll(); // Atualiza todas as tabelas e gráficos
+            saveToLocalStorage();
+        }
+
+        function renderProcessedSamplesList(filter = '') {
+             const list = document.getElementById('processedSamplesList');
+             list.innerHTML = '';
+             const lowerCaseFilter = filter.toLowerCase();
+
+             const filteredSamples = appState.sampleSets.filter(s => s.name.toLowerCase().includes(lowerCaseFilter));
+
+             if (filteredSamples.length === 0) {
+                 list.innerHTML = `<p class="text-slate-500 text-center py-4">Nenhuma amostra encontrada${filter ? ' para "' + filter + '"' : ''}.</p>`;
+                 return;
+             }
+             
+             filteredSamples.forEach(set => {
+                 const details = document.createElement('details');
+                 details.className = 'bg-slate-50 border border-slate-200 rounded-lg';
+                 details.innerHTML = `
+                    <summary class="p-3 font-semibold text-slate-800 flex justify-between items-center">
+                        <span>${set.name} (N=${set.n} | Média=${set.mean.toFixed(4)})</span>
+                        <div class="flex items-center gap-2">
+                             <button class="text-red-500 hover:text-red-700 text-sm p-1" data-id="${set.id}">
+                                <i class="ph-bold ph-trash"></i>
+                             </button>
+                             <i class="ph ph-caret-right arrow text-slate-500 text-lg"></i>
+                        </div>
+                    </summary>
+                    <div class="p-3 border-t border-slate-200 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 text-sm">
+                    ${set.parsedValues.map(val => `<span class="bg-white p-1 text-center rounded border border-slate-200">${val.toFixed(4)}</span>`).join('')}
+                    </div>`;
+                 
+                 // Adiciona evento de remoção
+                 details.querySelector('button').addEventListener('click', (e) => {
+                     e.preventDefault(); // Impede que o details abra/feche
+                     removeSampleSet(set.id);
+                 });
+                 
+                 list.appendChild(details);
+             });
+        }
+
+        function removeSampleSet(id) {
+            if (confirm("Tem certeza que deseja excluir esta amostra?")) {
+                const setToRemove = appState.sampleSets.find(s => s.id === id);
+                if (!setToRemove) return;
+                
+                const sampleName = setToRemove.name;
+                appState.sampleSets = appState.sampleSets.filter(set => set.id !== id);
+                
+                // Remove dos gráficos
+                Object.keys(appState.chartConfig).forEach(key => {
+                    const index = appState.chartConfig[key].selectedSamples.indexOf(sampleName);
+                    if (index > -1) {
+                        appState.chartConfig[key].selectedSamples.splice(index, 1);
+                    }
+                });
+                
+                // Remove da seleção ANOVA
+                anovaSelection.delete(id);
+                
+                showAlert('Conjunto de amostra removido.', 'success');
+                renderAll();
+                saveToLocalStorage();
+            }
+        }
+        
+        function clearAllSamples() {
+             if (confirm("TEM CERTEZA?\nIsso irá apagar TODAS as amostras salvas, dados da ANOVA e configurações de gráfico.")) {
+                appState = { sampleSets: [], chartConfig: {} };
+                previewData = {};
+                anovaSelection.clear();
+                
+                // Limpa UI
+                document.getElementById('rawDataInput').value = '';
+                renderPreview();
+                
+                showAlert('Todos os dados foram limpos.', 'success');
+                renderAll();
+                saveToLocalStorage();
+             }
+        }
+        
+        function calculateStatistics(values) {
+            if (!values || values.length === 0) return { n: 0, mean: 0, stdDev: 0 };
+            const n = values.length;
+            const mean = values.reduce((a, b) => a + b) / n;
+            if (n < 2) return { n, mean, stdDev: 0 };
+            const stdDev = Math.sqrt(values.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / (n - 1));
+            return { n, mean, stdDev };
+        }
+
+        // --- ABA 2: RESULTADOS & ANOVA ---
+        
+        function renderResultsTable(filter = '') {
+            const container = document.getElementById('resultsTableContainer');
+            const lowerCaseFilter = filter.toLowerCase();
+            const filteredSets = appState.sampleSets.filter(s => s.name.toLowerCase().includes(lowerCaseFilter));
+
+            if (filteredSets.length === 0) {
+                container.innerHTML = `<p class="text-slate-500 text-center py-4">Nenhum resultado para mostrar${filter ? ' para "' + filter + '"' : ''}. Cadastre amostras primeiro.</p>`;
+                return;
+            }
+
+            let table = '<table class="results-table" id="descResultsTable"><thead>';
+            table += '<tr class="bg-slate-100">';
+            table += '<th class="p-3 w-12 text-center text-sm font-semibold text-slate-600 uppercase tracking-wider"><i class="ph-bold ph-scales"></i></th>';
+            table += '<th class="p-3 text-left text-sm font-semibold text-slate-600 uppercase tracking-wider">Conjunto de Amostra</th>';
+            table += '<th class="p-3 text-center text-sm font-semibold text-slate-600 uppercase tracking-wider">N (Contagem)</th>';
+            table += '<th class="p-3 text-center text-sm font-semibold text-slate-600 uppercase tracking-wider">Média</th>';
+            table += '<th class="p-3 text-center text-sm font-semibold text-slate-600 uppercase tracking-wider">Desvio Padrão</th></tr></thead>';
+            
+            table += '<tbody>';
+            filteredSets.forEach(set => {
+                const isChecked = anovaSelection.has(set.id);
+                table += `<tr class="border-b border-slate-200 hover:bg-slate-50">
+                            <td class="p-3 text-center">
+                                <input type="checkbox" class="anova-select-checkbox h-5 w-5 rounded text-indigo-600" data-id="${set.id}" ${isChecked ? 'checked' : ''}>
+                            </td>
+                            <td class="p-3 font-semibold text-slate-800">${set.name}</td>
+                            <td class="p-3 text-center">${set.n}</td>
+                            <td class="p-3 text-center">${set.mean.toFixed(4)}</td>
+                            <td class="p-3 text-center">${set.stdDev.toFixed(4)}</td>
+                          </tr>`;
+            });
+            table += '</tbody></table>';
+            container.innerHTML = table;
+            
+            // Adiciona event listeners aos novos checkboxes
+            container.querySelectorAll('.anova-select-checkbox').forEach(cb => {
+                cb.addEventListener('change', handleAnovaSelectionChange);
+            });
+        }
+        
+        function handleAnovaSelectionChange(event) {
+            const id = parseInt(event.target.dataset.id);
+            const isChecked = event.target.checked;
+            
+            if (isChecked) {
+                anovaSelection.add(id);
+            } else {
+                anovaSelection.delete(id);
+            }
+            // Recalcula ANOVA imediatamente
+            runAnovaCalculation();
+        }
+
+        function copyTableToClipboard(tableId) {
+            const table = document.getElementById(tableId);
+            if (!table) {
+                showAlert('Nenhuma tabela encontrada para copiar.', 'info');
+                return;
+            }
+            
+            let text = '';
+            table.querySelectorAll('thead tr').forEach(row => {
+                const rowData = [];
+                row.querySelectorAll('th').forEach(th => {
+                    if (th.innerText && !th.querySelector('i')) { // Não copia a coluna de checkbox
+                         rowData.push(th.innerText);
+                    }
+                });
+                text += rowData.join('\t') + '\n';
+            });
+            table.querySelectorAll('tbody tr').forEach(row => {
+                const rowData = [];
+                row.querySelectorAll('td').forEach(td => {
+                    if (td.innerText && !td.querySelector('input')) { // Não copia a coluna de checkbox
+                        rowData.push(td.innerText);
+                    }
+                });
+                text += rowData.join('\t') + '\n';
+            });
+
+            navigator.clipboard.writeText(text).then(() => {
+                showAlert('Tabela copiada para a área de transferência!', 'success');
+            }, () => {
+                showAlert('Falha ao copiar a tabela.', 'error');
+            });
+        }
+
+        function runAnovaCalculation() {
+            const uniqueIds = Array.from(anovaSelection);
+            
+            if (uniqueIds.length < 2) {
+                renderAnovaTable(null); // Limpa a tabela se menos de 2 grupos
+                return;
+            }
+
+            const data = uniqueIds.map(id => {
+                const set = appState.sampleSets.find(set => set.id === id);
+                return set ? set.parsedValues : [];
+            }).filter(arr => arr.length > 0);
+            
+            if (data.length < 2) {
+                 renderAnovaTable(null); // Não há dados suficientes
+                 return;
+            }
+            
+            if (data.some(arr => arr.length < 2)) {
+                 renderAnovaTable(null, "Cada grupo selecionado deve ter pelo menos 2 valores.");
+                 return;
+            }
+
+            try {
+                const k = data.length; // Número de grupos
+                const allValues = [].concat(...data);
+                const N = allValues.length; // Número total de observações
+                const grandMean = jStat.mean(allValues);
+                
+                const SQ_entre = data.reduce((sum, group) => {
+                    return sum + group.length * Math.pow(jStat.mean(group) - grandMean, 2);
+                }, 0);
+                const gl_entre = k - 1;
+                const QM_entre = (gl_entre === 0) ? 0 : SQ_entre / gl_entre;
+
+                const SQ_dentro = data.reduce((sum, group) => {
+                    const mean = jStat.mean(group);
+                    const groupSumSq = group.reduce((ss, val) => ss + Math.pow(val - mean, 2), 0);
+                    return sum + groupSumSq;
+                }, 0);
+                const gl_dentro = N - k;
+                const QM_dentro = (gl_dentro === 0) ? 0 : SQ_dentro / gl_dentro;
+                
+                const SQ_total = SQ_entre + SQ_dentro;
+                const gl_total = N - 1;
+                
+                const F = (QM_dentro === 0) ? 0 : QM_entre / QM_dentro;
+                const pValue = (F === 0 && QM_dentro === 0) ? 1 : 1 - jStat.centralF.cdf(F, gl_entre, gl_dentro);
+
+                const anovaResults = {
+                    entre: { sq: SQ_entre, gl: gl_entre, qm: QM_entre },
+                    dentro: { sq: SQ_dentro, gl: gl_dentro, qm: QM_dentro },
+                    total: { sq: SQ_total, gl: gl_total },
+                    F: F,
+                    p: pValue
+                };
+                renderAnovaTable(anovaResults);
+
+            } catch (error) {
+                console.error("Erro ao calcular ANOVA:", error);
+                renderAnovaTable(null, "Erro ao calcular ANOVA. Verifique os dados.");
+            }
+        }
+        
+        function getSignificance(p) {
+            if (p === null || isNaN(p)) return '';
+            if (p < 0.001) return '***';
+            if (p < 0.01) return '**';
+            if (p < 0.05) return '*';
+            return 'n.s.';
+        }
+
+        function renderAnovaTable(results, message = "Selecione 2 ou mais grupos para calcular.") {
+            const container = document.getElementById('anovaTableContainer');
+            if (!results) {
+                container.innerHTML = `<p class="text-slate-500 text-center py-4">${message}</p>`;
+                return;
+            }
+            
+            const significance = getSignificance(results.p);
+
+            let table = '<table class="results-table" id="anovaResultsTable"><thead>';
+            table += '<tr class="bg-slate-100"><th class="p-3 text-left text-sm font-semibold text-slate-600 uppercase tracking-wider">Fonte da Variação</th>';
+            table += '<th class="p-3 text-center text-sm font-semibold text-slate-600 uppercase tracking-wider">Soma dos Quadrados (SQ)</th>';
+            table += '<th class="p-3 text-center text-sm font-semibold text-slate-600 uppercase tracking-wider">g.l.</th>';
+            table += '<th class="p-3 text-center text-sm font-semibold text-slate-600 uppercase tracking-wider">Quadrado Médio (QM)</th>';
+            table += '<th class="p-3 text-center text-sm font-semibold text-slate-600 uppercase tracking-wider">F</th>';
+            table += '<th class="p-3 text-center text-sm font-semibold text-slate-600 uppercase tracking-wider">P-valor</th>';
+            table += '<th class="p-3 text-center text-sm font-semibold text-slate-600 uppercase tracking-wider">Sig.</th></tr></thead>';
+            
+            table += '<tbody>';
+            table += `<tr class="border-b border-slate-200 hover:bg-slate-50">
+                        <td class="p-3 font-semibold text-slate-800">Entre Grupos</td>
+                        <td class="p-3 text-center">${results.entre.sq.toFixed(4)}</td>
+                        <td class="p-3 text-center">${results.entre.gl}</td>
+                        <td class="p-3 text-center">${results.entre.qm.toFixed(4)}</td>
+                        <td class="p-3 text-center font-bold">${results.F.toFixed(4)}</td>
+                        <td class="p-3 text-center">${results.p < 0.0001 ? results.p.toExponential(4) : results.p.toFixed(4)}</td>
+                        <td class="p-3 text-center font-bold">${significance}</td>
+                      </tr>`;
+            table += `<tr class="border-b border-slate-200 hover:bg-slate-50">
+                        <td class="p-3 font-semibold text-slate-800">Dentro dos Grupos</td>
+                        <td class="p-3 text-center">${results.dentro.sq.toFixed(4)}</td>
+                        <td class="p-3 text-center">${results.dentro.gl}</td>
+                        <td class="p-3 text-center">${results.dentro.qm.toFixed(4)}</td>
+                        <td class="p-3 text-center">-</td>
+                        <td class="p-3 text-center">-</td>
+                        <td class="p-3 text-center">-</td>
+                      </tr>`;
+            table += `<tr class="border-b border-slate-200 hover:bg-slate-50">
+                        <td class="p-3 font-semibold text-slate-800">Total</td>
+                        <td class="p-3 text-center">${results.total.sq.toFixed(4)}</td>
+                        <td class="p-3 text-center">${results.total.gl}</td>
+                        <td class="p-3 text-center">-</td>
+                        <td class="p-3 text-center">-</td>
+                        <td class="p-3 text-center">-</td>
+                        <td class="p-3 text-center">-</td>
+                      </tr>`;
+            table += '</tbody></table>';
+            container.innerHTML = table;
+        }
+
+        function calculateTTest(data) {
+            try {
+                const k = data.length; // Número de grupos
+                const allValues = [].concat(...data);
+                const N = allValues.length; // Número total de observações
+                const grandMean = jStat.mean(allValues);
+                
+                const SQ_entre = data.reduce((sum, group) => {
+                    return sum + group.length * Math.pow(jStat.mean(group) - grandMean, 2);
+                }, 0);
+                const gl_entre = k - 1;
+                const QM_entre = (gl_entre === 0) ? 0 : SQ_entre / gl_entre;
+
+                const SQ_dentro = data.reduce((sum, group) => {
+                    const mean = jStat.mean(group);
+                    const groupSumSq = group.reduce((ss, val) => ss + Math.pow(val - mean, 2), 0);
+                    return sum + groupSumSq;
+                }, 0);
+                const gl_dentro = N - k;
+                const QM_dentro = (gl_dentro === 0) ? 0 : SQ_dentro / gl_dentro;
+                
+                const SQ_total = SQ_entre + SQ_dentro;
+                const gl_total = N - 1;
+                
+                const F = (QM_dentro === 0) ? 0 : QM_entre / QM_dentro;
+                const pValue = (F === 0 && QM_dentro === 0) ? 1 : 1 - jStat.centralF.cdf(F, gl_entre, gl_dentro);
+
+                return pValue;
+            } catch (e) {
+                console.error("Erro ao calcular Teste t:", e);
+                return null;
+            }
+        }
+        
+        // Plugin customizado do Chart.js para desenhar a significância
+        const significancePlugin = {
+            id: 'significanceAnnotation',
+            afterDatasetsDraw(chart, args, options) {
+                const { ctx, data, scales: { x, y } } = chart;
+                const showSignificance = document.getElementById('showSignificanceCheckbox')?.checked;
+                
+                const datasetsConfig = Object.values(appState.chartConfig);
+                const twoMeanDatasets = datasetsConfig.length === 2 && datasetsConfig.every(ds => ds.metric === 'mean');
+
+                if (!showSignificance || !twoMeanDatasets) {
+                    return;
+                }
+
+                ctx.save();
+                ctx.font = 'bold 14px Inter';
+                ctx.fillStyle = '#1e293b'; // slate-800
+                ctx.textAlign = 'center';
+                
+                const meta1 = chart.getDatasetMeta(0);
+                const meta2 = chart.getDatasetMeta(1);
+
+                for (let i = 0; i < data.labels.length; i++) {
+                    
+                    const sampleName1 = datasetsConfig[0].selectedSamples[i];
+                    const sampleName2 = datasetsConfig[1].selectedSamples[i];
+                    
+                    // Se ambos os datasets têm uma amostra nesta posição X
+                    if (sampleName1 && sampleName2) {
+                        const set1 = appState.sampleSets.find(s => s.name === sampleName1);
+                        const set2 = appState.sampleSets.find(s => s.name === sampleName2);
+
+                        if (set1 && set2) {
+                            const pValue = calculateTTest(appState.sampleSets.filter(s => s.name == sampleName1 || s.name == sampleName2).map(s => s.parsedValues));
+                            
+                            const significance = getSignificance(pValue);
+                            
+                            if (significance === 'n.s.') continue; // Não desenha 'n.s.'
+
+                            const data1 = meta1.data[i];
+                            const data2 = meta2.data[i];
+                            
+                            // Encontra o ponto/barra mais alto
+                            const yPos1 = data1.y;
+                            const yPos2 = data2.y;
+                            const xPos1 = data1.x;
+                            const xPos2 = data2.x;
+                            
+                            // Posição Y 20px acima do ponto/barra mais alto
+                            const yPos = Math.min(yPos1, yPos2) - 20;
+                            
+                            // Posição X central entre as duas barras/pontos
+                            const xPos = (xPos1 + xPos2) / 2;
+                            
+                            // Desenha a linha horizontal
+                            ctx.beginPath();
+                            ctx.moveTo(xPos1, yPos + 8);
+                            ctx.lineTo(xPos2, yPos + 8);
+                            ctx.strokeStyle = '#1e293b';
+                            ctx.lineWidth = 1.5;
+                            ctx.stroke();
+                            
+                            // Desenha o texto de significância
+                            ctx.fillText(significance, xPos, yPos);
+                        }
+                    }
+                }
+                ctx.restore();
+            }
+        };
+        // Registra o plugin
+        Chart.register(significancePlugin);
+
+
+        function initializeChartSelectors() {
+            const container = document.getElementById('datasetSelectorsContainer');
+            container.innerHTML = '';
+            
+            if (appState.sampleSets.length === 0) {
+                container.innerHTML = '<p class="text-slate-500 text-center text-sm w-full">Processe algumas amostras para começar a montar o gráfico.</p>';
+                return;
+            };
+
+            datasetCount = 0;
+            const existingKeys = Object.keys(appState.chartConfig);
+            if (existingKeys.length > 0) {
+                existingKeys.forEach(key => {
+                    const id = key.split('-').pop();
+                    datasetCount = Math.max(datasetCount, parseInt(id));
+                    addDatasetSelector(true, key);
+                });
+            } else {
+                appState.chartConfig = {};
+                addDatasetSelector(); // Adiciona o primeiro por padrão
+            }
+            renderChart();
+        }
+
+        function addDatasetSelector(isInitialization = false, existingKey = null) {
+            if (!isInitialization) datasetCount++;
+            
+            const container = document.getElementById('datasetSelectorsContainer');
+            const selectorId = existingKey || `dataset-selector-${datasetCount}`;
+            
+            if (!isInitialization || !appState.chartConfig[selectorId]) {
+                 appState.chartConfig[selectorId] = { metric: 'mean', selectedSamples: [] }; // Default p/ 'mean'
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'border border-slate-200 p-3 rounded-lg bg-slate-50 flex-1 min-w-[280px]';
+            
+            const metrics = [
+                { value: 'mean', text: 'Média' },
+                { value: 'stdDev', text: 'Desvio Padrão' },
+                { value: 'n', text: 'N (Contagem)' }
+            ];
+            let metricOptions = '';
+            metrics.forEach(m => {
+                 metricOptions += `<option value="${m.value}" ${appState.chartConfig[selectorId].metric === m.value ? 'selected' : ''}>${m.text}</option>`;
+            });
+
+            let content = `
+                <div class="flex justify-between items-center mb-2">
+                    <label class="font-semibold text-slate-700">Conjunto ${selectorId.split('-').pop()}</label>
+                    <button class="text-red-500 hover:text-red-700 text-xs" onclick="removeDatasetSelector('${selectorId}', event)">
+                        <i class="ph-bold ph-trash"></i>
+                    </button>
+                </div>
+                <div class="space-y-2">
+                    <select class="chart-metric-select w-full p-2 border border-slate-200 rounded-md text-sm" data-parent-id="${selectorId}">${metricOptions}</select>
+                    <input type="text" placeholder="Buscar amostra..." class="dataset-search-input w-full p-2 border border-slate-200 rounded-md text-sm" data-target="${selectorId}">
+                </div>
+                <div id="${selectorId}" class="sample-checkbox-list bg-white mt-2">`;
+
+            // Só permite remover se houver mais de 1
+            if (Object.keys(appState.chartConfig).length <= 1 && !isInitialization) {
+                //  wrapper.querySelector('button').remove();
+            }
+            if (existingKey && Object.keys(appState.chartConfig).length <= 1) {
+                 const button = wrapper.querySelector('button');
+                 if(button) button.remove();
+            }
+
+
+            appState.sampleSets.forEach(set => {
+                const isChecked = appState.chartConfig[selectorId].selectedSamples.includes(set.name) ? 'checked' : '';
+                content += `
+                    <label class="flex items-center space-x-2 p-1 hover:bg-slate-100 rounded cursor-pointer text-sm">
+                        <input type="checkbox" value="${set.name}" class="chart-sample-checkbox rounded" data-parent-id="${selectorId}" ${isChecked}>
+                        <span>${set.name}</span>
+                    </label>`;
+            });
+            content += '</div>';
+            wrapper.innerHTML = content;
+            wrapper.id = `${selectorId}-wrapper`;
+            container.appendChild(wrapper);
+
+            // Adiciona listeners
+            wrapper.querySelector('.chart-metric-select').addEventListener('change', handleChartMetricChange);
+            wrapper.querySelectorAll('.chart-sample-checkbox').forEach(el => el.addEventListener('change', handleChartSelectionChange));
+            wrapper.querySelector('.dataset-search-input').addEventListener('input', handleDatasetSearch);
+        }
+
+        function handleChartMetricChange(event) {
+            const select = event.target;
+            const metric = select.value;
+            const parentId = select.dataset.parentId;
+            appState.chartConfig[parentId].metric = metric;
+            renderChart();
+            saveToLocalStorage();
+        }
+
+        function handleDatasetSearch(event) {
+            const searchTerm = event.target.value.toLowerCase();
+            const targetListId = event.target.dataset.target;
+            const listContainer = document.getElementById(targetListId);
+            const labels = listContainer.querySelectorAll('label');
+            labels.forEach(label => {
+                const sampleName = label.querySelector('span').textContent.toLowerCase();
+                label.style.display = sampleName.includes(searchTerm) ? 'flex' : 'none';
+            });
+        }
+
+        function handleChartSelectionChange(event) {
+            const checkbox = event.target;
+            const sampleName = checkbox.value;
+            const parentId = checkbox.dataset.parentId;
+            
+            const selectedSamples = appState.chartConfig[parentId].selectedSamples;
+
+            if (checkbox.checked) {
+                if (!selectedSamples.includes(sampleName)) {
+                    selectedSamples.push(sampleName); // Adiciona na ordem de clique
+                }
+            } else {
+                const index = selectedSamples.indexOf(sampleName);
+                if (index > -1) {
+                    selectedSamples.splice(index, 1);
+                }
+            }
+            renderChart();
+            saveToLocalStorage();
+        }
+        
+        function removeDatasetSelector(selectorId, event) {
+            event.stopPropagation();
+            delete appState.chartConfig[selectorId];
+            const wrapper = document.getElementById(`${selectorId}-wrapper`);
+            if (wrapper) wrapper.remove();
+            
+            // Se restar apenas um, esconde o botão de remover dele
+            const container = document.getElementById('datasetSelectorsContainer');
+            if (container.children.length === 1) {
+                const button = container.querySelector('.text-red-500');
+                if(button) button.remove();
+            }
+            
+            renderChart();
+            saveToLocalStorage();
+        }
+
+        function renderChart() {
+            const chartType = document.querySelector('.chart-type-btn.active')?.dataset.type || 'bar';
+            if (resultsChart) { resultsChart.destroy(); }
+            
+            const selectorIds = Object.keys(appState.chartConfig);
+            const datasetsConfig = selectorIds.map(id => appState.chartConfig[id]);
+
+            const hasActiveSelections = datasetsConfig.some(ds => ds.selectedSamples.length > 0 && ds.metric);
+            if (!hasActiveSelections) {
+                 const ctx = document.getElementById('resultsChart').getContext('2d');
+                 ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                 ctx.font = "16px Inter, sans-serif"; ctx.fillStyle = "#64748b"; ctx.textAlign = "center";
+                 ctx.fillText("Selecione uma métrica e ao menos uma amostra para gerar o gráfico.", ctx.canvas.width / 2, 50);
+                return;
+            }
+            
+            const colors = [
+                { hex: '#4f46e5', bg: 'rgba(79, 70, 229, 0.6)', border: 'rgba(79, 70, 229, 1)' },
+                { hex: '#e11d48', bg: 'rgba(225, 29, 72, 0.6)', border: 'rgba(225, 29, 72, 1)' },
+                { hex: '#22c55e', bg: 'rgba(34, 197, 94, 0.6)', border: 'rgba(34, 197, 94, 1)' },
+                { hex: '#f97316', bg: 'rgba(249, 115, 22, 0.6)', border: 'rgba(249, 115, 22, 1)' },
+                { hex: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.6)', border: 'rgba(139, 92, 246, 1)' },
+            ];
+
+            const maxLength = Math.max(0, ...datasetsConfig.map(ds => ds.selectedSamples.length));
+            const chartLabels = [];
+            for (let i = 0; i < maxLength; i++) {
+                chartLabels.push(datasetsConfig.map(ds => ds.selectedSamples[i] || '—'));
+            }
+
+            const finalDatasets = datasetsConfig.map((config, index) => {
+                const data = [];
+                const metric = config.metric;
+                
+                for (let i = 0; i < maxLength; i++) {
+                    const sampleName = config.selectedSamples[i];
+                    if (sampleName) {
+                        const sampleSet = appState.sampleSets.find(r => r.name === sampleName);
+                        data.push(sampleSet ? sampleSet[metric] : null);
+                    } else {
+                        data.push(null);
+                    }
+                }
+                const color = colors[index % colors.length];
+                const metricLabel = {mean: 'Média', stdDev: 'Desvio Padrão', n: 'N'}[metric] || metric;
+                
+                return {
+                    label: `Conjunto ${selectorIds[index].split('-').pop()}: ${metricLabel}`, 
+                    data, 
+                    backgroundColor: color.bg, 
+                    borderColor: color.border,
+                    borderWidth: 2, 
+                    pointBackgroundColor: color.border, 
+                    pointRadius: 5,
+                    fill: chartType === 'line' ? { target: 'origin', above: color.bg.replace('0.6', '0.1') } : false,
+                    tension: 0.1
+                };
+            }).filter(Boolean);
+            
+            const ctx = document.getElementById('resultsChart').getContext('2d');
+            resultsChart = new Chart(ctx, {
+                type: chartType, 
+                data: { labels: chartLabels, datasets: finalDatasets },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            grid: { color: '#e2e8f0' },
+                            // Adiciona espaço extra no topo para a significância
+                            afterDataLimits: (scale) => {
+                                scale.max *= 1.15; // 15% de espaço extra
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                callback: function(value) { return this.getLabelForValue(value); },
+                                color: (context) => {
+                                    const labels = context.chart.data.labels[context.tick.value];
+                                    if(!Array.isArray(labels)) return '#64748b';
+                                    const firstValidLabelIndex = labels.findIndex(l => l !== '—');
+                                    return firstValidLabelIndex !== -1 ? colors[firstValidLabelIndex % colors.length].hex : '#64748b';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { 
+                            backgroundColor: '#1e293b', titleFont: { weight: 'bold' }, 
+                            bodyFont: { size: 14 }, padding: 10, cornerRadius: 8, 
+                            mode: 'index', intersect: false 
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- INICIALIZAÇÃO E NAVEGAÇÃO ---
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`${tabId}-tab`).classList.remove('hidden');
+            
+            document.querySelectorAll('.tab').forEach(el => {
+                const isTarget = el.dataset.tab === tabId;
+                el.classList.toggle('active', isTarget);
+                el.classList.remove(...(isTarget ? tabInactiveStyle.split(' ') : tabActiveStyle.split(' ')));
+                el.classList.add(...(isTarget ? tabActiveStyle.split(' ') : tabInactiveStyle.split(' ')));
+            });
+
+            // Recarregar dados que podem ter sido atualizados
+            if (tabId === 'results-anova') {
+                const filter = document.getElementById('resultsSearchInput').value;
+                renderResultsTable(filter);
+                runAnovaCalculation();
+            }
+            if (tabId === 'chart') {
+                initializeChartSelectors(); // Isso recria os seletores e renderiza o gráfico
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage(); // Carrega os dados e chama renderAll()
+            switchTab('tutorial'); // Define a aba inicial
+
+            // --- Event Listeners Globais ---
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+            });
+            
+            // Aba Amostras
+            document.getElementById('rawDataInput').addEventListener('input', parseAndPreviewData);
+            document.getElementById('saveDataButton').addEventListener('click', savePreviewData);
+            document.getElementById('processedSamplesSearch').addEventListener('input', (e) => renderProcessedSamplesList(e.target.value));
+            document.getElementById('clearAllSamplesButton').addEventListener('click', clearAllSamples);
+
+            // Aba Resultados & ANOVA
+            document.getElementById('resultsSearchInput').addEventListener('input', (e) => renderResultsTable(e.target.value));
+            document.getElementById('copyResultsButton').addEventListener('click', () => copyTableToClipboard('descResultsTable'));
+            document.getElementById('copyAnovaButton').addEventListener('click', () => copyTableToClipboard('anovaResultsTable'));
+
+            // Aba Gráfico
+            document.getElementById('addDatasetBtn').addEventListener('click', () => addDatasetSelector());
+            document.getElementById('showSignificanceCheckbox').addEventListener('change', renderChart);
+            document.querySelectorAll('.chart-type-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    // Reaplica estilos para garantir
+                    document.querySelectorAll('.chart-type-btn').forEach(b => {
+                        b.classList.remove('bg-indigo-500', 'bg-slate-300', 'text-slate-700', 'hover:bg-slate-400');
+                        b.classList.add(...(b.classList.contains('active') ? ['bg-indigo-500'] : ['bg-slate-300', 'text-slate-700', 'hover:bg-slate-400']));
+                    });
+                    renderChart();
+                });
+            });
+        });
+
+        // Funções globais para botões dinâmicos
+        window.removeSampleSet = removeSampleSet;
+        window.removeDatasetSelector = removeDatasetSelector;
+    </script>
+</body>
+</html>
+
