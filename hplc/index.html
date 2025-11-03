@@ -17,19 +17,16 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <style>
-        /* Estilos personalizados para complementar o Tailwind */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc; /* cinza claro */
         }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-        /* Animação suave para as abas */
         .tab-content {
             transition: opacity 0.3s ease-in-out;
         }
 
-        /* Estilo para o seletor de amostras no gráfico e na aba de amostras */
         .sample-checkbox-list {
             max-height: 200px;
             overflow-y: auto;
@@ -38,13 +35,12 @@
             padding: 0.75rem;
         }
         
-        /* Estilos para o accordion de amostras */
         details summary {
             cursor: pointer;
-            list-style: none; /* Remove a seta padrão */
+            list-style: none; 
         }
         details summary::-webkit-details-marker {
-            display: none; /* Remove a seta padrão no Chrome/Safari */
+            display: none; 
         }
         details summary .arrow {
             transition: transform 0.2s;
@@ -53,7 +49,6 @@
             transform: rotate(90deg);
         }
 
-        /* Garante que a navegação por abas seja rolável em telas pequenas */
         .tabs-nav-container {
             overflow-x: auto;
             -ms-overflow-style: none;  /* IE and Edge */
@@ -223,7 +218,7 @@
                     <h2 class="section-title"><i class="ph-bold ph-flask"></i> Registro de Amostras</h2>
                     <div class="mb-6">
                         <label class="font-semibold mb-2 block">Passo 1: Cole todos os dados da sua corrida de HPLC abaixo.</label>
-                        <textarea id="sampleData" class="data-input-area min-h-[12rem]" placeholder="Cole os dados brutos aqui..."></textarea>
+                        <textarea id="sampleData" class="data-input-area min-h-[12rem]" placeholder="Exemplo de formato de dado de entrada:&#10;1 Rent.Time     Área&#10;          8.578    20857&#10;          9.386   30896&#10;         11.13    49735&#10;              ..."></textarea>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start border-t pt-6">
                         <div class="space-y-4">

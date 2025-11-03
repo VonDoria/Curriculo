@@ -130,6 +130,9 @@
                 <button class="tab" data-tab="chart">
                     <i class="ph-bold ph-chart-bar"></i> Gráfico
                 </button>
+                <button class="tab" data-tab="export">
+                    <i class="ph-bold ph-file-arrow-down"></i> Resultados Salvos
+                </button>
             </nav>
         </div>
 
@@ -171,6 +174,7 @@
                                     <li>Use o campo "Buscar..." para filtrar essa tabela.</li>
                                     <li>Use os checkboxes na primeira coluna da tabela.</li>
                                     <li>Ao selecionar 2 ou mais amostras, a tabela ANOVA é gerada e atualizada instantaneamente abaixo.</li>
+                                    <li>Se o resultado for relevante, clique em "Salvar Resultado" para guardá-lo.</li>
                                 </ul>
                             </div>
                         </details>
@@ -187,6 +191,22 @@
                                      <li>Para cada conjunto, selecione a Métrica (Média, DP ou N).</li>
                                      <li>Selecione as amostras que deseja plotar na ordem desejada.</li>
                                      <li>Se você tiver exatamente 2 conjuntos de dados e a métrica "Média" selecionada, pode marcar "Exibir Significância" para ver o resultado do Teste t (*, **, ***) entre os pontos/barras.</li>
+                                </ul>
+                            </div>
+                        </details>
+
+                        <details class="bg-slate-50 p-4 rounded-lg border">
+                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
+                                <span>Passo 4: Exportar Resultados Salvos</span>
+                                 <i class="ph ph-caret-right arrow text-xl"></i>
+                            </summary>
+                             <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
+                                <p>Na aba <strong>"Resultados Salvos"</strong>, você gerencia suas análises guardadas:</p>
+                                 <ul class="list-disc list-inside space-y-1">
+                                     <li>Todos os resultados de ANOVA que você salvou aparecem aqui em uma tabela.</li>
+                                     <li>Você pode remover resultados individualmente.</li>
+                                     <li>Clique em "Exportar como CSV" para baixar um arquivo .csv de toda a tabela.</li>
+                                     <li>Clique em "Limpar Lista" para apagar todos os resultados salvos.</li>
                                 </ul>
                             </div>
                         </details>
@@ -243,31 +263,34 @@
             <!-- Aba de Resultados & ANOVA -->
             <div id="results-anova-tab" class="tab-content hidden">
                 <div class="card">
-                    <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
-                         <h2 class="section-title mb-0"><i class="ph-bold ph-presentation-chart"></i> Resultados Descritivos</h2>
-                         <button id="copyResultsButton" class="btn btn-secondary">
-                             <i class="ph-bold ph-copy"></i> Copiar Tabela
-                         </button>
-                    </div>
-                    <p class="text-slate-600 -mt-4 mb-4">Selecione 2 ou mais amostras na tabela abaixo para calcular a ANOVA.</p>
-                    <input type="text" id="resultsSearchInput" placeholder="Buscar amostra na tabela..." class="mb-4 w-full md:w-1/3">
-                    <div id="resultsTableContainer" class="overflow-x-auto mt-2">
-                        <!-- Tabela de Média/Desvio Padrão é inserida aqui -->
-                    </div>
-                    
-                    <div id="anovaAnalysisContainer" class="mt-10 pt-6 border-t border-slate-200">
+                    <div id="anovaAnalysisContainer" class="mb-10 pb-6 border-b border-slate-200">
                         <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
                             <h2 class="section-title mb-0"><i class="ph-bold ph-scales"></i> Análise de Variância (ANOVA)</h2>
-                             <button id="copyAnovaButton" class="btn btn-secondary">
-                                 <i class="ph-bold ph-copy"></i> Copiar Tabela
-                             </button>
+                             <div class="flex flex-wrap gap-2">
+                                 <button id="saveAnovaButton" class="btn btn-secondary bg-green-500 hover:bg-green-600" disabled>
+                                     <i class="ph-bold ph-bookmark-simple"></i> Salvar Resultado
+                                 </button>
+                                 <button id="copyAnovaButton" class="btn btn-secondary">
+                                     <i class="ph-bold ph-copy"></i> Copiar Tabela
+                                 </button>
+                             </div>
                         </div>
                          <div id="anovaTableContainer" class="overflow-x-auto">
                             <!-- Tabela ANOVA é inserida aqui -->
                          </div>
                          <div class="mt-4 text-sm text-slate-500">
-                            <p><strong>Significância:</strong> *** $p < 0.001$ | ** $p < 0.01$ | * $p < 0.05$ | n.s. (não significativo) $p \ge 0.05$</p>
+                            <p><strong>Significância:</strong> *** $p < 0.001$ | ** $p < 0.01$ | * $p < 0.05$ | n.s. (não significativo) $p > 0.05$</p>
                          </div>
+                    </div>
+                    <div class="flex flex-wrap justify-between items-center gap-4 mt-4">
+                         <h2 class="section-title mb-0"><i class="ph-bold ph-presentation-chart"></i> Resultados Descritivos</h2>
+                         <button id="copyResultsButton" class="btn btn-secondary">
+                             <i class="ph-bold ph-copy"></i> Copiar Tabela
+                         </button>
+                    </div>
+                    <input type="text" id="resultsSearchInput" placeholder="Buscar amostra na tabela..." class="mb-4 w-full md:w-1/3">
+                    <div id="resultsTableContainer" class="overflow-x-auto mt-2">
+                        <!-- Tabela de Média/Desvio Padrão é inserida aqui -->
                     </div>
                 </div>
             </div>
@@ -306,6 +329,27 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Aba dos Resultados Salvos -->
+            <div id="export-tab" class="tab-content hidden">
+                <div class="card">
+                    <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+                         <h2 class="section-title mb-0"><i class="ph-bold ph-archive"></i> Resultados Salvos para Exportação</h2>
+                         <div class="flex flex-wrap gap-2">
+                             <button id="exportCsvButton" class="btn btn-secondary text-sm">
+                                 <i class="ph-bold ph-file-csv"></i> Exportar como CSV
+                             </button>
+                             <button id="clearSavedAnovaButton" class="btn btn-secondary bg-red-500 hover:bg-red-600 text-sm">
+                                 <i class="ph-bold ph-trash"></i> Limpar Lista
+                             </button>
+                         </div>
+                    </div>
+                    <div id="savedAnovaTableContainer" class="overflow-x-auto mt-2">
+                        <!-- Tabela de Resultados Salvos é inserida aqui -->
+                    </div>
+                </div>
+            </div>
+
         </main>
 
         <!-- Container para Alertas -->
@@ -361,12 +405,14 @@
         // --- ESTADO DA APLICAÇÃO E ARMAZENAMENTO ---
         let appState = { 
             sampleSets: [], // Formato: { id, name, parsedValues, n, mean, stdDev }
-            chartConfig: {}
+            chartConfig: {},
+            savedAnovaResults: [] // NOVO: Armazena resultados salvos
         };
         let previewData = {}; // { "Amostra 1": [1, 2, 3], "Amostra 2": [4, 5, 6] }
         let anovaSelection = new Set(); // Contém os IDs das amostras selecionadas para ANOVA
         let resultsChart = null;
         let datasetCount = 0;
+        let currentAnovaResult = null; // NOVO: Armazena o último resultado calculado
 
 
         function showAlert(message, type = 'info') {
@@ -422,10 +468,11 @@
                     if (parsed && Array.isArray(parsed.sampleSets)) {
                         appState.sampleSets = parsed.sampleSets || [];
                         appState.chartConfig = parsed.chartConfig || {};
+                        appState.savedAnovaResults = parsed.savedAnovaResults || []; // CARREGA OS RESULTADOS SALVOS
                     }
                 } catch (e) {
                     console.error("Erro ao ler dados do localStorage.", e);
-                    appState = { sampleSets: [], chartConfig: {} };
+                    appState = { sampleSets: [], chartConfig: {}, savedAnovaResults: [] }; // INCLUI NO ESTADO PADRÃO
                 }
             }
             renderAll();
@@ -438,6 +485,7 @@
             const resultsFilter = document.getElementById('resultsSearchInput')?.value || '';
             renderProcessedSamplesList();
             renderResultsTable(resultsFilter);
+            renderSavedAnovaTable(); // NOVO: Renderiza a tabela de salvos
             initializeChartSelectors(); // Isso também chama renderChart()
             applyBaseStyles(); 
             runAnovaCalculation(); // Atualiza a tabela ANOVA
@@ -624,16 +672,22 @@
         }
         
         function clearAllSamples() {
-             if (confirm("TEM CERTEZA?\nIsso irá apagar TODAS as amostras salvas, dados da ANOVA e configurações de gráfico.")) {
-                appState = { sampleSets: [], chartConfig: {} };
+             if (confirm("TEM CERTEZA?\nIsso irá apagar TODAS as amostras salvas, dados da ANOVA e configurações de gráfico.\n\n(Os seus 'Resultados Salvos' para exportação NÃO serão apagados.)")) {
+                // Mantém os resultados salvos, limpa o resto
+                appState = { 
+                    sampleSets: [], 
+                    chartConfig: {}, 
+                    savedAnovaResults: appState.savedAnovaResults || [] 
+                };
                 previewData = {};
                 anovaSelection.clear();
+                currentAnovaResult = null; // Limpa o resultado atual
                 
                 // Limpa UI
                 document.getElementById('rawDataInput').value = '';
                 renderPreview();
                 
-                showAlert('Todos os dados foram limpos.', 'success');
+                showAlert('Todos os dados de amostras e gráficos foram limpos.', 'success');
                 renderAll();
                 saveToLocalStorage();
              }
@@ -714,7 +768,8 @@
             table.querySelectorAll('thead tr').forEach(row => {
                 const rowData = [];
                 row.querySelectorAll('th').forEach(th => {
-                    if (th.innerText && !th.querySelector('i')) { // Não copia a coluna de checkbox
+                    // Não copia a coluna de checkbox ou lixeira
+                    if (th.innerText && !th.querySelector('i.ph-scales') && !th.querySelector('i.ph-trash')) { 
                          rowData.push(th.innerText);
                     }
                 });
@@ -723,7 +778,8 @@
             table.querySelectorAll('tbody tr').forEach(row => {
                 const rowData = [];
                 row.querySelectorAll('td').forEach(td => {
-                    if (td.innerText && !td.querySelector('input')) { // Não copia a coluna de checkbox
+                    // Não copia a coluna de checkbox ou lixeira
+                    if (td.innerText && !td.querySelector('input') && !td.querySelector('button')) { 
                         rowData.push(td.innerText);
                     }
                 });
@@ -811,12 +867,23 @@
 
         function renderAnovaTable(results, message = "Selecione 2 ou mais grupos para calcular.") {
             const container = document.getElementById('anovaTableContainer');
+            const saveButton = document.getElementById('saveAnovaButton'); // Pega o botão salvar
+
             if (!results) {
                 container.innerHTML = `<p class="text-slate-500 text-center py-4">${message}</p>`;
+                saveButton.disabled = true; // Desabilita o botão
+                currentAnovaResult = null; // Limpa o resultado atual
                 return;
             }
             
             const significance = getSignificance(results.p);
+
+            // Armazena o resultado atual para a função de salvar
+            currentAnovaResult = {
+                F: results.F,
+                p: results.p,
+                significance: significance
+            };
 
             let table = '<table class="results-table" id="anovaResultsTable"><thead>';
             table += '<tr class="bg-slate-100"><th class="p-3 text-left text-sm font-semibold text-slate-600 uppercase tracking-wider">Fonte da Variação</th>';
@@ -857,7 +924,10 @@
                       </tr>`;
             table += '</tbody></table>';
             container.innerHTML = table;
+            saveButton.disabled = false; // Habilita o botão de salvar
         }
+
+        // --- ABA 3: GRÁFICO ---
 
         function calculateTTest(data) {
             try {
@@ -1213,6 +1283,135 @@
             });
         }
 
+        // --- ABA 4: FUNÇÕES DE EXPORTAÇÃO (NOVAS) ---
+        
+        /**
+         * Renderiza a tabela de resultados de ANOVA salvos.
+         */
+        function renderSavedAnovaTable() {
+            const container = document.getElementById('savedAnovaTableContainer');
+            if (!appState.savedAnovaResults || appState.savedAnovaResults.length === 0) {
+                container.innerHTML = `<p class="text-slate-500 text-center py-4">Nenhum resultado de ANOVA salvo.</p>`;
+                return;
+            }
+
+            let table = '<table class="results-table" id="savedAnovaResultsTable"><thead>';
+            table += '<tr class="bg-slate-100">';
+            table += '<th class="p-3 text-left text-sm font-semibold text-slate-600 uppercase tracking-wider">Amostras Comparadas</th>';
+            table += '<th class="p-3 text-center text-sm font-semibold text-slate-600 uppercase tracking-wider">F</th>';
+            table += '<th class="p-3 text-center text-sm font-semibold text-slate-600 uppercase tracking-wider">P-valor</th>';
+            table += '<th class="p-3 text-center text-sm font-semibold text-slate-600 uppercase tracking-wider">Sig.</th>';
+            table += '<th class="p-3 text-center text-sm font-semibold text-slate-600 uppercase tracking-wider">Data</th>';
+            table += '<th class="p-3 w-12 text-center text-sm font-semibold text-slate-600 uppercase tracking-wider"><i class="ph-bold ph-trash"></i></th>';
+            table += '</tr></thead><tbody>';
+
+            // Ordena pelos mais recentes primeiro
+            const sortedResults = [...appState.savedAnovaResults].sort((a, b) => b.id - a.id);
+
+            sortedResults.forEach(res => {
+                table += `<tr class="border-b border-slate-200 hover:bg-slate-50">
+                            <td class="p-3 text-slate-800 text-sm">${res.sampleNames.join(', ')}</td>
+                            <td class="p-3 text-center">${res.F.toFixed(4)}</td>
+                            <td class="p-3 text-center">${res.p < 0.0001 ? res.p.toExponential(4) : res.p.toFixed(4)}</td>
+                            <td class="p-3 text-center font-bold">${res.significance}</td>
+                            <td class="p-3 text-center text-xs">${new Date(res.timestamp).toLocaleString('pt-BR')}</td>
+                            <td class="p-3 text-center">
+                                <button class="text-red-500 hover:text-red-700 p-1" onclick="removeSavedAnovaResult(${res.id})">
+                                    <i class="ph-bold ph-trash"></i>
+                                </button>
+                            </td>
+                          </tr>`;
+            });
+            table += '</tbody></table>';
+            container.innerHTML = table;
+        }
+        
+        /**
+         * Remove um resultado de ANOVA salvo específico.
+         */
+        function removeSavedAnovaResult(id) {
+            appState.savedAnovaResults = appState.savedAnovaResults.filter(res => res.id !== id);
+            showAlert('Resultado salvo removido.', 'success');
+            renderSavedAnovaTable();
+            saveToLocalStorage();
+        }
+
+        /**
+         * Limpa todos os resultados de ANOVA salvos.
+         */
+        function clearSavedAnova() {
+             if (confirm("Tem certeza que deseja limpar TODOS os resultados de ANOVA salvos?")) {
+                appState.savedAnovaResults = [];
+                showAlert('Lista de resultados salvos foi limpa.', 'success');
+                renderSavedAnovaTable(); // Re-renderiza a tabela (agora vazia)
+                saveToLocalStorage();
+             }
+        }
+        
+        /**
+         * Exporta os resultados salvos para um arquivo CSV.
+         */
+        function exportSavedAnovaToCsv() {
+            if (!appState.savedAnovaResults || appState.savedAnovaResults.length === 0) {
+                showAlert('Nenhum resultado salvo para exportar.', 'info');
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            // Cabeçalho (usando ; como separador para compatibilidade com Excel em PT-BR)
+            csvContent += "Amostras Comparadas;F;P-valor;Significancia;Data\r\n";
+
+            appState.savedAnovaResults.forEach(res => {
+                const sampleNames = `"${res.sampleNames.join(', ')}"`;
+                const fValue = res.F.toFixed(4).replace('.', ','); // Usa vírgula como decimal
+                const pValue = (res.p < 0.0001 ? res.p.toExponential(4) : res.p.toFixed(4)).replace('.', ',');
+                const sig = res.significance;
+                const date = new Date(res.timestamp).toLocaleString('pt-BR');
+                csvContent += `${sampleNames};${fValue};${pValue};${sig};${date}\r\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "resultados_anova_salvos.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showAlert('Exportando CSV...', 'success');
+        }
+        
+        /**
+         * Salva o resultado da ANOVA calculado atualmente.
+         */
+        function saveCurrentAnovaResult() {
+            if (!currentAnovaResult || anovaSelection.size === 0) {
+                showAlert('Nenhum resultado válido para salvar.', 'error');
+                return;
+            }
+
+            // Pega os nomes das amostras selecionadas
+            const sampleNames = Array.from(anovaSelection).map(id => {
+                return appState.sampleSets.find(s => s.id === id)?.name;
+            }).filter(Boolean); // Get names and remove any undefined
+
+            if (sampleNames.length !== anovaSelection.size) {
+                 showAlert('Erro ao encontrar nomes das amostras.', 'error');
+                 return;
+            }
+
+            const newSavedResult = {
+                id: Date.now(),
+                sampleNames: sampleNames.sort(), // Ordena para consistência
+                ...currentAnovaResult,
+                timestamp: Date.now()
+            };
+
+            appState.savedAnovaResults.push(newSavedResult);
+            saveToLocalStorage();
+            renderSavedAnovaTable(); // Atualiza a tabela na aba "Resultados Salvos"
+            showAlert('Resultado da ANOVA salvo com sucesso!', 'success');
+        }
+
         // --- INICIALIZAÇÃO E NAVEGAÇÃO ---
 
         function switchTab(tabId) {
@@ -1235,6 +1434,10 @@
             if (tabId === 'chart') {
                 initializeChartSelectors(); // Isso recria os seletores e renderiza o gráfico
             }
+            // NOVO: Renderiza a tabela ao trocar para a aba de export
+            if (tabId === 'export') {
+                renderSavedAnovaTable();
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -1256,6 +1459,7 @@
             document.getElementById('resultsSearchInput').addEventListener('input', (e) => renderResultsTable(e.target.value));
             document.getElementById('copyResultsButton').addEventListener('click', () => copyTableToClipboard('descResultsTable'));
             document.getElementById('copyAnovaButton').addEventListener('click', () => copyTableToClipboard('anovaResultsTable'));
+            document.getElementById('saveAnovaButton').addEventListener('click', saveCurrentAnovaResult); // ADICIONA O LISTENER DO BOTÃO SALVAR
 
             // Aba Gráfico
             document.getElementById('addDatasetBtn').addEventListener('click', () => addDatasetSelector());
@@ -1272,12 +1476,16 @@
                     renderChart();
                 });
             });
+            
+            // NOVO: Listeners da Aba Resultados Salvos
+            document.getElementById('exportCsvButton').addEventListener('click', exportSavedAnovaToCsv);
+            document.getElementById('clearSavedAnovaButton').addEventListener('click', clearSavedAnova);
         });
 
         // Funções globais para botões dinâmicos
         window.removeSampleSet = removeSampleSet;
         window.removeDatasetSelector = removeDatasetSelector;
+        window.removeSavedAnovaResult = removeSavedAnovaResult; // ADICIONA A NOVA FUNÇÃO GLOBAL
     </script>
 </body>
 </html>
-
