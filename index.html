@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfólio | Ítalo Faria Dória</title>
+    <title>Ítalo Faria Dória</title>
     
     <!-- Favicon (Usando um ícone de "portfólio" dos Phosphor Icons) -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💼</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📃</text></svg>">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -39,41 +39,38 @@
 <body class="antialiased">
 
     <!-- Navegação (Navbar) -->
-    <nav id="navbar" class="bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-50 w-full">
+    <nav id="navbar" class="bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-50 w-full">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div id="navbar-container" class="flex justify-between items-center h-16 transition-all duration-300">
-                <!-- Logo / Nome -->
+                
                 <div class="flex-shrink-0">
                     <a href="#inicio" class="text-xl font-bold text-indigo-600 hover:text-indigo-700 transition-colors">
                         Ítalo Faria Dória
                     </a>
                 </div>
-                <!-- Links (Desktop) -->
+                
                 <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
                     <a href="#projetos" class="font-medium text-slate-500 hover:text-slate-900 transition-colors">Projetos</a>
                     <a href="#sobre" class="font-medium text-slate-500 hover:text-slate-900 transition-colors">Sobre</a>
                     <a href="#experiencia" class="font-medium text-slate-500 hover:text-slate-900 transition-colors">Carreira</a>
                     <a href="#contato" class="font-medium text-slate-500 hover:text-slate-900 transition-colors">Contato</a>
                 </div>
-                <!-- Menu Hamburguer (Mobile) - Simples (pode ser implementado com JS se necessário) -->
-                <div class="sm:hidden">
+                
+                <!-- <div class="sm:hidden">
                     <button class="text-slate-500 hover:text-slate-800">
                         <i class="ph-bold ph-list text-2xl"></i>
                     </button>
-                </div>
+                </div> -->
             </div>
         </div>
-        <!-- Barra de Progresso de Scroll -->
+        
         <div class="h-1 bg-indigo-500" id="scroll-progress-bar" style="width: 0%; transition: width 0.1s ease-out;"></div>
     </nav>
 
     <!-- Seção 1: Início (Hero) -->
     <section id="inicio" class="min-h-screen flex items-center bg-white">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-5 text-center">
-            <!-- 
-              TODO: Substitua este placeholder pela sua foto de perfil.
-              A imagem do seu currículo antigo era './assets/Italo Faria Doria.jpeg'
-            -->
+            <!-- <img src="./assets/ft1.jpeg"  -->
             <img src="./assets/Italo Faria Doria.jpeg" 
                  alt="Foto de Perfil de Ítalo Faria Dória"
                  class="w-[15rem] h-[15rem] rounded-full mx-auto mb-6 ring-4 ring-indigo-100 shadow-lg"
@@ -89,9 +86,8 @@
                 SubTexto opcional
             </p> -->
             
-            <!-- Links Sociais -->
-            <div class="flex justify-center gap-4 mt-8">
-                <a href="https://www.linkedin.com/in/%C3%ADtalofariad%C3%B3ria51/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-white bg-indigo-500 hover:bg-indigo-600 shadow-sm transition-transform transform hover:-translate-y-0.5">
+            <div class="flex flex-wrap justify-center gap-4 mt-8">
+                <a href="https://www.linkedin.com/in/%C3%ADtalofariad%C3%B3ria51/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-transform transform hover:-translate-y-0.5">
                     <i class="ph-bold ph-linkedin-logo text-xl"></i>
                     LinkedIn
                 </a>
@@ -129,7 +125,7 @@
                     <p class="text-slate-600 text-sm mt-2 flex-grow">
                         Uma ferramenta otimizada para processar dados brutos de cromatografia (HPLC), calcular médias, desvios e gerar gráficos comparativos.
                     </p>
-                    <a href="LabLev/hplc.html" target="_blank" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-white bg-indigo-500 hover:bg-indigo-600 shadow-sm transition-transform transform hover:-translate-y-0.5 mt-6">
+                    <a href="hplc/index.html" target="_blank" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-white bg-indigo-500 hover:bg-indigo-600 shadow-sm transition-transform transform hover:-translate-y-0.5 mt-6">
                         Ver Ferramenta
                         <i class="ph-bold ph-arrow-right"></i>
                     </a>
@@ -142,7 +138,7 @@
                     <p class="text-slate-600 text-sm mt-2 flex-grow">
                         Realiza análise estatística de variância (ANOVA) automaticamente a partir de dados colados, exibindo a tabela ANOVA e o P-valor.
                     </p>
-                    <a href="LabLev/anova.html" target="_blank" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-white bg-indigo-500 hover:bg-indigo-600 shadow-sm transition-transform transform hover:-translate-y-0.5 mt-6">
+                    <a href="anova/index.html" target="_blank" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-white bg-indigo-500 hover:bg-indigo-600 shadow-sm transition-transform transform hover:-translate-y-0.5 mt-6">
                         Ver Ferramenta
                         <i class="ph-bold ph-arrow-right"></i>
                     </a>
@@ -161,22 +157,6 @@
                     </a>
                 </div>
 
-                <!-- Card Projeto: Genoma (Baseado no genom.html) -->
-                <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-                    <i class="ph-bold ph-dna text-teal-600 text-4xl mb-4"></i> <!-- Cor diferente como no original -->
-                    <h3 class="text-xl font-semibold text-slate-800">
-                        Visualizador Genômico
-                        <i class="ph-bold ph-warning-circle text-red-500" title="Em desenvolvimento"></i>
-                    </h3>
-                    <p class="text-slate-600 text-sm mt-2 flex-grow">
-                        Analisa, visualiza e traduz sequências de DNA/RNA. Inclui análise de 6 fases de leitura, localizador de ORF e estatísticas (Conteúdo GC, etc.).
-                    </p>
-                    <a href="LabLev/genom.html" target="_blank" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-white bg-indigo-500 hover:bg-indigo-600 shadow-sm transition-transform transform hover:-translate-y-0.5 mt-6">
-                        Ver Ferramenta
-                        <i class="ph-bold ph-arrow-right"></i>
-                    </a>
-                </div>
-
                 <!-- Card Projeto: Gráfico Genérico (Baseado no graficoGenerico.html) -->
                 <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
                     <i class="ph-bold ph-chart-pie-slice text-indigo-500 text-4xl mb-4"></i>
@@ -187,15 +167,31 @@
                     <p class="text-slate-600 text-sm mt-2 flex-grow">
                         Cria gráficos dinâmicos (barras, linhas) a partir de dados inseridos manualmente ou colados de planilhas. Permite comparações complexas.
                     </p>
-                    <a href="LabLev/graficoGenerico.html" target="_blank" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-white bg-indigo-500 hover:bg-indigo-600 shadow-sm transition-transform transform hover:-translate-y-0.5 mt-6">
+                    <a href="graph/index.html" target="_blank" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-white bg-indigo-500 hover:bg-indigo-600 shadow-sm transition-transform transform hover:-translate-y-0.5 mt-6">
+                        Ver Ferramenta
+                        <i class="ph-bold ph-arrow-right"></i>
+                    </a>
+                </div>
+
+                <!-- Card Projeto: Genoma (Baseado no genom.html) -->
+                <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                    <i class="ph-bold ph-dna text-teal-600 text-4xl mb-4"></i> <!-- Cor diferente como no original -->
+                    <h3 class="text-xl font-semibold text-slate-800">
+                        Visualizador Genômico
+                        <i class="ph-bold ph-warning-circle text-red-500" title="Em desenvolvimento"></i>
+                    </h3>
+                    <p class="text-slate-600 text-sm mt-2 flex-grow">
+                        Analisa, visualiza e traduz sequências de DNA/RNA. Inclui análise de 6 fases de leitura, localizador de ORF e estatísticas (Conteúdo GC, etc.).
+                    </p>
+                    <a href="genom/index.html" target="_blank" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-white bg-indigo-500 hover:bg-indigo-600 shadow-sm transition-transform transform hover:-translate-y-0.5 mt-6">
                         Ver Ferramenta
                         <i class="ph-bold ph-arrow-right"></i>
                     </a>
                 </div>
 
                 <!-- Card Projeto: Calculadora (Baseado no calculadoraDeLaboratorio.html) -->
-                <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-                    <i class="ph-bold ph-flask text-blue-500 text-4xl mb-4"></i> <!-- Cor diferente como no original -->
+                <!-- <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                    <i class="ph-bold ph-flask text-blue-500 text-4xl mb-4"></i> 
                     <h3 class="text-xl font-semibold text-slate-800">
                         LabCalc Pro
                         <i class="ph-bold ph-warning-circle text-red-500" title="Em desenvolvimento"></i>
@@ -207,7 +203,7 @@
                         Ver Ferramenta
                         <i class="ph-bold ph-arrow-right"></i>
                     </a>
-                </div>
+                </div> -->
 
             </div>
         </div>
@@ -364,13 +360,13 @@
     </section>
 
     <!-- Footer -->
-    <footer class="py-6 bg-white border-t border-slate-200">
+    <!-- <footer class="py-6 bg-white border-t border-slate-200">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-slate-500">
             <p>
                 © 2025 Ítalo Faria Dória
             </p>
         </div>
-    </footer>
+    </footer> -->
 
     <script>
         // Função para Smooth Scroll

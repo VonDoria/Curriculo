@@ -108,7 +108,6 @@
 <body class="antialiased text-slate-700">
 
     <div class="container mx-auto p-4 md:p-8 max-w-7xl">
-        <!-- Cabeçalho -->
         <header class="text-center mb-8 p-6 bg-white rounded-xl shadow-md border border-slate-200">
             <h1 class="text-3xl md:text-4xl font-bold text-slate-800 flex items-center justify-center gap-3">
                 <i class="ph-bold ph-function text-indigo-500"></i>
@@ -117,7 +116,6 @@
             <p class="text-slate-500 mt-2">Uma ferramenta otimizada para análise estatística de variância.</p>
         </header>
 
-        <!-- Navegação por Abas -->
         <div class="mb-6 border-b border-slate-200 tabs-nav-container">
             <nav class="flex -mb-px space-x-6 tabs-nav" aria-label="Tabs">
                 <button class="tab active" data-tab="tutorial">
@@ -135,7 +133,6 @@
             </nav>
         </div>
 
-        <!-- Conteúdo das Abas -->
         <main>
             <!-- Aba de Tutorial -->
             <div id="tutorial-tab" class="tab-content active">
@@ -210,7 +207,6 @@
                 <div class="card">
                     <h2 class="section-title"><i class="ph-bold ph-pencil-line"></i> Cadastrar Amostras</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                        <!-- Lado Esquerdo: Input -->
                         <div class="space-y-4">
                             <div>
                                 <label for="rawDataInput" class="block text-sm font-medium text-slate-600 mb-1">Passo 1: Cole seus dados (2 colunas: Identificador e Valor)</label>
@@ -218,7 +214,6 @@
                             </div>
                         </div>
                         
-                        <!-- Lado Direito: Preview e Salvar -->
                         <div class="space-y-4">
                             <label class="block text-sm font-medium text-slate-600 mb-1">Passo 2: Pré-visualização (automática)</label>
                             <div id="previewContainer" class="sample-checkbox-list bg-slate-50 min-h-[12rem]">
@@ -230,7 +225,6 @@
                         </div>
                     </div>
                     
-                    <!-- Lista de Amostras Salvas -->
                     <div class="mt-8 pt-6 border-t border-slate-200">
                         <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
                              <h3 class="text-lg font-semibold">Amostras Salvas</h3>
@@ -249,7 +243,6 @@
             <!-- Aba de Resultados & ANOVA -->
             <div id="results-anova-tab" class="tab-content hidden">
                 <div class="card">
-                    <!-- Tabela de Resultados Descritivos -->
                     <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
                          <h2 class="section-title mb-0"><i class="ph-bold ph-presentation-chart"></i> Resultados Descritivos</h2>
                          <button id="copyResultsButton" class="btn btn-secondary">
@@ -262,7 +255,6 @@
                         <!-- Tabela de Média/Desvio Padrão é inserida aqui -->
                     </div>
                     
-                    <!-- Tabela ANOVA -->
                     <div id="anovaAnalysisContainer" class="mt-10 pt-6 border-t border-slate-200">
                         <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
                             <h2 class="section-title mb-0"><i class="ph-bold ph-scales"></i> Análise de Variância (ANOVA)</h2>
@@ -342,9 +334,8 @@
         </footer>
     </div>
 
-    <!-- Script principal da aplicação -->
     <script>
-        // --- ESTILOS GLOBAIS (Baseado no app de referência) ---
+        // --- ESTILOS GLOBAIS ---
         const cardStyle = 'bg-white p-4 md:p-6 rounded-xl shadow-md border border-slate-200';
         const inputStyle = 'w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition';
         const btnBase = 'px-4 py-2.5 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition duration-200 ease-in-out transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none';
@@ -354,7 +345,6 @@
         const tabActiveStyle = 'border-indigo-500 text-indigo-600';
         const tabInactiveStyle = 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300';
         
-        // Aplica estilos dinamicamente
         function applyBaseStyles() {
             document.querySelectorAll('.card').forEach(el => { el.className = cardStyle });
             document.querySelectorAll('input[type="text"], input[type="number"], select, textarea').forEach(el => { 
