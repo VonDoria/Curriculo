@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioQuiz - Avaliação Gamificada</title>
+    <link rel="icon" href="../assets/logobioquiz.png">
+    <meta name="theme-color" content="#f8fafc">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- HTML5-QRCode -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    
+    <!-- Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Chart.js (para os Universitários) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts: Inter -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #334155; /* slate-700 */
+        }
+
+        /* Estilos reutilizáveis baseados no HPLC */
+        .card {
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0; /* border-slate-200 */
+        }
+
+        .btn-primary {
+            background-color: #6366f1; /* indigo-500 */
+            color: white;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover { background-color: #4f46e5; } /* indigo-600 */
+        .btn-primary:active { transform: translateY(1px); }
+
+        .btn-option {
+            transition: all 0.2s;
+            border: 1px solid #cbd5e1;
+        }
+        .btn-option:hover:not(:disabled) {
+            border-color: #6366f1;
+            background-color: #eef2ff;
+            transform: translateX(4px);
+        }
+        .btn-option.selected {
+            background-color: #e0e7ff; /* indigo-100 */
+            border-color: #6366f1; /* indigo-500 */
+            color: #312e81;
+            font-weight: 600;
+        }
+        .btn-option.correct {
+            background-color: #dcfce7; /* green-100 */
+            border-color: #22c55e; /* green-500 */
+            color: #14532d;
+        }
+        .btn-option.wrong {
+            background-color: #fee2e2; /* red-100 */
+            border-color: #ef4444; /* red-500 */
+            color: #7f1d1d;
+        }
+
+        /* Animações */
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .scale-in { animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <div id="root" class="flex-grow"></div>
+
+    <script src="./questions.js"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        // --- Constantes de Jogo ---
+        const PRIZE_LADDER = [
+            100, 200, 300, 400, 500,         // Nível 1
+            1000, 2000, 4000, 8000, 10000,   // Nível 2 (Safe em 10k)
+            20000, 50000, 100000, 500000, 1000000 // Nível 3 (Milhão)
+        ];
+        
+        // Índices seguros (se perder depois daqui, cai pra cá)
+        // Índices array: 4 (500), 9 (10.000). O prêmio final é se ganhar tudo.
+        const SAFE_HAVENS = [4, 9]; 
+
+        // --- Componentes UI Genéricos ---
+
+        const Header = ({ title, subtitle, icon }) => (
+            <header className="text-center mb-6 p-6 card border-b border-slate-200">
+                <div className="flex items-center justify-center gap-3 mb-2">
+                    <div className="p-3 bg-indigo-50 rounded-full">
+                        <i className={`ph-bold ${icon} text-2xl text-indigo-500`}></i>
+                    </div>
+                </div>
+                <h1 className="text-2xl md:text-3xl font-bold text-slate-800">{title}</h1>
+                <p className="text-slate-500 mt-1 text-sm md:text-base">{subtitle}</p>
+            </header>
+        );
+
+        const Modal = ({ isOpen, title, children, onClose }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm fade-in">
+                    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 scale-in relative border border-indigo-100">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                {title}
+                            </h3>
+                            <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+                                <i className="ph-bold ph-x text-xl"></i>
+                            </button>
+                        </div>
+                        <div className="text-slate-600">
+                            {children}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Telas ---
+
+        // 1. Menu Principal
+        const MainMenu = ({ onStartStudy, onStartTest }) => (
+            <div className="container mx-auto p-4 max-w-xl min-h-screen flex flex-col justify-center">
+                <Header 
+                    title="BioQuiz" 
+                    subtitle="Ferramenta de Avaliação e Estudo" 
+                    icon="ph-dna" 
+                />
+                
+                <div className="grid gap-4 mt-4">
+                    <button 
+                        onClick={onStartStudy}
+                        className="card p-6 hover:border-indigo-400 transition group text-left relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                            <i className="ph-fill ph-books text-6xl text-indigo-600"></i>
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-800 mb-1 group-hover:text-indigo-600 transition">Modo Estudo</h3>
+                        <p className="text-slate-500 text-sm">Treine livremente escolhendo temas específicos sem valer nota.</p>
+                    </button>
+
+                    <button 
+                        onClick={onStartTest}
+                        className="card p-6 hover:border-emerald-400 transition group text-left relative overflow-hidden border-l-4 border-l-emerald-500"
+                    >
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                            <i className="ph-fill ph-qr-code text-6xl text-emerald-600"></i>
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-800 mb-1 group-hover:text-emerald-600 transition">Modo Prova</h3>
+                        <p className="text-slate-500 text-sm">Avaliação oficial. Escaneie o QR Code do professor para iniciar.</p>
+                    </button>
+                </div>
+
+                <footer className="mt-12 text-center text-slate-400 text-xs">
+                    <p>Desenvolvido para análise de desempenho acadêmico.</p>
+                </footer>
+            </div>
+        );
+
+        // 2. Seletor de Tópicos (Estudo)
+        const TopicSelector = ({ topics, onSelect, onBack }) => (
+            <div className="container mx-auto p-4 max-w-2xl min-h-screen flex flex-col">
+                 <div className="mb-6">
+                    <button onClick={onBack} className="text-slate-500 hover:text-indigo-600 flex items-center gap-2 text-sm font-medium">
+                        <i className="ph-bold ph-arrow-left"></i> Voltar
+                    </button>
+                </div>
+                <h2 className="text-2xl font-bold text-slate-800 mb-6">Selecione um Tema</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {topics.map(topic => (
+                        <button 
+                            key={topic}
+                            onClick={() => onSelect(topic)}
+                            className="card p-6 flex flex-col items-center justify-center gap-3 hover:shadow-lg hover:border-indigo-300 transition"
+                        >
+                            <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+                                <i className="ph-bold ph-flask text-2xl"></i>
+                            </div>
+                            <span className="font-bold text-slate-700">{topic}</span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+        );
+
+        // 3. Scanner QR
+        const Scanner = ({ onScan, onBack }) => {
+            const [name, setName] = useState("");
+            const [scanning, setScanning] = useState(false);
+            const [error, setError] = useState("");
+
+            useEffect(() => {
+                let scanner;
+                if (scanning && name.length > 2) {
+                    scanner = new Html5Qrcode("reader");
+                    scanner.start(
+                        { facingMode: "environment" },
+                        { fps: 10, qrbox: { width: 250, height: 250 } },
+                        (decoded) => {
+                            scanner.stop().then(() => {
+                                try {
+                                    const data = JSON.parse(decoded);
+                                    onScan(data, name);
+                                } catch(e) {
+                                    setError("QR Code inválido. Formato incorreto.");
+                                    setScanning(false);
+                                }
+                            });
+                        },
+                        (err) => {}
+                    ).catch(err => {
+                        setError("Erro na câmera: " + err);
+                        setScanning(false);
+                    });
+                }
+                return () => { if(scanner && scanner.isScanning) scanner.stop(); };
+            }, [scanning]);
+
+            return (
+                <div className="container mx-auto p-4 max-w-md min-h-screen flex flex-col justify-center">
+                    <button onClick={onBack} className="self-start text-slate-500 mb-4"><i className="ph-bold ph-arrow-left"></i> Voltar</button>
+                    <div className="card p-6">
+                        <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <i className="ph-bold ph-identification-card text-indigo-500"></i> Identificação
+                        </h2>
+                        
+                        {!scanning ? (
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-600 mb-1">Nome Completo</label>
+                                    <input 
+                                        type="text" 
+                                        value={name}
+                                        onChange={e => setName(e.target.value)}
+                                        className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none"
+                                        placeholder="Ex: João Silva"
+                                    />
+                                </div>
+                                <button 
+                                    onClick={() => name.length > 2 ? setScanning(true) : alert("Insira seu nome.")}
+                                    disabled={name.length < 3}
+                                    className="btn-primary w-full p-3 rounded-lg font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+                                >
+                                    <i className="ph-bold ph-camera"></i> Ler QR Code
+                                </button>
+                                {error && <div className="text-red-500 text-sm bg-red-50 p-2 rounded border border-red-200">{error}</div>}
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center">
+                                <div id="reader" className="w-full rounded-lg overflow-hidden border-2 border-indigo-500 mb-4"></div>
+                                <p className="text-sm text-slate-500 mb-4">Aponte para o código do professor</p>
+                                <button onClick={() => setScanning(false)} className="text-red-500 text-sm font-medium">Cancelar</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // 4. Tela de Jogo (Core)
+        const Game = ({ questions, onEnd, mode }) => {
+            const [idx, setIdx] = useState(0);
+            const [history, setHistory] = useState([]); // { qId, result, usedLifelines: [] }
+            const [lifelines, setLifelines] = useState({
+                skip: true,
+                fifty: true,
+                university: true,
+                cards: true
+            });
+            
+            // Estado da questão atual
+            const [selected, setSelected] = useState(null); // índice da opção
+            const [revealed, setRevealed] = useState(false);
+            const [hiddenOptions, setHiddenOptions] = useState([]); // índices ocultos (50/50)
+            const [currentLifelinesUsed, setCurrentLifelinesUsed] = useState([]); // Ajudas usadas na questão atual
+
+            // Modais de Ajuda
+            const [modalContent, setModalContent] = useState(null); // { title, body } ou null
+
+            const currentQ = questions[idx];
+            const currentPrize = PRIZE_LADDER[Math.min(idx, PRIZE_LADDER.length - 1)];
+            const nextPrize = idx < PRIZE_LADDER.length - 1 ? PRIZE_LADDER[idx + 1] : currentPrize;
+
+            // --- Lógica das Ajudas ---
+
+            const useSkip = () => {
+                if (!lifelines.skip) return;
+                
+                // Logar
+                const newHistory = [...history, {
+                    qText: currentQ.texto,
+                    qId: currentQ.id,
+                    result: "skipped",
+                    selected: "PULOU",
+                    correctOption: currentQ.alternativas[currentQ.correta],
+                    lifelines: [...currentLifelinesUsed, "Pular"]
+                }];
+
+                setLifelines(prev => ({...prev, skip: false}));
+                setHistory(newHistory);
+
+                // Avançar
+                if (idx < questions.length - 1) {
+                    setIdx(prev => prev + 1);
+                    resetQuestionState();
+                } else {
+                    onEnd(true, currentPrize, newHistory);
+                }
+            };
+
+            const useFifty = () => {
+                if (!lifelines.fifty) return;
+                const wrongIndices = currentQ.alternativas.map((_, i) => i).filter(i => i !== currentQ.correta);
+                // Embaralha e pega 2 para esconder
+                const toHide = wrongIndices.sort(() => Math.random() - 0.5).slice(0, 2);
+                
+                setHiddenOptions(toHide);
+                setLifelines(prev => ({...prev, fifty: false}));
+                setCurrentLifelinesUsed(prev => [...prev, "50/50"]);
+            };
+
+            const useUniversity = () => {
+                if (!lifelines.university) return;
+                
+                // Lógica Show do Milhão: Correta tem mais chance
+                const correctIdx = currentQ.correta;
+                const probs = [0,0,0,0];
+                
+                // Chance da correta entre 40% e 80%
+                const correctProb = Math.floor(Math.random() * 41) + 40;
+                probs[correctIdx] = correctProb;
+                
+                let remaining = 100 - correctProb;
+                const others = [0,1,2,3].filter(i => i !== correctIdx);
+                
+                others.forEach((optIdx, i) => {
+                    if (i === others.length - 1) probs[optIdx] = remaining;
+                    else {
+                        const val = Math.floor(Math.random() * (remaining + 1));
+                        probs[optIdx] = val;
+                        remaining -= val;
+                    }
+                });
+
+                // Renderizar Gráfico no Modal
+                setModalContent({
+                    title: "Ajuda dos Universitários",
+                    body: (
+                        <div className="h-64 w-full">
+                            <BarChart data={probs} labels={['A','B','C','D']} />
+                            <p className="text-center mt-4 text-xs text-slate-500">Distribuição de votos dos estudantes.</p>
+                        </div>
+                    )
+                });
+
+                setLifelines(prev => ({...prev, university: false}));
+                setCurrentLifelinesUsed(prev => [...prev, "Universitários"]);
+            };
+
+            const useCards = () => {
+                if (!lifelines.cards) return;
+                
+                // Lógica Show do Milhão: Cartas dão uma dica. 80% chance de ser certa.
+                const isHelpful = Math.random() < 0.8;
+                let suggestedIdx = currentQ.correta;
+                
+                if (!isHelpful) {
+                    // Sugere uma errada aleatória
+                    const wrong = currentQ.alternativas.map((_, i) => i).filter(i => i !== currentQ.correta);
+                    suggestedIdx = wrong[Math.floor(Math.random() * wrong.length)];
+                }
+
+                setModalContent({
+                    title: "Cartas",
+                    body: (
+                        <div className="text-center py-4">
+                            <div className="w-20 h-32 bg-indigo-600 rounded-lg mx-auto mb-4 flex items-center justify-center text-white shadow-lg">
+                                <i className="ph-fill ph-spade text-4xl"></i>
+                            </div>
+                            <p className="text-lg text-slate-700">"Pelo que estudei, minha aposta seria na alternativa <strong>{String.fromCharCode(65 + suggestedIdx)}</strong>."</p>
+                        </div>
+                    )
+                });
+
+                setLifelines(prev => ({...prev, cards: false}));
+                setCurrentLifelinesUsed(prev => [...prev, "Cartas"]);
+            };
+
+            // --- Ações de Jogo ---
+
+            const handleSelect = (i) => {
+                if (revealed) return;
+                setSelected(i);
+            };
+
+            const handleConfirm = () => {
+                if (selected === null) return;
+                setRevealed(true);
+
+                const isCorrect = selected === currentQ.correta;
+                
+                // Atualiza histórico
+                const newHistory = [...history, {
+                    qText: currentQ.texto,
+                    qId: currentQ.id,
+                    result: isCorrect ? "correct" : "wrong",
+                    selected: currentQ.alternativas[selected],
+                    correctOption: currentQ.alternativas[currentQ.correta],
+                    lifelines: [...currentLifelinesUsed] // Snapshot das ajudas usadas nesta questão
+                }];
+                setHistory(newHistory);
+
+                if (isCorrect) {
+                    // Vitória na questão
+                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                    setTimeout(() => {
+                        if (idx < questions.length - 1 && idx < PRIZE_LADDER.length - 1) {
+                            setIdx(prev => prev + 1);
+                            resetQuestionState();
+                        } else {
+                            // Ganhou o jogo
+                            onEnd(true, PRIZE_LADDER[PRIZE_LADDER.length - 1], newHistory);
+                        }
+                    }, 2000);
+                } else {
+                    // Perdeu
+                    setTimeout(() => {
+                        let safePrize = 0;
+                        
+                        for (let i = SAFE_HAVENS.length - 1; i >= 0; i--) {
+                            if (idx > SAFE_HAVENS[i]) {
+                                safePrize = PRIZE_LADDER[SAFE_HAVENS[i]];
+                                break;
+                            }
+                        }
+                        onEnd(false, safePrize, newHistory);
+                    }, 2500);
+                }
+            };
+
+            const resetQuestionState = () => {
+                setSelected(null);
+                setRevealed(false);
+                setHiddenOptions([]);
+                setCurrentLifelinesUsed([]);
+                setModalContent(null);
+            };
+
+            // Formata dinheiro
+            const money = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+            return (
+                <div className="container mx-auto p-4 max-w-5xl flex flex-col md:flex-row gap-6 min-h-screen">
+                    
+                    {/* Sidebar Esquerda: Ladder (Desktop) ou Topo (Mobile) */}
+                    <div className="md:w-64 flex-shrink-0 order-2 md:order-1">
+                        <div className="card p-4 sticky top-4">
+                            <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                <i className="ph-bold ph-ladder text-indigo-500"></i> Prêmios
+                            </h3>
+                            <div className="flex md:flex-col gap-2 overflow-x-auto md:overflow-visible pb-2 md:pb-0">
+                                {[...PRIZE_LADDER].reverse().map((val, i) => {
+                                    const realIndex = PRIZE_LADDER.length - 1 - i;
+                                    const isCurrent = realIndex === idx;
+                                    const isSafe = SAFE_HAVENS.includes(realIndex);
+                                    const isPast = realIndex < idx;
+                                    
+                                    return (
+                                        <div key={realIndex} className={`
+                                            flex justify-between items-center px-3 py-2 rounded text-sm whitespace-nowrap min-w-[120px]
+                                            ${isCurrent ? 'bg-indigo-500 text-white font-bold shadow-md transform scale-105' : ''}
+                                            ${!isCurrent && isPast ? 'text-slate-400 line-through opacity-50' : 'text-slate-600'}
+                                            ${isSafe && !isCurrent ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : ''}
+                                        `}>
+                                            <span>{realIndex + 1}º</span>
+                                            <span>{money(val)}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Área Principal */}
+                    <div className="flex-grow order-1 md:order-2 flex flex-col">
+                        {/* Top Bar */}
+                        <div className="card p-4 mb-4 flex justify-between items-center bg-slate-800 text-white border-none">
+                            <div>
+                                <div className="text-xs text-slate-300 uppercase tracking-wider">Prêmio Atual</div>
+                                <div className="text-2xl font-bold text-emerald-400">{money(currentPrize)}</div>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-xs text-slate-300 uppercase tracking-wider">Categoria</div>
+                                <div className="font-medium">{currentQ.tema}</div>
+                            </div>
+                        </div>
+
+                        {/* Pergunta */}
+                        <div className="card p-6 md:p-10 mb-4 flex-grow flex flex-col justify-center relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-indigo-100">
+                                <div className="h-full bg-indigo-500 transition-all duration-500" style={{width: `${((idx+1)/questions.length)*100}%`}}></div>
+                            </div>
+
+                            <span className={`self-start px-3 py-1 rounded-full text-xs font-bold mb-4
+                                ${currentQ.dificuldade === 'Facil' ? 'bg-emerald-100 text-emerald-700' : 
+                                  currentQ.dificuldade === 'Médio' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}`}>
+                                {currentQ.dificuldade.toUpperCase()}
+                            </span>
+
+                            <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-8 leading-relaxed">
+                                {currentQ.texto}
+                            </h2>
+
+                            <div className="grid gap-3">
+                                {currentQ.alternativas.map((opt, i) => {
+                                    const isHidden = hiddenOptions.includes(i);
+                                    if (isHidden) return <div key={i} className="h-14 bg-slate-50 rounded border border-slate-100 opacity-50"></div>;
+
+                                    let statusClass = "";
+                                    if (revealed) {
+                                        if (i === currentQ.correta) statusClass = "correct";
+                                        else if (selected === i) statusClass = "wrong";
+                                    } else if (selected === i) {
+                                        statusClass = "selected";
+                                    }
+
+                                    return (
+                                        <button
+                                            key={i}
+                                            onClick={() => handleSelect(i)}
+                                            disabled={revealed}
+                                            className={`btn-option w-full p-4 rounded-lg text-left flex items-center gap-4 text-sm md:text-base bg-white ${statusClass}`}
+                                        >
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs border
+                                                ${statusClass.includes('selected') || statusClass.includes('correct') ? 'border-current' : 'border-slate-300 text-slate-500 bg-slate-50'}
+                                            `}>
+                                                {String.fromCharCode(65 + i)}
+                                            </div>
+                                            <span className="flex-grow">{opt}</span>
+                                            {statusClass.includes('correct') && <i className="ph-bold ph-check text-xl"></i>}
+                                            {statusClass.includes('wrong') && <i className="ph-bold ph-x text-xl"></i>}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Botões de Ação e Ajudas */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Lifelines Bar */}
+                            <div className="card p-3 flex justify-around items-center">
+                                <LifelineButton icon="ph-skip-forward" label="Pular" active={lifelines.skip && !revealed} onClick={useSkip} />
+                                <LifelineButton icon="ph-number-circle-five" label="50/50" active={lifelines.fifty && !revealed} onClick={useFifty} />
+                                <LifelineButton icon="ph-student" label="Univ." active={lifelines.university && !revealed} onClick={useUniversity} />
+                                <LifelineButton icon="ph-cards" label="Cartas" active={lifelines.cards && !revealed} onClick={useCards} />
+                            </div>
+
+                            <button 
+                                onClick={handleConfirm}
+                                disabled={selected === null || revealed}
+                                className="btn-primary p-4 rounded-xl font-bold text-lg shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:shadow-none transition"
+                            >
+                                {revealed ? "Processando..." : "Confirmar Resposta"}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Modal de Ajudas */}
+                    <Modal 
+                        isOpen={!!modalContent} 
+                        title={modalContent?.title} 
+                        onClose={() => setModalContent(null)}
+                    >
+                        {modalContent?.body}
+                    </Modal>
+                </div>
+            );
+        };
+
+        const LifelineButton = ({ icon, label, active, onClick }) => (
+            <button 
+                onClick={onClick}
+                disabled={!active}
+                className={`flex flex-col items-center gap-1 p-2 rounded transition
+                    ${active ? 'text-indigo-600 hover:bg-indigo-50 cursor-pointer' : 'text-slate-300 cursor-not-allowed grayscale'}
+                `}
+            >
+                <i className={`ph-fill ${icon} text-2xl`}></i>
+                <span className="text-[10px] font-bold uppercase">{label}</span>
+            </button>
+        );
+
+        // Componente ChartJS wrapper simples
+        const BarChart = ({ data, labels }) => {
+            const canvasRef = useRef(null);
+            useEffect(() => {
+                if(!canvasRef.current) return;
+                const ctx = canvasRef.current.getContext('2d');
+                const chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '% Votos',
+                            data: data,
+                            backgroundColor: ['#6366f1', '#6366f1', '#6366f1', '#6366f1'],
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, max: 100 } }
+                    }
+                });
+                return () => chart.destroy();
+            }, [data]);
+            return <canvas ref={canvasRef}></canvas>;
+        };
+
+        // 5. Tela de Resultado
+        const ResultScreen = ({ win, prize, history, onRestart, testData }) => {
+            const [sent, setSent] = useState(false);
+            const [sending, setSending] = useState(false);
+
+            useEffect(() => {
+                if (testData && !sent && !sending) {
+                    sendData();
+                }
+            }, []);
+
+            const sendData = async () => {
+                setSending(true);
+                const { formAction, mapping, studentName } = testData;
+                const formData = new FormData();
+
+                if (mapping.name) formData.append(mapping.name, studentName);
+                if (mapping.score) formData.append(mapping.score, prize.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
+                if (mapping.result) formData.append(mapping.result, win ? "Vitória" : "Derrota");
+
+                // Formatar relatório detalhado
+                const details = history.map((h, i) => {
+                    const status = h.result === 'correct' ? '✅' : h.result === 'skipped' ? '⏭️' : '❌';
+                    const lifelinesStr = h.lifelines.length > 0 ? ` | Ajudas: ${h.lifelines.join(', ')}` : '';
+                    const info = h.result === 'wrong' ? ` | Resp: ${h.selected} (Correta: ${h.correctOption})` : '';
+                    return `Q${i+1} [${h.qId}]: ${status}${info}${lifelinesStr}`;
+                }).join('\n');
+
+                if (mapping.details) formData.append(mapping.details, details);
+
+                try {
+                    await fetch(formAction, { method: 'POST', mode: 'no-cors', body: formData });
+                    setSent(true);
+                } catch (e) {
+                    console.error(e);
+                } finally {
+                    setSending(false);
+                }
+            };
+
+            return (
+                <div className="container mx-auto p-4 min-h-screen flex items-center justify-center">
+                    <div className="card p-8 max-w-lg w-full text-center">
+                        <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl
+                            ${win ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}
+                        `}>
+                            <i className={`ph-fill ${win ? 'ph-trophy' : 'ph-smiley-sad'}`}></i>
+                        </div>
+                        
+                        <h2 className="text-3xl font-bold text-slate-800 mb-2">{win ? "Você Venceu!" : "Fim de Jogo"}</h2>
+                        <p className="text-slate-500 mb-6">Seu prêmio final foi:</p>
+                        
+                        <div className="text-4xl font-bold text-indigo-600 mb-8 bg-indigo-50 py-4 rounded-lg border border-indigo-100">
+                            {prize.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                        </div>
+
+                        {testData && (
+                            <div className="mb-6 text-sm">
+                                {sending && <span className="text-amber-600 flex items-center justify-center gap-2"><i className="ph-bold ph-spinner animate-spin"></i> Enviando resultados...</span>}
+                                {sent && <span className="text-emerald-600 flex items-center justify-center gap-2"><i className="ph-bold ph-check-circle"></i> Resultados enviados com sucesso!</span>}
+                            </div>
+                        )}
+
+                        <div className="border-t pt-6">
+                            <h3 className="text-left font-bold text-slate-700 mb-4 text-sm uppercase tracking-wider">Resumo da Partida</h3>
+                            <div className="max-h-48 overflow-y-auto text-left space-y-2 text-sm bg-slate-50 p-2 rounded">
+                                {history.map((h, i) => (
+                                    <div key={i} className="flex items-start gap-2 border-b border-slate-200 pb-2 last:border-0">
+                                        <span className={`mt-1 ${h.result === 'correct' ? 'text-emerald-500' : h.result === 'skipped' ? 'text-amber-500' : 'text-rose-500'}`}>
+                                            <i className={`ph-bold ${h.result === 'correct' ? 'ph-check' : h.result === 'skipped' ? 'ph-skip-forward' : 'ph-x'}`}></i>
+                                        </span>
+                                        <div>
+                                            <p className="font-medium text-slate-700">{h.qText}</p>
+                                            <p className="text-xs text-slate-500">
+                                                {h.result === 'skipped' ? 'Pulou' : `Sua resposta: ${h.selected}`}
+                                                {h.lifelines.length > 0 && <span className="text-indigo-500 ml-2">• Ajudas: {h.lifelines.join(', ')}</span>}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <button onClick={onRestart} className="btn-primary w-full py-3 mt-6 rounded-lg font-bold">
+                            Voltar ao Início
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- App Controller ---
+
+        const App = () => {
+            const [view, setView] = useState('MENU'); // MENU, TOPIC, SCANNER, GAME, RESULT
+            const [gameData, setGameData] = useState({ questions: [], mode: 'study', testData: null });
+
+            const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+
+            const startStudy = (topic) => {
+                const q = window.DEFAULT_QUESTIONS.filter(q => q.tema === topic);
+                setGameData({ questions: shuffle(q), mode: 'study', testData: null });
+                setView('GAME');
+            };
+
+            const startTest = (qrData, studentName) => {
+                const q = window.DEFAULT_QUESTIONS.filter(q => q.tema === qrData.topic);
+                setGameData({ 
+                    questions: shuffle(q), 
+                    mode: 'test', 
+                    testData: { ...qrData, studentName } 
+                });
+                setView('GAME');
+            };
+
+            const handleEndGame = (win, prize, history) => {
+                setGameData(prev => ({ ...prev, win, prize, history }));
+                setView('RESULT');
+            };
+
+            const topics = [...new Set(window.DEFAULT_QUESTIONS.map(q => q.tema))];
+
+            return (
+                <>
+                    {view === 'MENU' && <MainMenu onStartStudy={() => setView('TOPIC')} onStartTest={() => setView('SCANNER')} />}
+                    {view === 'TOPIC' && <TopicSelector topics={topics} onSelect={startStudy} onBack={() => setView('MENU')} />}
+                    {view === 'SCANNER' && <Scanner onScan={startTest} onBack={() => setView('MENU')} />}
+                    {view === 'GAME' && <Game questions={gameData.questions} mode={gameData.mode} onEnd={handleEndGame} />}
+                    {view === 'RESULT' && <ResultScreen win={gameData.win} prize={gameData.prize} history={gameData.history} testData={gameData.testData} onRestart={() => setView('MENU')} />}
+                </>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+
+        // {
+        //   "topic": "Ecologia",
+        //   "formAction": "https://docs.google.com/forms/d/e/1FAIpQLSfqi8q1aH0Lq4GipWNV_OKNER_WiNC4pOQx_LuLczhJTHVg_w/formResponse",
+        //   "mapping": {
+        //     "name": "entry.620451654",
+        //     "score": "entry.1776045572",
+        //     "result": "entry.34123817",
+        //     "details": "entry.1275185253"
+        //   }
+        // }
+
+    </script>
+</body>
+</html>
+
