@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Dados HPLC Otimizada</title>
+    <link rel="icon" href="../../assets/logohplc.png">
+    <meta name="theme-color" content="#f8fafc">
+    
+    <!-- Tailwind CSS para um design moderno e responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js para a criação de gráficos interativos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Phosphor Icons para ícones -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* cinza claro */
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        .tab-content {
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .sample-checkbox-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+        }
+        
+        details summary {
+            cursor: pointer;
+            list-style: none; 
+        }
+        details summary::-webkit-details-marker {
+            display: none; 
+        }
+        details summary .arrow {
+            transition: transform 0.2s;
+        }
+        details[open] summary .arrow {
+            transform: rotate(90deg);
+        }
+
+        .tabs-nav-container {
+            overflow-x: auto;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .tabs-nav-container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        .tabs-nav {
+            flex-wrap: nowrap;
+            white-space: nowrap;
+        }
+        
+        /* Toggle Switch Style */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #6366f1;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #6366f1;
+        }
+
+        #donation-modal {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+        #donation-icon:hover #donation-modal {
+            opacity: 1;
+            transform: scale(1) translateX(-10px);
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="antialiased text-slate-700">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        <!-- Cabeçalho -->
+        <header class="text-center mb-8 p-6 bg-white rounded-xl shadow-md border border-slate-200">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-800 flex items-center justify-center gap-3">
+                <i class="ph-bold ph-chart-line-up text-indigo-500"></i>
+                Análise de Dados HPLC
+            </h1>
+            <p class="text-slate-500 mt-2">Uma ferramenta otimizada para processamento de dados de cromatografia.</p>
+        </header>
+
+        <!-- Navegação por Abas -->
+        <div class="mb-6 border-b border-slate-200 tabs-nav-container">
+            <nav class="flex -mb-px space-x-6 tabs-nav" aria-label="Tabs">
+                <button class="tab active" data-tab="tutorial">
+                    <i class="ph-bold ph-book-open"></i> Tutorial
+                </button>
+                <button class="tab" data-tab="parameters">
+                    <i class="ph-bold ph-atom"></i> Parâmetros
+                </button>
+                <button class="tab" data-tab="samples">
+                    <i class="ph-bold ph-test-tube"></i> Amostras
+                </button>
+                <button class="tab" data-tab="results">
+                    <i class="ph-bold ph-table"></i> Resultados
+                </button>
+                <button class="tab" data-tab="chart">
+                    <i class="ph-bold ph-chart-bar"></i> Gráfico
+                </button>
+                <button class="tab" data-tab="config">
+                    <i class="ph-bold ph-gear"></i> Configurações
+                </button>
+            </nav>
+        </div>
+
+        <!-- Conteúdo das Abas -->
+        <main>
+            <!-- Aba de Tutorial -->
+            <div id="tutorial-tab" class="tab-content active">
+                <div class="card space-y-8">
+                    <div>
+                        <h2 class="section-title"><i class="ph-bold ph-rocket-launch text-indigo-500"></i> Guia de Início Rápido</h2>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <details class="bg-slate-50 p-4 rounded-lg border">
+                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
+                                <span>Passo 1: Configurar Parâmetros das Moléculas</span>
+                                <i class="ph ph-caret-right arrow text-xl"></i>
+                            </summary>
+                            <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
+                                <p>Na aba <strong>"Parâmetros"</strong>, cadastre as moléculas.</p>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li><strong>Nome da Molécula:</strong> Um identificador único (ex: Glicose, Frutose).</li>
+                                    <li><strong>Tempo de Referência (min):</strong> O tempo de retenção esperado para a molécula. A ferramenta buscará o pico mais próximo a este tempo.</li>
+                                    <li><strong>Variância Máxima:</strong> Define a tolerância para encontrar o pico. Ex: Se Tempo Ref = 9.4 e Variância = 0.15, o sistema buscará picos entre 9.25 e 9.55. Se nada for encontrado nesse intervalo, a concentração será 0.</li>
+                                    <li><strong>Fator de Conversão:</strong> Valor para converter a área do pico em concentração.</li>
+                                    <li><strong>Fator de Diluição:</strong> Se a sua amostra foi diluída (ex: 10 para uma diluição 1:10).</li>
+                                    <li><strong>Fator de Correção:</strong> Um valor para ajustar o cálculo final da concentração, se necessário.</li>
+                                    <li><strong>Ativar/Desativar:</strong> Use o botão no card da molécula para desativá-la temporariamente. Moléculas desativadas serão ignoradas no processamento de novas amostras e aparecerão como 0 nos resultados.</li>
+                                </ul>
+                                <p class="font-medium text-indigo-600">Clique em "Adicionar Molécula" para salvar. Você pode adicionar quantas precisar.</p>
+                            </div>
+                        </details>
+
+                        <details class="bg-slate-50 p-4 rounded-lg border">
+                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
+                                <span>Passo 2: Processar Amostras</span>
+                                 <i class="ph ph-caret-right arrow text-xl"></i>
+                            </summary>
+                             <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
+                                <p>A aba <strong>"Amostras"</strong> é o coração da ferramenta. O processo é simples e dinâmico:</p>
+                                <ol class="list-decimal list-inside space-y-2">
+                                    <li><strong>Cole os Dados:</strong> Cole a sua corrida de HPLC inteira na área de texto. A ferramenta irá ler e listar automaticamente todas as injeções (replicatas) encontradas.</li>
+                                    <li><strong>Defina uma Amostra:</strong> No painel ao lado, dê um nome para seu grupo de replicatas (ex: "Cultura_24h").</li>
+                                    <li><strong>Selecione as Replicatas:</strong> Na lista de injeções, marque as checkboxes que correspondem à amostra que você nomeou.</li>
+                                    <li><strong>Processe:</strong> Clique em <strong>"Processar Amostra Selecionada"</strong>. As replicatas escolhidas serão processadas, salvas e removidas da lista e da área de texto.</li>
+                                    <li><strong>Repita:</strong> Continue o processo para cada grupo de replicatas, até que a área de texto esteja vazia.</li>
+                                </ol>
+                            </div>
+                        </details>
+                        
+                         <details class="bg-slate-50 p-4 rounded-lg border">
+                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
+                                <span>Passo 3: Resultados e Ações em Massa</span>
+                                 <i class="ph ph-caret-right arrow text-xl"></i>
+                            </summary>
+                             <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
+                                 <p>Na aba <strong>"Resultados"</strong>, você encontrará uma tabela consolidada com a média e desvio padrão.</p>
+                                 <ul class="list-disc list-inside space-y-1">
+                                     <li><strong>Busca Dinâmica:</strong> Use o campo <strong>"Buscar amostra na tabela..."</strong> para filtrar instantaneamente os resultados e encontrar o que você precisa.</li>
+                                     <li><strong>Copiar para CSV:</strong> Com um clique, copie os dados da tabela (já filtrados ou não) e cole facilmente em softwares como Excel ou Google Sheets.</li>
+                                     <li><strong>Ações em Lote:</strong> Botões dedicados para Copiar para CSV ou Excluir apenas as linhas selecionadas.</li>
+                                </ul>
+                            </div>
+                        </details>
+
+                        <details class="bg-slate-50 p-4 rounded-lg border">
+                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
+                                <span>Passo 4: Criar Gráficos Avançados</span>
+                                 <i class="ph ph-caret-right arrow text-xl"></i>
+                            </summary>
+                             <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
+                                <p>A aba <strong>"Gráfico"</strong> é onde a mágica visual acontece:</p>
+                                 <ul class="list-disc list-inside space-y-1">
+                                     <li><strong>Múltiplas Métricas:</strong> Você pode selecionar uma métrica diferente (ex: Glicose Média vs. Frutose Média) para cada conjunto de dados, permitindo comparações complexas no mesmo gráfico.</li>
+                                     <li><strong>Busca Rápida:</strong> Cada card de seleção de conjunto de amostras agora tem seu próprio campo de busca para você encontrar rapidamente o que quer plotar.</li>
+                                     <li><strong>Controle Total da Ordem:</strong> O gráfico respeita a ordem em que você clica nas amostras. A primeira amostra clicada será a primeira no eixo X, a segunda será a segunda, e assim por diante. Desmarque e marque novamente para reordenar!</li>
+                                     <li><strong>Comparação Direta:</strong> Adicione múltiplos conjuntos de dados para sobrepor gráficos e comparar visualmente diferentes condições experimentais.</li>
+                                </ul>
+                            </div>
+                        </details>
+
+                        <details class="bg-slate-50 p-4 rounded-lg border">
+                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
+                                <span>Passo 5: Sincronização entre Dispositivos</span>
+                                 <i class="ph ph-caret-right arrow text-xl"></i>
+                            </summary>
+                             <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
+                                <p>Use a aba <strong>"Configurações"</strong> para transferir seus dados:</p>
+                                 <ul class="list-disc list-inside space-y-1">
+                                     <li><strong>Exportar:</strong> Clique em "Copiar Tudo" para colocar todos os seus dados na área de transferência. Envie para você mesmo por e-mail ou mensagem.</li>
+                                     <li><strong>Importar:</strong> No outro dispositivo, cole os dados no campo de texto e clique em "Sincronizar/Importar" para restaurar todo o seu trabalho.</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+
+                    <div class="border-t pt-6 mt-6 text-center text-slate-600">
+                        <h3 class="font-semibold text-lg text-slate-800">Uma mensagem do criador</h3>
+                        <p class="mt-2">Olá! Eu sou o Ítalo, estudante de biologia e entusiasta da ciência e da programação. Criei esta ferramenta com o objetivo de simplificar a vida de pesquisadores e estudantes, transformando uma tarefa tediosa em algo rápido e visual. Ela foi feita com muito carinho e atenção aos detalhes, pensando em como eu mesmo gostaria de analisar meus dados.</p>
+                        <p class="mt-2">Se esta ferramenta te ajudou a economizar tempo e a facilitar seu trabalho, considere apoiar o projeto. Sua contribuição me ajuda a manter a ferramenta funcionando, a desenvolver novas funcionalidades e, claro, a pagar o café que move tudo isso!</p>
+                        <div class="mt-4">
+                            <p class="font-bold text-indigo-600">Qualquer valor faz uma grande diferença. Muito obrigado!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba de Parâmetros -->
+            <div id="parameters-tab" class="tab-content hidden">
+                <div class="card">
+                    <h2 class="section-title"><i class="ph-bold ph-pencil-line"></i> Parâmetros das Moléculas</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <input type="text" id="moleculeName" placeholder="Nome (Ex: Maltotriose)">
+                        <div class="col-span-1 grid grid-cols-2 gap-2">
+                            <input type="number" id="referenceTime" step="0.001" placeholder="Tempo Ref. (min)">
+                            <input type="number" id="maxVariance" step="0.001" placeholder="Var. Máx (Ex: 0.15)">
+                        </div>
+                        <input type="number" id="conversionFactor" step="0.000001" placeholder="Fator Conv.">
+                        <input type="number" id="dilutionFactor" step="0.0001" placeholder="Fator Diluição">
+                        <input type="number" id="correctionFactor" step="0.0001" placeholder="Fator Correção">
+                        <button id="addMolecule" class="btn btn-primary col-span-1 md:col-span-2 lg:col-span-1">
+                            <i class="ph-bold ph-plus-circle"></i> Adicionar Molécula
+                        </button>
+                    </div>
+                    <div id="moleculesList" class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Moléculas adicionadas aqui -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba de Amostras -->
+            <div id="samples-tab" class="tab-content hidden">
+                <div class="card">
+                    <h2 class="section-title"><i class="ph-bold ph-flask"></i> Registro de Amostras</h2>
+                    <div class="mb-6">
+                        <label class="font-semibold mb-2 block">Passo 1: Cole todos os dados da sua corrida de HPLC abaixo.</label>
+                        <textarea id="sampleData" class="data-input-area min-h-[12rem] w-[100%]" placeholder="Exemplo de formato de dado de entrada:&#10;1 Rent.Time     Área&#10;          8.578    20857&#10;          9.386   30896&#10;         11.13    49735&#10;              ..."></textarea>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start border-t pt-6">
+                        <div class="space-y-4">
+                            <h3 class="font-semibold">Passo 2: Defina uma amostra e processe.</h3>
+                            <div>
+                                <label for="sampleName" class="block text-sm font-medium text-slate-600 mb-1">Nome da Amostra</label>
+                                <input type="text" id="sampleName" placeholder="Ex: Cultura_24h">
+                            </div>
+                            <button id="processSample" class="btn btn-primary w-full">
+                                <i class="ph-bold ph-gear-six"></i> Processar Amostra Selecionada
+                            </button>
+                        </div>
+                        <div class="space-y-4">
+                             <h3 class="font-semibold">Passo 3: Selecione as replicatas correspondentes.</h3>
+                             <div id="hplcDataCheckboxList" class="sample-checkbox-list bg-slate-50 min-h-[10rem]">
+                                <p class="text-slate-400 text-center p-4">Cole os dados na área de texto para ver as replicatas disponíveis.</p>
+                             </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-4 border-t">
+                        <div class="flex flex-wrap justify-between items-center gap-4 mb-2">
+                             <h3 class="text-lg font-semibold">Amostras Já Processadas</h3>
+                             <button id="copyProcessedSamplesButton" class="btn btn-secondary text-sm">
+                                 <i class="ph-bold ph-copy"></i> Copiar Dados da Tabela
+                             </button>
+                        </div>
+                        <input type="text" id="processedSamplesSearch" placeholder="Buscar amostras processadas..." class="mb-4 w-full md:w-1/3">
+                        <div id="samplesList" class="mt-4 space-y-2">
+                            <!-- Amostras processadas aqui -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba de Resultados -->
+            <div id="results-tab" class="tab-content hidden">
+                <div class="card">
+                    <h2 class="section-title mb-4"><i class="ph-bold ph-presentation-chart"></i> Resultados da Análise</h2>
+                    
+                    <!-- Barra de Ferramentas de Resultados -->
+                    <div class="flex flex-wrap gap-2 mb-4 p-3 bg-slate-50 border border-slate-200 rounded-lg items-center">
+                        <div class="flex items-center gap-2 mr-auto w-full md:w-auto">
+                            <i class="ph-bold ph-magnifying-glass text-slate-400"></i>
+                            <input type="text" id="resultsSearch" placeholder="Buscar..." class="bg-transparent outline-none w-full md:w-48 text-sm">
+                        </div>
+                        <div class="flex flex-wrap gap-2 w-full md:w-auto justify-end">
+                            <div class="h-6 w-px bg-slate-300 mx-1 hidden md:block"></div>
+                            <button id="copySelectedBtn" class="btn bg-indigo-100 text-indigo-700 hover:bg-indigo-200 text-xs px-3 py-1.5 rounded font-medium flex items-center gap-1 transition">
+                                <i class="ph-bold ph-copy"></i> Copiar Selecionados
+                            </button>
+                            <button id="deleteSelectedBtn" class="btn bg-red-100 text-red-700 hover:bg-red-200 text-xs px-3 py-1.5 rounded font-medium flex items-center gap-1 transition">
+                                <i class="ph-bold ph-trash"></i> Excluir Selecionados
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="resultsTableContainer" class="overflow-x-auto border rounded-lg">
+                        <table id="resultsTable" class="results-table w-full text-sm text-left text-slate-600"></table>
+                    </div>
+                    <div id="summaryStats" class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Estatísticas resumidas -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba de Gráfico -->
+            <div id="chart-tab" class="tab-content hidden">
+                <div class="card">
+                    <h2 class="section-title"><i class="ph-bold ph-chart-bar"></i> Construtor de Gráfico Comparativo</h2>
+                    <div class="flex flex-col gap-6 mb-6">
+                        <div class="flex-1">
+                            <label class="font-semibold mb-2 block">1. Selecione o tipo de gráfico:</label>
+                            <div id="chartTypeSelect" class="flex space-x-2">
+                                <button data-type="bar" class="chart-type-btn"><i class="ph-bold ph-chart-bar"></i> Barras</button>
+                                <button data-type="line" class="chart-type-btn active"><i class="ph-bold ph-chart-line"></i> Linhas</button>
+                            </div>
+                        </div>
+                        <div class="lg:col-span-2">
+                            <label class="font-semibold mb-2 block">2. Monte os conjuntos de amostras para comparação:</label>
+                            <div id="datasetSelectorsContainer" class="space-y-4 md:space-y-0 md:flex md:flex-wrap md:items-stretch md:gap-4">
+                                <!-- Seletores de dataset serão inseridos aqui -->
+                            </div>
+                            <button id="addDatasetBtn" class="btn btn-secondary mt-4 text-sm">
+                                <i class="ph-bold ph-plus"></i> Adicionar Conjunto de Amostras
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-2 sm:p-4 rounded-lg mt-4">
+                        <canvas id="resultsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba de Configurações (Nova) -->
+            <div id="config-tab" class="tab-content hidden">
+                <div class="card">
+                    <h2 class="section-title"><i class="ph-bold ph-arrows-clockwise"></i> Sincronização e Backup</h2>
+                    <p class="text-slate-600 mb-6">Use esta área para transferir seus dados entre dispositivos. Copie o código abaixo e cole na ferramenta em outro computador.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="font-semibold text-slate-800 mb-2">Exportar Dados</h3>
+                            <p class="text-sm text-slate-500 mb-3">Clique no botão para copiar todos os dados atuais (moléculas, amostras e resultados) para sua área de transferência.</p>
+                            <button id="exportDataBtn" class="btn btn-primary w-full md:w-auto">
+                                <i class="ph-bold ph-export"></i> Copiar Tudo para Clipboard
+                            </button>
+                        </div>
+
+                        <div>
+                            <h3 class="font-semibold text-slate-800 mb-2">Importar Dados</h3>
+                            <p class="text-sm text-slate-500 mb-3">Cole o código de dados aqui e clique em sincronizar para carregar.</p>
+                            <textarea id="importDataArea" class="data-input-area w-full h-32 mb-3 text-xs font-mono" placeholder='Cole aqui o JSON gerado na exportação...'></textarea>
+                            <button id="importDataBtn" class="btn btn-secondary w-full">
+                                <i class="ph-bold ph-arrows-clockwise"></i> Sincronizar/Carregar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Container para Alertas -->
+        <div id="alertsContainer" class="fixed bottom-24 sm:bottom-5 right-5 w-full max-w-xs sm:max-w-sm space-y-3 z-50"></div>
+        
+        <div id="donation-icon" class="fixed bottom-5 right-5 group z-40">
+            <div id="donation-modal" class="absolute bottom-full right-0 mb-2 w-72 bg-white p-4 rounded-lg shadow-lg opacity-0 transform scale-95 pointer-events-none origin-bottom-right">
+                <h4 class="font-bold text-slate-800">Gostou da ferramenta?</h4>
+                <p class="text-sm text-slate-600 mt-1">Seu apoio ajuda a manter este projeto vivo e crescendo. Que tal pagar um café para o dev?</p>
+                <p class="text-center font-bold text-indigo-600 mt-2">PIX: <span class="select-all">italo.faria0@gmail.com</span></p>
+            </div>
+            <button class="w-10 h-10 bg-indigo-500 text-white rounded-full flex items-center justify-center shadow-lg transform transition-transform group-hover:scale-110">
+                <i class="ph-bold ph-coffee text-2xl"></i>
+            </button>
+        </div>
+
+        <!-- Barra de Armazenamento -->
+        <footer class="mt-8">
+            <div class="bg-white p-3 rounded-xl shadow-md border border-slate-200">
+                <div class="w-full bg-slate-200 rounded-full h-2.5">
+                    <div id="storageProgress" class="bg-indigo-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-slate-500 mt-2">
+                    <span>Uso do Armazenamento Local</span>
+                    <span id="storageInfo">0% (0 KB / 5 MB)</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Script principal da aplicação -->
+    <script>
+        // Estilos reutilizáveis
+        const cardStyle = 'bg-white p-4 md:p-6 rounded-xl shadow-md border border-slate-200';
+        const inputStyle = 'w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition';
+        const btnBase = 'px-4 py-2.5 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition duration-200 ease-in-out transform hover:-translate-y-0.5';
+        const btnPrimary = `${btnBase} bg-indigo-500 hover:bg-indigo-600 shadow-sm`;
+        const btnSecondary = `${btnBase} bg-slate-500 hover:bg-slate-600 shadow-sm`;
+        const tabStyle = 'py-4 px-3 border-b-2 font-medium text-sm transition-colors duration-200 flex items-center gap-2';
+        const tabActiveStyle = 'border-indigo-500 text-indigo-600';
+        const tabInactiveStyle = 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300';
+        
+        // Aplicação de estilos
+        document.querySelectorAll('.card').forEach(el => { el.className = cardStyle });
+        document.querySelectorAll('input[type="text"], input[type="number"], select, textarea').forEach(el => { 
+            if(el.classList.contains('data-input-area')) return; 
+            el.className += ' ' + inputStyle; 
+        });
+        document.querySelectorAll('.btn-primary').forEach(el => { el.className = `${el.className.replace(btnPrimary, '')} ${btnPrimary}` });
+        document.querySelectorAll('.btn-secondary').forEach(el => { el.className = `${el.className.replace(btnSecondary, '')} ${btnSecondary}` });
+        document.querySelectorAll('.tab').forEach(el => { el.className = `tab ${el.classList.contains('active') ? 'active ' : ''}${tabStyle} ${el.classList.contains('active') ? tabActiveStyle : tabInactiveStyle}` });
+        document.querySelectorAll('.chart-type-btn').forEach(el => { el.className = `${el.className.replace(/w-full text-sm.*$/, '')} w-full text-sm ${btnBase} ${el.classList.contains('active') ? 'bg-indigo-500' : 'bg-slate-300 text-slate-700 hover:bg-slate-400'}` });
+
+        const appState = { 
+            molecules: [], 
+            samples: [], 
+            results: [],
+            chartConfig: {} 
+        };
+        let resultsChart = null;
+        let datasetCount = 0;
+
+        function showAlert(message, type = 'info') {
+            const icons = { success: '<i class="ph-bold ph-check-circle text-xl"></i>', error: '<i class="ph-bold ph-x-circle text-xl"></i>', info: '<i class="ph-bold ph-info text-xl"></i>' };
+            const colors = { success: 'bg-green-100 text-green-800 border-green-300', error: 'bg-red-100 text-red-800 border-red-300', info: 'bg-blue-100 text-blue-800 border-blue-300' };
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `flex items-center gap-4 p-4 rounded-lg shadow-lg border ${colors[type]} transform transition-all duration-300 translate-x-full opacity-0`;
+            alertDiv.innerHTML = `${icons[type]}<span>${message}</span>`;
+            document.getElementById('alertsContainer').appendChild(alertDiv);
+            setTimeout(() => alertDiv.classList.remove('translate-x-full', 'opacity-0'), 10);
+            setTimeout(() => {
+                alertDiv.classList.add('opacity-0', 'translate-x-full');
+                setTimeout(() => alertDiv.remove(), 300);
+            }, 5000);
+        }
+
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        function updateStorageBar() {
+            const dataStr = JSON.stringify(localStorage);
+            const sizeInBytes = new Blob([dataStr]).size;
+            const totalSize = 5 * 1024 * 1024; // ~5MB localStorage limit
+            const usedPercent = Math.min(100, (sizeInBytes / totalSize) * 100);
+            document.getElementById('storageProgress').style.width = `${usedPercent}%`;
+            document.getElementById('storageInfo').textContent = `${usedPercent.toFixed(1)}% (${formatBytes(sizeInBytes, 0)} / ${formatBytes(totalSize, 0)})`;
+        }
+
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('hplcData', JSON.stringify(appState));
+                updateStorageBar();
+            } catch (e) {
+                showAlert('Erro ao salvar: Limite de armazenamento excedido.', 'error');
+            }
+        }
+
+        function loadFromLocalStorage() {
+            const data = localStorage.getItem('hplcData');
+            if (data) {
+                try {
+                    const parsed = JSON.parse(data);
+                    if (parsed && typeof parsed === 'object') {
+                        appState.molecules = (parsed.molecules || []).map(m => ({
+                            ...m,
+                            isActive: m.isActive !== undefined ? m.isActive : true, // Backward compatibility
+                            maxVariance: m.maxVariance !== undefined ? m.maxVariance : 0.5 // Default variance if missing
+                        }));
+                        appState.samples = parsed.samples || [];
+                        appState.results = parsed.results || [];
+                        appState.chartConfig = parsed.chartConfig || {};
+                    }
+                } catch (e) {
+                    console.error("Erro ao ler dados do localStorage.", e);
+                    appState.molecules = []; appState.samples = []; appState.results = []; 
+                    appState.chartConfig = {};
+                }
+            }
+            renderAll();
+            updateStorageBar();
+        }
+
+        function renderAll() {
+            renderMoleculesList();
+            renderSamplesList();
+            renderResultsTable(document.getElementById('resultsSearch').value);
+            renderSummaryStats();
+            initializeChartSelectors();
+        }
+
+        // --- Molecules Logic ---
+
+        function renderMoleculesList() {
+            const list = document.getElementById('moleculesList');
+            list.innerHTML = '';
+            if (appState.molecules.length === 0) {
+                 list.innerHTML = '<p class="text-slate-500 col-span-full text-center py-4">Nenhuma molécula adicionada.</p>';
+                 return;
+            }
+            appState.molecules.forEach(m => {
+                const item = document.createElement('div');
+                // Estilo visual muda se estiver inativa
+                const opacityClass = m.isActive ? '' : 'opacity-60 bg-slate-100';
+                item.className = `bg-white p-4 rounded-lg border border-slate-200 space-y-2 text-sm relative ${opacityClass}`;
+                
+                item.innerHTML = `
+                    <div class="flex justify-between items-center font-semibold text-slate-800 border-b pb-2 mb-2">
+                        <span class="flex items-center gap-2"><i class="ph-bold ph-atom text-indigo-500"></i> ${m.name}</span>
+                        <div class="flex items-center gap-2">
+                            <!-- Toggle Ativo/Inativo -->
+                            <label class="relative inline-flex items-center cursor-pointer" title="${m.isActive ? 'Desativar' : 'Ativar'} Molécula">
+                                <input type="checkbox" class="sr-only peer" ${m.isActive ? 'checked' : ''} onchange="toggleMoleculeActive(${m.id})">
+                                <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                            </label>
+                            <button class="text-red-400 hover:text-red-600 ml-2" onclick="removeMolecule(${m.id})" title="Excluir"><i class="ph-bold ph-trash"></i></button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-x-2 gap-y-1">
+                        <p class="text-slate-500">Tempo Ref:</p> <p class="font-medium text-right">${m.referenceTime} min</p>
+                        <p class="text-slate-500">Var. Máx:</p> <p class="font-medium text-right text-orange-600">±${m.maxVariance}</p>
+                        <p class="text-slate-500">F. Conversão:</p> <p class="font-medium text-right">${m.conversionFactor}</p>
+                        <p class="text-slate-500">F. Diluição:</p> <p class="font-medium text-right">${m.dilutionFactor}</p>
+                        <p class="text-slate-500">F. Correção:</p> <p class="font-medium text-right">${m.correctionFactor}</p>
+                    </div>
+                    ${!m.isActive ? '<div class="absolute inset-0 flex items-center justify-center bg-slate-100/50 pointer-events-none"><span class="bg-slate-800 text-white text-xs px-2 py-1 rounded">Inativa</span></div>' : ''}
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function addMolecule() {
+            const name = document.getElementById('moleculeName').value.trim();
+            const time = parseFloat(document.getElementById('referenceTime').value);
+            const variance = parseFloat(document.getElementById('maxVariance').value); // Novo campo
+            const conv = parseFloat(document.getElementById('conversionFactor').value);
+            const dil = parseFloat(document.getElementById('dilutionFactor').value);
+            const corr = parseFloat(document.getElementById('correctionFactor').value);
+            
+            if (!name || isNaN(time) || isNaN(conv) || isNaN(dil) || isNaN(corr) || isNaN(variance)) {
+                showAlert('Preencha todos os campos da molécula corretamente.', 'error'); return;
+            }
+            if (appState.molecules.some(m => m.name === name)) {
+                showAlert(`A molécula "${name}" já existe.`, 'info'); return;
+            }
+            
+            appState.molecules.push({ 
+                id: Date.now(), 
+                name, 
+                referenceTime: time, 
+                maxVariance: variance,
+                conversionFactor: conv, 
+                dilutionFactor: dil, 
+                correctionFactor: corr,
+                isActive: true
+            });
+            renderMoleculesList();
+            saveToLocalStorage();
+            showAlert(`Molécula "${name}" adicionada!`, 'success');
+            
+            ['moleculeName', 'referenceTime', 'maxVariance', 'conversionFactor', 'dilutionFactor', 'correctionFactor'].forEach(id => document.getElementById(id).value = '');
+        }
+
+        function removeMolecule(id) {
+            if(confirm("Tem certeza? Isso afetará visualmente amostras futuras, mas não os resultados já calculados.")) {
+                appState.molecules = appState.molecules.filter(m => m.id !== id);
+                renderAll(); saveToLocalStorage(); showAlert('Molécula removida.', 'success');
+            }
+        }
+
+        function toggleMoleculeActive(id) {
+            const mol = appState.molecules.find(m => m.id === id);
+            if (mol) {
+                mol.isActive = !mol.isActive;
+                renderMoleculesList();
+                saveToLocalStorage();
+            }
+        }
+
+        // --- Data Processing Logic ---
+
+        function getStructuredDataFromText(text) {
+            const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+            const structuredData = [];
+            let currentSampleBlock = null;
+            const headerRegex = /^\d+\s+Ret\.\s+Time\s+Area/i; // Regex ajustável conforme necessidade
+
+            lines.forEach(line => {
+                if (headerRegex.test(line)) {
+                    currentSampleBlock = { header: line, dataLines: [] };
+                    structuredData.push(currentSampleBlock);
+                } else if (currentSampleBlock) {
+                    // Tenta capturar linhas de dados: "8.578  20857"
+                    // Suporta tab ou espaço como separador
+                    const parts = line.split(/\s+/).map(p => parseFloat(p.replace(',', '.')));
+                    // Verifica se parece um dado numérico válido (Tempo e Área)
+                    if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                        currentSampleBlock.dataLines.push(line);
+                    }
+                }
+            });
+            return structuredData;
+        }
+
+        function parseRawDataAndUpdateCheckboxes() {
+            const text = document.getElementById('sampleData').value;
+            const listContainer = document.getElementById('hplcDataCheckboxList');
+            const structuredData = getStructuredDataFromText(text);
+
+            listContainer.innerHTML = '';
+            if (structuredData.length === 0) {
+                listContainer.innerHTML = '<p class="text-slate-400 text-center p-4">Nenhum dado de replicata encontrado.</p>';
+                return;
+            }
+
+            structuredData.forEach((block, idx) => {
+                listContainer.innerHTML += `
+                    <label class="flex items-center space-x-2 p-1.5 hover:bg-slate-100 rounded cursor-pointer text-sm border-b border-slate-100 last:border-0">
+                        <input type="checkbox" value="${idx}" class="hplc-replicate-checkbox rounded w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+                        <span class="truncate" title="${block.header}">${block.header} (${block.dataLines.length} picos)</span>
+                    </label>`;
+            });
+        }
+        
+        function processSample() {
+            const name = document.getElementById('sampleName').value.trim();
+            const selectedCheckboxes = document.querySelectorAll('.hplc-replicate-checkbox:checked');
+            
+            if (!name) { showAlert('Por favor, defina um nome para a amostra.', 'error'); return; }
+            if (selectedCheckboxes.length === 0) { showAlert('Selecione ao menos uma replicata para processar.', 'error'); return; }
+            if (appState.molecules.length === 0) { showAlert('Adicione pelo menos uma molécula primeiro.', 'error'); return; }
+
+            try {
+                const rawText = document.getElementById('sampleData').value;
+                const allStructuredData = getStructuredDataFromText(rawText);
+                // Usamos índices agora para evitar problemas com headers duplicados
+                const selectedIndices = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
+
+                const samplesToProcess = allStructuredData.filter((_, idx) => selectedIndices.includes(idx));
+                const remainingData = allStructuredData.filter((_, idx) => !selectedIndices.includes(idx));
+
+                // Parse dos dados selecionados
+                const parsedSamples = samplesToProcess.map(block => {
+                    const sample = { times: [], areas: [] };
+                    block.dataLines.forEach(line => {
+                        const parts = line.split(/\s+/).map(p => parseFloat(p.replace(',', '.')));
+                        sample.times.push(parts[0]);
+                        sample.areas.push(parts[1]);
+                    });
+                    return sample;
+                });
+
+                parsedSamples.forEach((sampleData, i) => {
+                    const sampleObj = {
+                        id: Date.now() + i,
+                        name: `${name}_${i + 1}`,
+                        sampleNumber: i + 1,
+                        processedData: {}
+                    };
+
+                    appState.molecules.forEach(mol => {
+                        // Se a molécula está desativada, concentração é 0
+                        if (!mol.isActive) {
+                            sampleObj.processedData[mol.name] = { concentration: 0, area: 0, time: 0, note: 'Inativa' };
+                            return;
+                        }
+
+                        let closestIndex = -1;
+                        let minDiff = Infinity;
+                        
+                        // Busca o pico mais próximo do tempo de referência
+                        sampleData.times.forEach((t, idx) => {
+                            const diff = Math.abs(t - mol.referenceTime);
+                            if (diff < minDiff) {
+                                minDiff = diff;
+                                closestIndex = idx;
+                            }
+                        });
+
+                        // Verifica se o pico encontrado está dentro da variância permitida
+                        // Se maxVariance não estiver definido (antigo), usa um valor padrão alto ou 0.5
+                        const limit = mol.maxVariance !== undefined ? mol.maxVariance : 0.5;
+
+                        if (closestIndex !== -1 && minDiff <= limit) {
+                            const area = sampleData.areas[closestIndex];
+                            const time = sampleData.times[closestIndex];
+                            sampleObj.processedData[mol.name] = {
+                                concentration: (area * mol.conversionFactor * mol.dilutionFactor) + mol.correctionFactor,
+                                area: area, 
+                                time: time
+                            };
+                        } else {
+                            // Não encontrou pico dentro do intervalo -> Concentração 0
+                            sampleObj.processedData[mol.name] = { concentration: 0, area: 0, time: 0, note: 'Não detectado' };
+                        }
+                    });
+                    appState.samples.push(sampleObj);
+                });
+
+                // Atualiza textarea apenas com o que sobrou
+                const newText = remainingData.map(block => `${block.header}\n${block.dataLines.join('\n')}`).join('\n\n');
+                document.getElementById('sampleData').value = newText;
+                
+                document.getElementById('sampleName').value = '';
+                parseRawDataAndUpdateCheckboxes();
+                generateResults();
+                showAlert(`${selectedCheckboxes.length} replicatas de "${name}" processadas!`, 'success');
+                
+            } catch (error) {
+                console.error(error);
+                showAlert(`Erro ao processar: ${error.message}`, 'error');
+            }
+        }
+        
+        function renderSamplesList(filter = '') {
+             const list = document.getElementById('samplesList');
+             list.innerHTML = '';
+             const lowerCaseFilter = filter.toLowerCase();
+
+             const groups = appState.samples.reduce((acc, sample) => {
+                 const baseName = sample.name.replace(/_\d+$/, '');
+                 if (baseName.toLowerCase().includes(lowerCaseFilter)) {
+                    if (!acc[baseName]) acc[baseName] = [];
+                    acc[baseName].push(sample);
+                 }
+                 return acc;
+             }, {});
+
+             if (Object.keys(groups).length === 0) {
+                 list.innerHTML = `<p class="text-slate-500 text-center py-4">Nenhuma amostra encontrada${filter ? ' para "' + filter + '"' : ''}.</p>`;
+                 return;
+             }
+             
+             Object.entries(groups).forEach(([baseName, group]) => {
+                 const details = document.createElement('details');
+                 details.className = 'bg-slate-50 border border-slate-200 rounded-lg group';
+                 details.innerHTML = `
+                    <summary class="p-3 font-semibold text-slate-800 flex justify-between items-center bg-white rounded-lg group-open:rounded-b-none transition-colors hover:bg-slate-50">
+                        <span>${baseName} <span class="text-slate-400 font-normal text-sm">(${group.length} replicatas)</span></span>
+                        <i class="ph ph-caret-right arrow text-slate-400"></i>
+                    </summary>
+                    <div class="p-3 border-t border-slate-200 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs bg-slate-50">
+                    ${group.map(sample => `
+                        <div class="bg-white p-3 rounded border shadow-sm">
+                            <strong class="block mb-2 text-indigo-600 border-b pb-1">Rep. ${sample.sampleNumber}</strong>
+                            <ul class="space-y-1">
+                            ${appState.molecules.map(mol => {
+                                // Se a molécula não existe nos dados processados (adicionada depois), assume 0
+                                const res = sample.processedData[mol.name] || { concentration: 0, time: 0, area: 0 };
+                                const valClass = res.concentration > 0 ? 'text-slate-700' : 'text-slate-400 italic';
+                                const valText = res.concentration > 0 ? `${res.concentration.toFixed(4)} [${res.time} - ${res.area}]` : 'ND';
+                                return `<li class="${valClass}"><span>${mol.name}:</span> <span> ${valText}</span></li>`;
+                            }).join('')}
+                            </ul>
+                        </div>
+                    `).join('')}
+                    </div>`;
+                 list.appendChild(details);
+             });
+        }
+        
+        // --- Results Logic & Bulk Actions ---
+
+        function generateResults() {
+             const groups = appState.samples.reduce((acc, sample) => {
+                 const baseName = sample.name.replace(/_\d+$/, '');
+                 if (!acc[baseName]) acc[baseName] = [];
+                 acc[baseName].push(sample);
+                 return acc;
+            }, {});
+
+            appState.results = Object.entries(groups).map(([baseName, group]) => {
+                const resultRow = { sampleName: baseName, molecules: {} };
+                appState.molecules.forEach(mol => {
+                    // Considera 0 se não existir ou se for nulo
+                    const concentrations = group.map(s => s.processedData[mol.name]?.concentration || 0);
+                    // Filtra 0 apenas se quisermos excluir "não detectados" da média, mas normalmente em analítica:
+                    // Se não detectado = 0. A média deve incluir o 0? 
+                    // O código original filtrava > 0. O usuário pediu: "assume que ela não está presente e sua concentração será 0".
+                    // Se concentração é 0, entra na média como 0.
+                    // ATUALIZAÇÃO: Se quisermos manter consistência com estatística robusta, mantemos zeros.
+                    
+                    const validConcentrations = concentrations; // Inclui zeros agora
+                    const stats = calculateStatistics(validConcentrations);
+                    resultRow.molecules[mol.name] = { mean: stats.mean, stdDev: stats.stdDev, values: validConcentrations };
+                });
+                return resultRow;
+            });
+            renderAll(); saveToLocalStorage();
+        }
+
+        function calculateStatistics(values) {
+            if (!values || values.length === 0) return { mean: 0, stdDev: 0 };
+            const n = values.length;
+            const mean = values.reduce((a, b) => a + b, 0) / n;
+            if (n < 2) return { mean, stdDev: 0 };
+            const stdDev = Math.sqrt(values.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b, 0) / (n - 1));
+            return { mean, stdDev };
+        }
+
+        function renderResultsTable(filter = '') {
+            const table = document.getElementById('resultsTable');
+            table.innerHTML = '';
+            const lowerCaseFilter = filter.toLowerCase();
+            const filteredResults = appState.results.filter(r => r.sampleName.toLowerCase().includes(lowerCaseFilter));
+
+            if (filteredResults.length === 0) {
+                table.innerHTML = `<thead><tr><th class="p-4 text-slate-500 text-center">Nenhum resultado encontrado${filter ? ' para "' + filter + '"' : ''}.</th></tr></thead>`;
+                return;
+            }
+
+            // Header
+            let thead = '<thead class="bg-slate-100 text-slate-600"><tr>';
+            thead += '<th class="p-3 w-10 text-center"><input type="checkbox" id="headerCheckbox" onchange="toggleSelectAll(this)" class="rounded text-indigo-600 focus:ring-indigo-500"></th>';
+            thead += '<th class="p-3 text-left text-sm font-bold uppercase tracking-wider sticky left-0 bg-slate-100 z-10">Amostra</th>';
+            appState.molecules.forEach(m => {
+                // Se a molécula estiver inativa, podemos optar por mostrar ou não. O usuário pediu "exibir valor igual a 0 ou nulo".
+                // Vamos exibir a coluna para consistência, mas o valor será 0.
+                thead += `<th colspan="2" class="p-3 text-center text-xs font-bold uppercase tracking-wider border-l border-slate-200">${m.name}</th>`;
+            });
+            thead += '</tr><tr class="bg-slate-50 text-xs text-slate-500">';
+            thead += '<th></th><th></th>'; // Checkbox spacer + Amostra spacer
+            appState.molecules.forEach(() => { 
+                thead += '<th class="p-2 text-center border-l border-slate-200">Média</th><th class="p-2 text-center">D.P.</th>'; 
+            });
+            thead += '</tr></thead>';
+
+            // Body
+            let tbody = '<tbody class="bg-white divide-y divide-slate-200">';
+            filteredResults.forEach(res => {
+                tbody += `<tr class="hover:bg-slate-50 transition-colors group">`;
+                // Checkbox
+                tbody += `<td class="p-3 text-center"><input type="checkbox" class="result-row-checkbox rounded text-indigo-600 focus:ring-indigo-500" value="${res.sampleName}"></td>`;
+                // Nome da Amostra
+                tbody += `<td class="p-3 font-semibold text-slate-800 sticky left-0 bg-white group-hover:bg-slate-50 whitespace-nowrap">${res.sampleName}</td>`;
+                
+                appState.molecules.forEach(m => {
+                    const data = res.molecules[m.name] || { mean: 0, stdDev: 0 };
+                    // Se valor for 0, deixa cinza claro
+                    const styleMean = data.mean === 0 ? 'text-slate-300' : 'text-indigo-700 font-medium';
+                    const styleDev = data.stdDev === 0 ? 'text-slate-300' : 'text-sky-600';
+                    
+                    tbody += `<td class="p-3 text-center border-l border-slate-100 ${styleMean}">${data.mean.toFixed(4)}</td>`;
+                    tbody += `<td class="p-3 text-center ${styleDev}">${data.stdDev.toFixed(4)}</td>`;
+                });
+                tbody += `</tr>`;
+            });
+            tbody += '</tbody>';
+            table.innerHTML = thead + tbody;
+        }
+
+        // Funções de Seleção em Massa
+        function toggleSelectAll(source) {
+            const checkboxes = document.querySelectorAll('.result-row-checkbox');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+        }
+
+        function getSelectedSamples() {
+            return Array.from(document.querySelectorAll('.result-row-checkbox:checked')).map(cb => cb.value);
+        }
+
+        document.getElementById('deleteSelectedBtn').addEventListener('click', () => {
+            const selected = getSelectedSamples();
+            if (selected.length === 0) { showAlert('Nenhuma amostra selecionada.', 'info'); return; }
+            
+            if (confirm(`Excluir ${selected.length} amostras selecionadas?`)) {
+                // Remove dos resultados
+                appState.results = appState.results.filter(r => !selected.includes(r.sampleName));
+                // Remove das amostras brutas (todas as replicatas que começam com o nome)
+                // Nota: O nome da amostra no resultado é "Cultura", mas nas replicatas é "Cultura_1", "Cultura_2".
+                appState.samples = appState.samples.filter(s => {
+                    const baseName = s.name.replace(/_\d+$/, '');
+                    return !selected.includes(baseName);
+                });
+                // Limpa gráfico se necessário
+                Object.keys(appState.chartConfig).forEach(key => {
+                    appState.chartConfig[key].selectedSamples = appState.chartConfig[key].selectedSamples.filter(s => !selected.includes(s));
+                });
+
+                renderAll(); saveToLocalStorage();
+                showAlert(`${selected.length} amostras excluídas.`, 'success');
+            }
+        });
+
+        document.getElementById('copySelectedBtn').addEventListener('click', () => {
+            const selected = getSelectedSamples();
+            if (selected.length === 0) { showAlert('Nenhuma amostra selecionada.', 'info'); return; }
+            copyResultsAsCsv(selected);
+        });
+
+        function copyResultsAsCsv(filterList = null) {
+            const resultsToExport = filterList 
+                ? appState.results.filter(r => filterList.includes(r.sampleName))
+                : appState.results;
+
+            if (resultsToExport.length === 0) { showAlert('Nada para copiar.', 'info'); return; }
+
+            let csvContent = "Amostra\t";
+            const headers = [];
+            appState.molecules.forEach(m => { headers.push(`${m.name} (Média)`); headers.push(`${m.name} (DP)`); });
+            csvContent += headers.join('\t') + "\n";
+            
+            resultsToExport.forEach(res => {
+                const row = [res.sampleName];
+                appState.molecules.forEach(m => {
+                    const data = res.molecules[m.name] || { mean: 0, stdDev: 0 };
+                    row.push(data.mean.toFixed(6).replace('.', ',')); 
+                    row.push(data.stdDev.toFixed(6).replace('.', ','));
+                });
+                csvContent += row.join('\t') + "\n";
+            });
+            
+            navigator.clipboard.writeText(csvContent).then(() => showAlert('Copiado para área de transferência!', 'success'));
+        }
+
+        // --- Config / Sync Logic ---
+
+        document.getElementById('exportDataBtn').addEventListener('click', () => {
+            const dataStr = JSON.stringify(appState);
+            navigator.clipboard.writeText(dataStr).then(() => {
+                showAlert('Dados copiados! Cole no outro dispositivo.', 'success');
+            }).catch(() => showAlert('Erro ao copiar.', 'error'));
+        });
+
+        document.getElementById('importDataBtn').addEventListener('click', () => {
+            const input = document.getElementById('importDataArea').value.trim();
+            if (!input) { showAlert('Cole os dados no campo de texto.', 'error'); return; }
+            
+            try {
+                const parsed = JSON.parse(input);
+                if (!parsed.molecules || !parsed.results) throw new Error("Formato inválido");
+                
+                if(confirm("Isso substituirá TODOS os dados atuais. Deseja continuar?")) {
+                    localStorage.setItem('hplcData', JSON.stringify(parsed));
+                    loadFromLocalStorage(); // Recarrega estado
+                    showAlert('Dados sincronizados com sucesso!', 'success');
+                    document.getElementById('importDataArea').value = '';
+                }
+            } catch (e) {
+                showAlert('Erro ao ler dados. Verifique o formato JSON.', 'error');
+            }
+        });
+
+        // --- Chart & Misc ---
+
+        function renderSummaryStats() {
+            const container = document.getElementById('summaryStats');
+            container.innerHTML = '';
+            const totalSamples = appState.samples.length;
+            const totalMolecules = appState.molecules.length;
+            const activeMolecules = appState.molecules.filter(m => m.isActive).length;
+
+            const statCards = [
+                { label: 'Replicatas Processadas', value: totalSamples, icon: 'ph-test-tube' },
+                { label: 'Moléculas (Ativas)', value: `${totalMolecules} (${activeMolecules})`, icon: 'ph-atom' },
+            ];
+            statCards.forEach(card => {
+                container.innerHTML += `
+                    <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">
+                        <i class="ph-bold ${card.icon} text-3xl text-indigo-500 mb-2"></i>
+                        <div class="text-2xl font-bold text-slate-800">${card.value}</div>
+                        <div class="text-sm text-slate-500">${card.label}</div>
+                    </div>`;
+            });
+        }
+        
+        function copyProcessedSamplesAsCsv() {
+             if (appState.samples.length === 0) { showAlert('Sem dados para copiar.', 'info'); return; }
+            const headers = ["Amostra", "Replicata"];
+            appState.molecules.forEach(m => headers.push(m.name));
+            let csvContent = headers.join('\t') + "\n";
+            appState.samples.forEach(sample => {
+                const row = [ sample.name.replace(/_\d+$/, ''), sample.sampleNumber ];
+                appState.molecules.forEach(mol => {
+                    const val = sample.processedData[mol.name]?.concentration || 0;
+                    row.push(val.toFixed(6).replace('.', ','));
+                });
+                csvContent += row.join('\t') + "\n";
+            });
+            navigator.clipboard.writeText(csvContent).then(() => showAlert('Copiado!', 'success'));
+        }
+
+        // Chart Functions (similar to before but adapted for cleaner code)
+        function initializeChartSelectors() {
+            const container = document.getElementById('datasetSelectorsContainer');
+            container.innerHTML = '';
+            if (appState.results.length === 0) {
+                container.innerHTML = '<p class="text-slate-500 text-center text-sm w-full">Processe dados para ver o gráfico.</p>';
+                return;
+            };
+            datasetCount = 0;
+            const existingKeys = Object.keys(appState.chartConfig);
+            if (existingKeys.length > 0) {
+                existingKeys.forEach(key => {
+                    const id = key.split('-').pop();
+                    datasetCount = Math.max(datasetCount, parseInt(id));
+                    addDatasetSelector(true, key);
+                });
+            } else {
+                appState.chartConfig = {};
+                addDatasetSelector();
+            }
+            renderChart();
+        }
+
+        function addDatasetSelector(isInit = false, existingKey = null) {
+            if (!isInit) datasetCount++;
+            const container = document.getElementById('datasetSelectorsContainer');
+            const selectorId = existingKey || `dataset-selector-${datasetCount}`;
+            if (!isInit || !appState.chartConfig[selectorId]) appState.chartConfig[selectorId] = { metric: '', selectedSamples: [] };
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'border border-slate-200 p-3 rounded-lg bg-slate-50 flex-1 min-w-[280px]';
+            
+            let metricOptions = '<option value="">Selecione uma métrica</option>';
+            appState.molecules.forEach(m => {
+                if(!m.isActive) return; // Hide inactive molecules from chart options? User preference usually implies hiding clutter.
+                metricOptions += `<option value="${m.name}-mean" ${appState.chartConfig[selectorId].metric === `${m.name}-mean` ? 'selected' : ''}>${m.name} (Média)</option>`;
+                metricOptions += `<option value="${m.name}-stdDev" ${appState.chartConfig[selectorId].metric === `${m.name}-stdDev` ? 'selected' : ''}>${m.name} (Desvio)</option>`;
+            });
+
+            let content = `
+                <div class="flex justify-between items-center mb-2">
+                    <label class="font-semibold text-slate-700">Conjunto ${selectorId.split('-').pop()}</label>
+                    ${Object.keys(appState.chartConfig).length > 1 ? `<button class="text-red-500 hover:text-red-700" onclick="removeDatasetSelector('${selectorId}', event)"><i class="ph-bold ph-trash"></i></button>` : ''}
+                </div>
+                <div class="space-y-2">
+                    <select class="chart-metric-select w-full p-2 border border-slate-200 rounded text-sm" data-parent-id="${selectorId}">${metricOptions}</select>
+                    <input type="text" placeholder="Filtrar amostras..." class="dataset-search-input w-full p-2 border border-slate-200 rounded text-sm" data-target="${selectorId}">
+                </div>
+                <div id="${selectorId}" class="sample-checkbox-list bg-white mt-2 h-32 overflow-y-auto border p-1 rounded">`;
+
+            appState.results.forEach(r => {
+                const isChecked = appState.chartConfig[selectorId].selectedSamples.includes(r.sampleName) ? 'checked' : '';
+                content += `
+                    <label class="flex items-center space-x-2 p-1 hover:bg-slate-100 rounded cursor-pointer text-xs">
+                        <input type="checkbox" value="${r.sampleName}" class="chart-sample-checkbox rounded text-indigo-600" data-parent-id="${selectorId}" ${isChecked}>
+                        <span class="truncate">${r.sampleName}</span>
+                    </label>`;
+            });
+            content += '</div>';
+            wrapper.innerHTML = content;
+            wrapper.id = `${selectorId}-wrapper`;
+            container.appendChild(wrapper);
+
+            wrapper.querySelector('.chart-metric-select').addEventListener('change', (e) => {
+                appState.chartConfig[e.target.dataset.parentId].metric = e.target.value; renderChart();
+            });
+            wrapper.querySelectorAll('.chart-sample-checkbox').forEach(el => el.addEventListener('change', (e) => {
+                const cfg = appState.chartConfig[e.target.dataset.parentId];
+                e.target.checked ? cfg.selectedSamples.push(e.target.value) : cfg.selectedSamples.splice(cfg.selectedSamples.indexOf(e.target.value), 1);
+                renderChart();
+            }));
+            wrapper.querySelector('.dataset-search-input').addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                document.getElementById(e.target.dataset.target).querySelectorAll('label').forEach(l => {
+                    l.style.display = l.innerText.toLowerCase().includes(term) ? 'flex' : 'none';
+                });
+            });
+        }
+        
+        function removeDatasetSelector(id, e) {
+            e.stopPropagation();
+            delete appState.chartConfig[id];
+            document.getElementById(`${id}-wrapper`).remove();
+            renderChart();
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('resultsChart').getContext('2d');
+            if (resultsChart) resultsChart.destroy();
+            
+            const configs = Object.values(appState.chartConfig).filter(c => c.metric && c.selectedSamples.length > 0);
+            if (configs.length === 0) return;
+
+            // Cores para os datasets
+            const colors = ['#4f46e5', '#e11d48', '#22c55e', '#f97316', '#8b5cf6', '#0ea5e9'];
+            
+            // Determina labels (eixo X) baseada na maior lista de seleção
+            // Para comparar corretamente, assumimos que a ordem de seleção importa ou usamos o index.
+            // O código original usava a ordem de seleção.
+            const maxLen = Math.max(...configs.map(c => c.selectedSamples.length));
+            const labels = [];
+            for(let i=0; i<maxLen; i++) labels.push(configs.map(c => c.selectedSamples[i] || '-'));
+
+            const datasets = configs.map((cfg, idx) => {
+                const [molName, metric] = cfg.metric.split('-');
+                const data = [];
+                for(let i=0; i<maxLen; i++) {
+                    const sName = cfg.selectedSamples[i];
+                    if(!sName) { data.push(null); continue; }
+                    const res = appState.results.find(r => r.sampleName === sName);
+                    // Se não encontrar ou molécula for null, push 0 ou null
+                    data.push(res && res.molecules[molName] ? res.molecules[molName][metric] : 0);
+                }
+                const color = colors[idx % colors.length];
+                return {
+                    label: `${molName} (${metric === 'mean' ? 'Média' : 'DP'})`,
+                    data: data,
+                    backgroundColor: color + '80', // 50% opacity
+                    borderColor: color,
+                    borderWidth: 2,
+                    tension: 0.2
+                };
+            });
+
+            const type = document.querySelector('.chart-type-btn.active').dataset.type;
+            resultsChart = new Chart(ctx, {
+                type: type,
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: {
+                         x: { ticks: { callback: function(val) { 
+                             const lbls = this.chart.data.labels[val];
+                             // Retorna apenas o primeiro label válido para não poluir, ou custom logic
+                             return Array.isArray(lbls) ? lbls.find(l => l !== '-') : lbls; 
+                         }}}
+                    }
+                }
+            });
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`${tabId}-tab`).classList.remove('hidden');
+            document.querySelectorAll('.tab').forEach(el => {
+                el.classList.remove(...tabActiveStyle.split(' '));
+                el.classList.add(...tabInactiveStyle.split(' '));
+                if(el.dataset.tab === tabId) {
+                    el.classList.add(...tabActiveStyle.split(' '));
+                    el.classList.remove(...tabInactiveStyle.split(' '));
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+            switchTab('tutorial');
+
+            document.getElementById('addMolecule').addEventListener('click', addMolecule);
+            document.getElementById('processSample').addEventListener('click', processSample);
+            document.getElementById('copyProcessedSamplesButton').addEventListener('click', copyProcessedSamplesAsCsv);
+            document.getElementById('addDatasetBtn').addEventListener('click', () => addDatasetSelector());
+            document.getElementById('sampleData').addEventListener('input', parseRawDataAndUpdateCheckboxes);
+            
+            document.getElementById('processedSamplesSearch').addEventListener('input', (e) => renderSamplesList(e.target.value));
+            document.getElementById('resultsSearch').addEventListener('input', (e) => renderResultsTable(e.target.value));
+
+            document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+            
+            document.querySelectorAll('.chart-type-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active', 'bg-indigo-500', 'text-white'));
+                    document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.add('bg-slate-300', 'text-slate-700'));
+                    
+                    btn.classList.add('active', 'bg-indigo-500', 'text-white');
+                    btn.classList.remove('bg-slate-300', 'text-slate-700');
+                    renderChart();
+                });
+            });
+        });
+
+        // Global exports for inline HTML events
+        window.removeMolecule = removeMolecule;
+        window.toggleMoleculeActive = toggleMoleculeActive;
+        window.toggleSelectAll = toggleSelectAll;
+        window.removeDatasetSelector = removeDatasetSelector;
+    </script>
+</body>
+</html>

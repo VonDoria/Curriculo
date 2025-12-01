@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Financeira</title>
+    <link rel="icon" href="../../assets/logocalc.png">
+    <meta name="theme-color" content="#f8fafc">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        .tab-content {
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        /* Estilo para Inputs de Moeda e Grupos */
+        .currency-input-wrapper {
+            position: relative;
+            flex-grow: 1;
+        }
+        .currency-symbol {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-weight: 500;
+        }
+        .input-with-symbol {
+            padding-left: 2.5rem !important;
+        }
+        
+        /* Detalhes e Accordion */
+        details summary {
+            cursor: pointer;
+            list-style: none; 
+        }
+        details summary::-webkit-details-marker {
+            display: none; 
+        }
+        details summary .arrow {
+            transition: transform 0.2s;
+        }
+        details[open] summary .arrow {
+            transform: rotate(90deg);
+        }
+
+        /* Scrollbar oculta para navegação mobile */
+        .tabs-nav-container {
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .tabs-nav-container::-webkit-scrollbar {
+            display: none;
+        }
+        .tabs-nav {
+            flex-wrap: nowrap;
+            white-space: nowrap;
+        }
+        
+        /* Toggle Switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #6366f1;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #6366f1;
+        }
+        
+        /* Botões de Gráfico */
+        .chart-btn.active {
+            background-color: #6366f1; /* indigo-500 */
+            color: white;
+            border-color: #6366f1;
+        }
+        .chart-btn {
+            background-color: #f1f5f9; /* slate-100 */
+            color: #64748b; /* slate-500 */
+        }
+
+        /* Estilos da Calculadora Básica */
+        .calc-btn {
+            height: 3.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 1.125rem;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .calc-btn:active {
+            transform: scale(0.95);
+        }
+        .calc-btn-num {
+            background-color: white;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+        }
+        .calc-btn-num:hover { background-color: #f8fafc; }
+        
+        .calc-btn-op {
+            background-color: #f1f5f9;
+            color: #4f46e5;
+            border: 1px solid #cbd5e1;
+        }
+        .calc-btn-op:hover { background-color: #e2e8f0; }
+
+        .calc-btn-eq {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .calc-btn-eq:hover { background-color: #4338ca; }
+
+        .calc-btn-danger {
+            background-color: #fee2e2;
+            color: #ef4444;
+            border: 1px solid #fecaca;
+        }
+        .calc-btn-danger:hover { background-color: #fecaca; }
+
+        /* Progressbar de armazenamento */
+        .storage-progress {
+            transition: width 0.3s ease;
+        }
+
+        /* Cards de aportes/saques múltiplos */
+        .transaction-card {
+            transition: all 0.2s ease;
+        }
+        .transaction-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        /* Tutorial styles */
+        .tutorial-step {
+            transition: all 0.3s ease;
+        }
+        .tutorial-step:hover {
+            background-color: #f1f5f9;
+        }
+    </style>
+<base target="_blank">
+</head>
+<body class="antialiased text-slate-700">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        <!-- Cabeçalho -->
+        <header class="text-center mb-8 p-6 bg-white rounded-xl shadow-md border border-slate-200">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-800 flex items-center justify-center gap-3">
+                <i class="ph-bold ph-wallet text-indigo-500"></i>
+                Calculadora de Riqueza
+            </h1>
+            <p class="text-slate-500 mt-2">Simule o poder dos juros compostos e planeje sua liberdade financeira.</p>
+        </header>
+
+        <!-- Navegação por Abas -->
+        <div class="mb-6 py-4 border-b border-slate-200 tabs-nav-container">
+            <nav class="flex -mb-px space-x-6 tabs-nav" aria-label="Tabs">
+                <button class="tab active" data-tab="simulator">
+                    <i class="ph-bold ph-sliders"></i> Simulador
+                </button>
+                <button class="tab" data-tab="analysis">
+                    <i class="ph-bold ph-chart-pie-slice"></i> Extrato
+                </button>
+                <button class="tab" data-tab="basic-calc">
+                    <i class="ph-bold ph-calculator"></i> Calculadora
+                </button>
+                <button class="tab" data-tab="tutorial">
+                    <i class="ph-bold ph-book-open"></i> Tutorial
+                </button>
+                <button class="tab" data-tab="config">
+                    <i class="ph-bold ph-gear"></i> Configurações
+                </button>
+            </nav>
+        </div>
+
+        <!-- Conteúdo das Abas -->
+        <main>
+            <!-- Aba Simulador -->
+            <div id="simulator-tab" class="tab-content active">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    
+                    <!-- Coluna de Configuração (Esquerda) -->
+                    <div class="lg:col-span-4 space-y-6">
+                        <div class="card bg-white p-5 rounded-xl shadow-md border border-slate-200">
+                            <h2 class="section-title text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
+                                <i class="ph-bold ph-gear-six text-indigo-500"></i> Configuração Base
+                            </h2>
+                            
+                            <div class="space-y-4">
+                                <!-- Inicial -->
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-600 mb-1">Investimento Inicial</label>
+                                    <div class="currency-input-wrapper">
+                                        <span class="currency-symbol">R$</span>
+                                        <input type="number" id="initialAmount" class="input-with-symbol w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none transition" placeholder="0,00" step="0.01">
+                                    </div>
+                                </div>
+
+                                <!-- Taxa -->
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-600 mb-1">Rentabilidade Anual (%)</label>
+                                    <input type="number" id="interestRate" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none transition" placeholder="10" step="0.1">
+                                </div>
+
+                                <!-- Tempo Flexível -->
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-600 mb-1">Duração do Planejamento</label>
+                                    <div class="flex gap-2">
+                                        <input type="number" id="periodValue" class="w-2/3 p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none transition" placeholder="30">
+                                        <select id="periodUnit" class="w-1/3 p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50">
+                                            <option value="years">Anos</option>
+                                            <option value="months">Meses</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <!-- Inflação -->
+                                <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                                    <div class="text-sm">
+                                        <span class="font-medium text-slate-700">Ajustar pela Inflação?</span>
+                                        <p class="text-xs text-slate-500">Exibe valores em poder de compra atual</p>
+                                    </div>
+                                    <div class="relative inline-block w-10 mr-2 align-middle select-none">
+                                        <input type="checkbox" id="inflationToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300"/>
+                                        <label for="inflationToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer transition-colors duration-300"></label>
+                                    </div>
+                                </div>
+                                <div id="inflationInputContainer" class="hidden mt-2 animate-fade-in">
+                                    <label class="block text-sm font-medium text-slate-600 mb-1">Inflação Projetada (%)</label>
+                                    <input type="number" id="inflationRate" value="4.5" step="0.1" class="w-full p-2 border border-slate-300 rounded-lg text-sm">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Card Aportes Múltiplos -->
+                        <div class="card bg-white p-5 rounded-xl shadow-md border border-slate-200">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="section-title text-lg font-bold text-slate-800 flex items-center gap-2">
+                                    <i class="ph-bold ph-plus-circle text-emerald-500"></i> Aportes Periódicos
+                                </h2>
+                                <button id="addContributionBtn" class="px-3 py-1 bg-emerald-100 text-emerald-600 rounded-lg text-sm font-semibold hover:bg-emerald-200 transition">
+                                    <i class="ph-bold ph-plus"></i> Adicionar
+                                </button>
+                            </div>
+                            <div id="contributionsList" class="space-y-3">
+                                <!-- Aportes serão adicionados dinamicamente -->
+                            </div>
+                        </div>
+
+                        <!-- Card Saques Múltiplos -->
+                        <div class="card bg-white p-5 rounded-xl shadow-md border border-slate-200">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="section-title text-lg font-bold text-slate-800 flex items-center gap-2">
+                                    <i class="ph-bold ph-minus-circle text-red-500"></i> Saques Programados
+                                </h2>
+                                <button id="addWithdrawalBtn" class="px-3 py-1 bg-red-100 text-red-600 rounded-lg text-sm font-semibold hover:bg-red-200 transition">
+                                    <i class="ph-bold ph-plus"></i> Adicionar
+                                </button>
+                            </div>
+                            <div id="withdrawalsList" class="space-y-3">
+                                <!-- Saques serão adicionados dinamicamente -->
+                            </div>
+                        </div>
+
+                        <!-- Botão Calcular Mobile (Fixo na tela em mobile ou aqui) -->
+                        <button id="calculateBtn" class="btn-primary w-full py-3 rounded-lg font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg flex items-center justify-center gap-2 transition transform hover:-translate-y-1">
+                            <i class="ph-bold ph-play"></i> Projetar Futuro
+                        </button>
+                    </div>
+
+                    <!-- Coluna Central: Aportes e Saques Múltiplos -->
+                    <div class="lg:col-span-8 space-y-6">
+                        <!-- Gráfico Principal (Preview) -->
+                        <div class="card bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                            <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
+                                <div>
+                                    <h2 class="text-lg font-bold text-slate-800">Evolução Patrimonial</h2>
+                                    <p class="text-sm text-slate-500">Visualização rápida do crescimento.</p>
+                                </div>
+                                <!-- Controles do Gráfico -->
+                                <div class="flex bg-slate-100 p-1 rounded-lg">
+                                    <button class="chart-btn active px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1 transition-all" data-type="line">
+                                        <i class="ph-bold ph-chart-line"></i> Linhas
+                                    </button>
+                                    <button class="chart-btn px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1 transition-all" data-type="bar">
+                                        <i class="ph-bold ph-chart-bar"></i> Colunas
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="h-[350px] relative w-full">
+                                <canvas id="mainChart"></canvas>
+                            </div>
+                            <!-- Resumo Rápido Abaixo do Gráfico -->
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-4 border-t border-slate-100 text-center">
+                                <div>
+                                    <p class="text-xs text-slate-500 uppercase font-semibold">Saldo Final</p>
+                                    <p id="resTotal" class="text-xl font-bold text-indigo-600">R$ 0,00</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-500 uppercase font-semibold">Total Aportado</p>
+                                    <p id="resInvested" class="text-lg font-semibold text-slate-700">R$ 0,00</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-500 uppercase font-semibold">Total Juros</p>
+                                    <p id="resInterest" class="text-lg font-semibold text-emerald-600">R$ 0,00</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-500 uppercase font-semibold">Total Sacado</p>
+                                    <p id="resWithdrawn" class="text-lg font-semibold text-red-500">R$ 0,00</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Gráficos -->
+                            <div class="card bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                                <h2 class="section-title text-lg font-bold text-slate-800 mb-2">Fluxo de Caixa Acumulado</h2>
+                                <p class="text-sm text-slate-500 mb-6">Comparativo visual entre o que entrou (aportes) e o que saiu (saques) do sistema.</p>
+                                <div class="h-[300px]">
+                                    <canvas id="flowChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="card bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                                <h2 class="section-title text-lg font-bold text-slate-800 mb-2">Composição Final</h2>
+                                <p class="text-sm text-slate-500 mb-6">Representação percentual da origem do seu saldo final.</p>
+                                <div class="h-[300px] flex justify-center">
+                                    <canvas id="pieChart"></canvas>
+                                </div>
+                            </div>
+                        </div>                        
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba Extrato -->
+            <div id="analysis-tab" class="tab-content hidden">
+                
+                <div class="space-y-8">
+                    <!-- Tabela Detalhada -->
+                    <div class="card bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                        <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+                            <h2 class="section-title text-lg font-bold text-slate-800"><i class="ph-bold ph-list-dashes"></i> Extrato Detalhado</h2>
+                            <button id="copyCsvButton" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-semibold flex items-center gap-2 transition">
+                                <i class="ph-bold ph-microsoft-excel-logo"></i> Exportar CSV
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto max-h-[600px] overflow-y-auto border rounded-lg border-slate-200 scrollbar-thin scrollbar-thumb-slate-300">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead class="bg-slate-50 sticky top-0 shadow-sm z-10">
+                                    <tr>
+                                        <th class="p-3 font-semibold text-slate-600 border-b">Período</th>
+                                        <th class="p-3 font-semibold text-slate-600 border-b text-right">Rendimentos</th>
+                                        <th class="p-3 font-semibold text-slate-600 border-b text-right text-emerald-600">Aportes</th>
+                                        <th class="p-3 font-semibold text-slate-600 border-b text-right text-red-500">Saques</th>
+                                        <th class="p-3 font-semibold text-slate-600 border-b text-right bg-slate-100">Saldo Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody" class="divide-y divide-slate-100">
+                                    <!-- JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba Calculadora Básica -->
+            <div id="basic-calc-tab" class="tab-content hidden">
+                <div class="flex justify-center items-center py-4">
+                    <div class="card bg-white p-6 rounded-2xl shadow-xl border border-slate-200 w-full max-w-sm">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-bold text-slate-800"><i class="ph-bold ph-calculator text-indigo-500"></i> Calc.</h2>
+                            <span class="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">Básico</span>
+                        </div>
+                        
+                        <!-- Visor -->
+                        <div class="mb-4">
+                            <input type="text" id="calcDisplay" readonly 
+                                class="w-full h-16 text-right text-3xl font-mono p-4 bg-slate-800 text-emerald-400 rounded-lg border-2 border-slate-700 shadow-inner outline-none tracking-widest cursor-pointer hover:bg-slate-700 transition"
+                                value="0"
+                                title="Clique para copiar o resultado">
+                        </div>
+
+                        <!-- Teclado -->
+                        <div class="grid grid-cols-4 gap-3">
+                            <button class="calc-btn calc-btn-danger" onclick="calcClear()">C</button>
+                            <button class="calc-btn calc-btn-op" onclick="calcInput('(')">(</button>
+                            <button class="calc-btn calc-btn-op" onclick="calcInput(')')">)</button>
+                            <button class="calc-btn calc-btn-op" onclick="calcInput('/')">÷</button>
+                            
+                            <button class="calc-btn calc-btn-num" onclick="calcInput('7')">7</button>
+                            <button class="calc-btn calc-btn-num" onclick="calcInput('8')">8</button>
+                            <button class="calc-btn calc-btn-num" onclick="calcInput('9')">9</button>
+                            <button class="calc-btn calc-btn-op" onclick="calcInput('*')">×</button>
+                            
+                            <button class="calc-btn calc-btn-num" onclick="calcInput('4')">4</button>
+                            <button class="calc-btn calc-btn-num" onclick="calcInput('5')">5</button>
+                            <button class="calc-btn calc-btn-num" onclick="calcInput('6')">6</button>
+                            <button class="calc-btn calc-btn-op" onclick="calcInput('-')">-</button>
+                            
+                            <button class="calc-btn calc-btn-num" onclick="calcInput('1')">1</button>
+                            <button class="calc-btn calc-btn-num" onclick="calcInput('2')">2</button>
+                            <button class="calc-btn calc-btn-num" onclick="calcInput('3')">3</button>
+                            <button class="calc-btn calc-btn-op" onclick="calcInput('+')">+</button>
+                            
+                            <button class="calc-btn calc-btn-num" onclick="calcInput('0')">0</button>
+                            <button class="calc-btn calc-btn-num" onclick="calcInput('.')">.</button>
+                            <button class="calc-btn calc-btn-op" onclick="calcBackspace()"><i class="ph-bold ph-backspace"></i></button>
+                            <button class="calc-btn calc-btn-eq" onclick="calcResult()">=</button>
+                        </div>
+                        <p class="text-xs text-center text-slate-400 mt-4">Use para contas rápidas de juros ou frações. Clique no visor para copiar resultado.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba Tutorial -->
+            <div id="tutorial-tab" class="tab-content hidden">
+                <div class="card space-y-8">
+                    <div>
+                        <h2 class="section-title"><i class="ph-bold ph-rocket-launch text-indigo-500"></i> Guia de Início Rápido</h2>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <details class="bg-slate-50 p-4 rounded-lg border tutorial-step">
+                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
+                                <span>Passo 1: Configurar Simulação Base</span>
+                                <i class="ph ph-caret-right arrow text-xl"></i>
+                            </summary>
+                            <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
+                                <p>Na aba <strong>"Simulador"</strong>, configure os parâmetros iniciais:</p>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li><strong>Investimento Inicial:</strong> Valor inicial que você já possui.</li>
+                                    <li><strong>Rentabilidade Anual:</strong> Taxa de juros esperada (ex: 10% para 10% ao ano).</li>
+                                    <li><strong>Duração:</strong> Tempo do planejamento em anos ou meses.</li>
+                                    <li><strong>Ajuste de Inflação:</strong> Ative para ver valores corrigidos pelo poder de compra.</li>
+                                </ul>
+                            </div>
+                        </details>
+
+                        <details class="bg-slate-50 p-4 rounded-lg border tutorial-step">
+                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
+                                <span>Passo 2: Adicionar Aportes e Saques</span>
+                                 <i class="ph ph-caret-right arrow text-xl"></i>
+                            </summary>
+                             <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
+                                <p>Você pode adicionar múltiplos aportes e saques com características diferentes:</p>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li><strong>Aportes:</strong> Clique em "Adicionar" no card de aportes. Defina valor e frequência (ex: R$ 500 a cada 1 mês).</li>
+                                    <li><strong>Saques:</strong> Adicione saques programados com valores e frequências específicas.</li>
+                                    <li><strong>Múltiplas Fontes:</strong> Cada aporte/saque é independente, permitindo simular diferentes fontes de renda e gastos.</li>
+                                </ul>
+                            </div>
+                        </details>
+                        
+                         <details class="bg-slate-50 p-4 rounded-lg border tutorial-step">
+                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
+                                <span>Passo 3: Extrato</span>
+                                 <i class="ph ph-caret-right arrow text-xl"></i>
+                            </summary>
+                             <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
+                                 <p>Na aba <strong>"Extrato"</strong>, visualize todos os resultados:</p>
+                                 <ul class="list-disc list-inside space-y-1">
+                                     <li><strong>Tabela Detalhada:</strong> Mês a mês com aportes, saques e saldo.</li>
+                                     <li><strong>Exportação:</strong> Copie os dados para Excel ou outras ferramentas.</li>
+                                 </ul>
+                            </div>
+                        </details>
+
+                        <details class="bg-slate-50 p-4 rounded-lg border tutorial-step">
+                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
+                                <span>Passo 4: Usar Calculadora</span>
+                                 <i class="ph ph-caret-right arrow text-xl"></i>
+                            </summary>
+                             <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
+                                <p>A calculadora rápida permite cálculos instantâneos:</p>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li><strong>Operações:</strong> Use +, -, ×, ÷, parênteses e números decimais.</li>
+                                    <li><strong>Cópia Rápida:</strong> Clique no visor para copiar o resultado automaticamente.</li>
+                                    <li><strong>Limpar:</strong> Use C para limpar ou backspace para apagar o último dígito.</li>
+                                </ul>
+                            </div>
+                        </details>
+
+                        <details class="bg-slate-50 p-4 rounded-lg border tutorial-step">
+                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
+                                <span>Passo 5: Salvar e Sincronizar Dados</span>
+                                 <i class="ph ph-caret-right arrow text-xl"></i>
+                            </summary>
+                             <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
+                                <p>Na aba <strong>"Configurações"</strong>, gerencie seus dados:</p>
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li><strong>Salvar Simulação:</strong> Dê um nome e salve sua configuração atual.</li>
+                                    <li><strong>Carregar Simulação:</strong> Recupere simulações salvas anteriormente.</li>
+                                    <li><strong>Exportar/Importar:</strong> Transfira dados entre dispositivos copiando e colando.</li>
+                                    <li><strong>Armazenamento:</strong> Monitore o uso do espaço no seu navegador.</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aba Configurações -->
+            <div id="config-tab" class="tab-content hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Salvamento de Simulações -->
+                    <div class="card bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <i class="ph-bold ph-floppy-disk text-indigo-500"></i> Gerenciar Simulações
+                        </h2>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-1">Nome da Simulação</label>
+                                <input type="text" id="simulationName" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none transition" placeholder="Ex: Plano Aposentadoria">
+                            </div>
+                            
+                            <button id="saveSimulationBtn" class="w-full py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition">
+                                <i class="ph-bold ph-floppy-disk"></i> Salvar Simulação Atual
+                            </button>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-1">Carregar Simulação</label>
+                                <select id="loadSimulationSelect" class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50">
+                                    <option value="">Selecione uma simulação...</option>
+                                </select>
+                                <button id="loadSimulationBtn" class="w-full mt-2 py-2 bg-slate-600 text-white rounded-lg font-semibold hover:bg-slate-700 transition">
+                                    <i class="ph-bold ph-upload"></i> Carregar Simulação
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Importação/Exportação -->
+                    <div class="card bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <i class="ph-bold ph-arrows-left-right text-emerald-500"></i> Sincronização
+                        </h2>
+                        
+                        <div class="space-y-4">
+                            <button id="exportDataBtn" class="w-full py-2 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition">
+                                <i class="ph-bold ph-export"></i> Exportar Dados (Copiar)
+                            </button>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-1">Importar Dados</label>
+                                <textarea id="importDataTextarea" class="w-full h-32 p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-400 outline-none transition resize-none" placeholder="Cole aqui os dados exportados de outro dispositivo..."></textarea>
+                                <button id="importDataBtn" class="w-full mt-2 py-2 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition">
+                                    <i class="ph-bold ph-import"></i> Importar Dados
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Container Alertas -->
+        <div id="alertsContainer" class="fixed bottom-5 right-5 w-full max-w-xs space-y-3 z-50 pointer-events-none"></div>
+
+        <!-- Barra de Armazenamento -->
+        <footer class="mt-8">
+            <div class="bg-white p-3 rounded-xl shadow-md border border-slate-200">
+                <div class="w-full bg-slate-200 rounded-full h-2.5">
+                    <div id="storageProgress" class="bg-indigo-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-slate-500 mt-2">
+                    <span>Uso do Armazenamento Local</span>
+                    <span id="storageInfo">0% (0 KB / 5 MB)</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // --- Estado da Aplicação ---
+        const appState = {
+            config: {
+                initial: 1000,
+                rate: 10,
+                periodValue: 10,
+                periodUnit: 'years', // 'years' or 'months'
+                inflation: false,
+                inflationRate: 4.5
+            },
+            contributions: [
+                { amount: 500, freq: 1, id: 'contrib-1' } // a cada X meses
+            ],
+            withdrawals: [
+                { amount: 0, freq: 0, id: 'withdraw-1' } // 0 = disabled
+            ],
+            chartType: 'line', // 'line' or 'bar'
+            results: []
+        };
+
+        let mainChart = null;
+        let flowChart = null;
+        let pieChart = null;
+
+        // --- Utils ---
+        const formatCurrency = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+        const formatCompact = (val) => new Intl.NumberFormat('pt-BR', { notation: "compact", maximumFractionDigits: 1 }).format(val);
+
+        function showAlert(msg, type = 'info') {
+            const container = document.getElementById('alertsContainer');
+            const colors = { success: 'bg-emerald-100 border-emerald-400 text-emerald-800', error: 'bg-red-100 border-red-400 text-red-800', info: 'bg-indigo-100 border-indigo-400 text-indigo-800' };
+            const icons = { success: 'ph-check-circle', error: 'ph-warning-circle', info: 'ph-info' };
+            
+            const el = document.createElement('div');
+            el.className = `pointer-events-auto flex items-center gap-3 p-4 rounded-lg shadow-lg border ${colors[type]} transform transition-all duration-300 translate-y-10 opacity-0`;
+            el.innerHTML = `<i class="ph-bold ${icons[type]} text-xl"></i><span class="font-medium">${msg}</span>`;
+            
+            container.appendChild(el);
+            requestAnimationFrame(() => el.classList.remove('translate-y-10', 'opacity-0'));
+            setTimeout(() => {
+                el.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => el.remove(), 300);
+            }, 3000);
+        }
+
+        // --- Core Logic (Finance) ---
+        function calculate() {
+            const { config } = appState;
+            
+            // Determinar total de meses
+            const totalMonths = config.periodUnit === 'years' ? config.periodValue * 12 : config.periodValue;
+            
+            // Taxa mensal
+            let annualRateDecimal = config.rate / 100;
+            if (config.inflation) {
+                const inflDecimal = config.inflationRate / 100;
+                annualRateDecimal = ((1 + annualRateDecimal) / (1 + inflDecimal)) - 1;
+            }
+            const monthlyRate = Math.pow(1 + annualRateDecimal, 1/12) - 1;
+
+            let balance = config.initial;
+            let totalInvested = config.initial;
+            let totalInterest = 0;
+            let totalWithdrawn = 0;
+            
+            let principalBalance = config.initial; // O quanto de dinheiro "meu" tem lá
+            let interestBalance = 0; // O quanto é lucro
+
+            const timeline = [];
+
+            for (let m = 1; m <= totalMonths; m++) {
+                // 1. Render Juros sobre o saldo anterior
+                const interestMonth = balance * monthlyRate;
+                balance += interestMonth;
+                interestBalance += interestMonth;
+                totalInterest += interestMonth;
+
+                // 2. Processar todos os aportes
+                let totalContribution = 0;
+                appState.contributions.forEach(contrib => {
+                    if (contrib.freq > 0 && m % contrib.freq === 0) {
+                        balance += contrib.amount;
+                        principalBalance += contrib.amount;
+                        totalInvested += contrib.amount;
+                        totalContribution += contrib.amount;
+                    }
+                });
+
+                // 3. Processar todos os saques
+                let totalWithdrawal = 0;
+                appState.withdrawals.forEach(withdraw => {
+                    if (withdraw.freq > 0 && m % withdraw.freq === 0) {
+                        balance -= withdraw.amount;
+                        totalWithdrawn += withdraw.amount;
+                        totalWithdrawal += withdraw.amount;
+                        
+                        // Deduzir dos juros primeiro, depois do principal
+                        if (interestBalance >= withdraw.amount) {
+                            interestBalance -= withdraw.amount;
+                        } else {
+                            const remaining = withdraw.amount - interestBalance;
+                            interestBalance = 0;
+                            principalBalance -= remaining;
+                        }
+                    }
+                });
+
+                timeline.push({
+                    month: m,
+                    year: (m / 12).toFixed(1),
+                    balance: balance,
+                    principalBalance: principalBalance,
+                    interestBalance: interestBalance,
+                    interestMonth: interestMonth,
+                    contribution: totalContribution,
+                    withdrawal: totalWithdrawal,
+                    accInvested: totalInvested,
+                    accWithdrawn: totalWithdrawn
+                });
+            }
+
+            appState.results = timeline;
+            updateUI();
+            saveData();
+        }
+
+        // --- Render UI ---
+        function updateUI() {
+            if (appState.results.length === 0) return;
+            const final = appState.results[appState.results.length - 1];
+
+            document.getElementById('resTotal').textContent = formatCurrency(final.balance);
+            document.getElementById('resInvested').textContent = formatCurrency(final.accInvested);
+            document.getElementById('resInterest').textContent = formatCurrency(final.balance - (final.principalBalance));
+            document.getElementById('resWithdrawn').textContent = formatCurrency(final.accWithdrawn);
+
+            renderTable();
+            renderMainChart();
+            renderAuxCharts();
+            updateStorageBar();
+            // updateStorageInfo();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            const showAll = appState.results.length <= 60;
+            let html = '';
+            appState.results.forEach(r => {
+                const hasAction = r.contribution > 0 || r.withdrawal > 0;
+                const isYearly = r.month % 12 === 0;
+                if (showAll || isYearly || hasAction) {
+                    html += `
+                        <tr class="hover:bg-slate-50 transition border-b border-slate-50">
+                            <td class="p-3 text-slate-700">${r.month}º Mês</td>
+                            <td class="p-3 text-right text-slate-500 font-mono text-xs">+${formatCurrency(r.interestMonth)}</td>
+                            <td class="p-3 text-right font-mono text-xs ${r.contribution > 0 ? 'text-emerald-600 font-bold' : 'text-slate-300'}">
+                                ${r.contribution > 0 ? '+'+formatCurrency(r.contribution) : '-'}
+                            </td>
+                            <td class="p-3 text-right font-mono text-xs ${r.withdrawal > 0 ? 'text-red-500 font-bold' : 'text-slate-300'}">
+                                ${r.withdrawal > 0 ? '-'+formatCurrency(r.withdrawal) : '-'}
+                            </td>
+                            <td class="p-3 text-right font-bold text-slate-800 bg-slate-50/50">${formatCurrency(r.balance)}</td>
+                        </tr>
+                    `;
+                }
+            });
+            tbody.innerHTML = html;
+        }
+
+        function renderMainChart() {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            if (mainChart) mainChart.destroy();
+
+            const dataPoints = appState.results.length > 200 
+                ? appState.results.filter((_, i) => i % Math.ceil(appState.results.length / 100) === 0)
+                : appState.results;
+
+            const labels = dataPoints.map(r => r.month % 12 === 0 ? `Ano ${r.month/12}` : `${r.month}m`);
+            const isBar = appState.chartType === 'bar';
+            const datasets = [];
+            
+            if (isBar) {
+                datasets.push({ label: 'Principal', data: dataPoints.map(r => r.principalBalance), backgroundColor: '#6366f1', order: 2, stack: 'Stack 0' });
+                datasets.push({ label: 'Juros', data: dataPoints.map(r => r.interestBalance), backgroundColor: '#10b981', order: 1, stack: 'Stack 0' });
+            } else {
+                datasets.push({ label: 'Patrimônio Total', data: dataPoints.map(r => r.balance), borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', borderWidth: 3, fill: true, tension: 0.4, pointRadius: 0 });
+                datasets.push({ label: 'Capital Próprio', data: dataPoints.map(r => r.principalBalance), borderColor: '#94a3b8', borderWidth: 2, borderDash: [5, 5], fill: false, tension: 0.4, pointRadius: 0 });
+            }
+
+            mainChart = new Chart(ctx, {
+                type: isBar ? 'bar' : 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: { x: { grid: { display: false } }, y: { stacked: isBar, grid: { color: '#f1f5f9' }, ticks: { callback: (val) => formatCompact(val) } } },
+                    plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${formatCurrency(ctx.raw)}` } }, legend: { position: 'top' } }
+                }
+            });
+        }
+
+        function renderAuxCharts() {
+            const final = appState.results[appState.results.length - 1];
+            const ctxFlow = document.getElementById('flowChart').getContext('2d');
+            if (flowChart) flowChart.destroy();
+            flowChart = new Chart(ctxFlow, {
+                type: 'bar',
+                data: { labels: ['Aportes', 'Saques'], datasets: [{ label: 'Fluxo', data: [final.accInvested, final.accWithdrawn], backgroundColor: ['#10b981', '#ef4444'], borderRadius: 8 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            const ctxPie = document.getElementById('pieChart').getContext('2d');
+            if (pieChart) pieChart.destroy();
+            const pBalance = Math.max(0, final.principalBalance);
+            const iBalance = Math.max(0, final.interestBalance);
+            pieChart = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: { labels: ['Principal', 'Juros'], datasets: [{ data: [pBalance, iBalance], backgroundColor: ['#6366f1', '#34d399'], borderWidth: 0 }] },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        // --- Lógica da Calculadora Básica ---
+        let calcExpression = '';
+        const display = document.getElementById('calcDisplay');
+
+        function calcInput(val) {
+            // Evita múltiplos operadores seguidos
+            const ops = ['/', '*', '-', '+', '.'];
+            if (ops.includes(val) && ops.includes(calcExpression.slice(-1))) {
+                calcExpression = calcExpression.slice(0, -1) + val;
+            } else {
+                calcExpression += val;
+            }
+            display.value = calcExpression;
+        }
+
+        function calcClear() {
+            calcExpression = '';
+            display.value = '0';
+        }
+
+        function calcBackspace() {
+            calcExpression = calcExpression.slice(0, -1);
+            display.value = calcExpression || '0';
+        }
+
+        function calcResult() {
+            try {
+                // Segurança básica: permitir apenas caracteres numéricos e operadores
+                if (/[^0-9+\-*/().]/.test(calcExpression)) {
+                    throw new Error("Inválido");
+                }
+                const result = eval(calcExpression);
+                if (!isFinite(result)) throw new Error("Erro");
+                
+                // Formata se tiver muitas casas decimais
+                const formatted = Number.isInteger(result) ? result : result.toFixed(4).replace(/\.?0+$/, '');
+                
+                display.value = formatted;
+                calcExpression = String(formatted);
+            } catch (e) {
+                display.value = "Erro";
+                setTimeout(calcClear, 1500);
+            }
+        }
+
+        // --- Funções de Aportes/Saques Múltiplos ---
+        function addContribution() {
+            const id = 'contrib-' + Date.now();
+            appState.contributions.push({ amount: 500, freq: 1, id });
+            renderContributions();
+            calculate();
+        }
+
+        function addWithdrawal() {
+            const id = 'withdraw-' + Date.now();
+            appState.withdrawals.push({ amount: 0, freq: 0, id });
+            renderWithdrawals();
+            calculate();
+        }
+
+        function removeContribution(id) {
+            appState.contributions = appState.contributions.filter(c => c.id !== id);
+            renderContributions();
+            calculate();
+        }
+
+        function removeWithdrawal(id) {
+            appState.withdrawals = appState.withdrawals.filter(w => w.id !== id);
+            renderWithdrawals();
+            calculate();
+        }
+
+        function updateContribution(id, field, value) {
+            const contrib = appState.contributions.find(c => c.id === id);
+            if (contrib) {
+                contrib[field] = parseFloat(value) || 0;
+                calculate();
+            }
+        }
+
+        function updateWithdrawal(id, field, value) {
+            const withdraw = appState.withdrawals.find(w => w.id === id);
+            if (withdraw) {
+                withdraw[field] = parseFloat(value) || 0;
+                calculate();
+            }
+        }
+
+        function renderContributions() {
+            const container = document.getElementById('contributionsList');
+            container.innerHTML = '';
+            
+            appState.contributions.forEach((contrib, index) => {
+                const div = document.createElement('div');
+                div.className = 'transaction-card bg-slate-50 p-3 rounded-lg border border-slate-200';
+                div.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-slate-700">Aporte ${index + 1}</span>
+                        ${appState.contributions.length > 1 ? `<button onclick="removeContribution('${contrib.id}')" class="text-red-500 hover:text-red-700"><i class="ph-bold ph-trash"></i></button>` : ''}
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-xs text-slate-600">Valor</label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol text-xs">R$</span>
+                                <input type="number" value="${contrib.amount}" step="0.01" 
+                                    class="input-with-symbol w-full p-1.5 text-sm border border-slate-300 rounded focus:ring-1 focus:ring-emerald-400 outline-none"
+                                    onchange="updateContribution('${contrib.id}', 'amount', this.value)">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-600">Frequência (meses)</label>
+                            <input type="number" value="${contrib.freq}" min="1"
+                                class="w-full p-1.5 text-sm border border-slate-300 rounded focus:ring-1 focus:ring-emerald-400 outline-none"
+                                onchange="updateContribution('${contrib.id}', 'freq', this.value)">
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderWithdrawals() {
+            const container = document.getElementById('withdrawalsList');
+            container.innerHTML = '';
+            
+            appState.withdrawals.forEach((withdraw, index) => {
+                const div = document.createElement('div');
+                div.className = 'transaction-card bg-slate-50 p-3 rounded-lg border border-slate-200';
+                div.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-slate-700">Saque ${index + 1}</span>
+                        ${appState.withdrawals.length > 1 ? `<button onclick="removeWithdrawal('${withdraw.id}')" class="text-red-500 hover:text-red-700"><i class="ph-bold ph-trash"></i></button>` : ''}
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-xs text-slate-600">Valor</label>
+                            <div class="currency-input-wrapper">
+                                <span class="currency-symbol text-xs">R$</span>
+                                <input type="number" value="${withdraw.amount}" step="0.01" 
+                                    class="input-with-symbol w-full p-1.5 text-sm border border-slate-300 rounded focus:ring-1 focus:ring-red-400 outline-none"
+                                    onchange="updateWithdrawal('${withdraw.id}', 'amount', this.value)">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-600">Frequência (meses)</label>
+                            <input type="number" value="${withdraw.freq}" min="0"
+                                class="w-full p-1.5 text-sm border border-slate-300 rounded focus:ring-1 focus:ring-red-400 outline-none"
+                                onchange="updateWithdrawal('${withdraw.id}', 'freq', this.value)">
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // --- Funções de Armazenamento ---
+        function saveSimulation() {
+            const name = document.getElementById('simulationName').value.trim();
+            if (!name) {
+                showAlert('Por favor, digite um nome para a simulação', 'error');
+                return;
+            }
+            
+            const simulations = JSON.parse(localStorage.getItem('finCalcV3Simulations') || '{}');
+            simulations[name] = {
+                config: appState.config,
+                contributions: appState.contributions,
+                withdrawals: appState.withdrawals,
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem('finCalcV3Simulations', JSON.stringify(simulations));
+            document.getElementById('simulationName').value = '';
+            updateSimulationList();
+            showAlert(`Simulação "${name}" salva com sucesso!`, 'success');
+        }
+
+        function loadSimulation() {
+            const name = document.getElementById('loadSimulationSelect').value;
+            if (!name) {
+                showAlert('Por favor, selecione uma simulação', 'error');
+                return;
+            }
+            
+            const simulations = JSON.parse(localStorage.getItem('finCalcV3Simulations') || '{}');
+            const simulation = simulations[name];
+            
+            if (simulation) {
+                appState.config = simulation.config;
+                appState.contributions = simulation.contributions;
+                appState.withdrawals = simulation.withdrawals;
+                
+                // Atualizar UI
+                updateInputsFromState();
+                renderContributions();
+                renderWithdrawals();
+                calculate();
+                
+                showAlert(`Simulação "${name}" carregada com sucesso!`, 'success');
+            }
+        }
+
+        function updateSimulationList() {
+            const simulations = JSON.parse(localStorage.getItem('finCalcV3Simulations') || '{}');
+            const select = document.getElementById('loadSimulationSelect');
+            
+            select.innerHTML = '<option value="">Selecione uma simulação...</option>';
+            Object.keys(simulations).forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                select.appendChild(option);
+            });
+        }
+
+        function updateInputsFromState() {
+            document.getElementById('initialAmount').value = appState.config.initial;
+            document.getElementById('interestRate').value = appState.config.rate;
+            document.getElementById('periodValue').value = appState.config.periodValue;
+            document.getElementById('periodUnit').value = appState.config.periodUnit;
+            document.getElementById('inflationToggle').checked = appState.config.inflation;
+            document.getElementById('inflationRate').value = appState.config.inflationRate;
+            
+            if(appState.config.inflation) {
+                document.getElementById('inflationInputContainer').classList.remove('hidden');
+            }
+        }
+
+        function exportData() {
+            const data = {
+                config: appState.config,
+                contributions: appState.contributions,
+                withdrawals: appState.withdrawals,
+                timestamp: new Date().toISOString(),
+                version: '3.0'
+            };
+            
+            const dataString = JSON.stringify(data, null, 2);
+            
+            // Copiar para área de transferência
+            navigator.clipboard.writeText(dataString).then(() => {
+                showAlert('Dados copiados para área de transferência!', 'success');
+            }).catch(() => {
+                // Fallback para navegadores antigos
+                const textArea = document.createElement('textarea');
+                textArea.value = dataString;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showAlert('Dados copiados para área de transferência!', 'success');
+            });
+        }
+
+        function importData() {
+            const dataString = document.getElementById('importDataTextarea').value.trim();
+            if (!dataString) {
+                showAlert('Por favor, cole os dados para importar', 'error');
+                return;
+            }
+            
+            try {
+                const data = JSON.parse(dataString);
+                
+                if (data.version && data.config) {
+                    appState.config = data.config;
+                    appState.contributions = data.contributions || [];
+                    appState.withdrawals = data.withdrawals || [];
+                    
+                    updateInputsFromState();
+                    renderContributions();
+                    renderWithdrawals();
+                    calculate();
+                    
+                    document.getElementById('importDataTextarea').value = '';
+                    showAlert('Dados importados com sucesso!', 'success');
+                } else {
+                    showAlert('Formato de dados inválido', 'error');
+                }
+            } catch (e) {
+                showAlert('Erro ao importar dados: formato inválido', 'error');
+            }
+        }
+
+        function updateStorageInfo() {
+            try {
+                const allData = {
+                    current: appState,
+                    simulations: JSON.parse(localStorage.getItem('finCalcV3Simulations') || '{}')
+                };
+                
+                const dataString = JSON.stringify(allData);
+                const sizeKB = Math.round(dataString.length / 1024);
+                const maxSizeKB = 5120; // 5MB
+                const percentage = Math.min((sizeKB / maxSizeKB) * 100, 100);
+                
+                document.getElementById('storageInfo').textContent = `${sizeKB} KB / ${maxSizeKB} KB`;
+                document.getElementById('footerStorageInfo').textContent = `${Math.round(percentage)}%`;
+                document.getElementById('storageProgress').style.width = `${percentage}%`;
+                document.getElementById('footerStorageProgress').style.width = `${percentage}%`;
+            } catch (e) {
+                console.error('Erro ao calcular armazenamento:', e);
+            }
+        }
+
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        function updateStorageBar() {
+            const dataStr = JSON.stringify(localStorage);
+            const sizeInBytes = new Blob([dataStr]).size;
+            const totalSize = 5 * 1024 * 1024; // ~5MB localStorage limit
+            const usedPercent = Math.min(100, (sizeInBytes / totalSize) * 100);
+            document.getElementById('storageProgress').style.width = `${usedPercent}%`;
+            document.getElementById('storageInfo').textContent = `${usedPercent.toFixed(1)}% (${formatBytes(sizeInBytes, 0)} / ${formatBytes(totalSize, 0)})`;
+        }
+
+        // --- Bindings ---
+        function init() {
+            // Abas
+            document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(x => x.classList.remove('active', 'text-indigo-600', 'border-indigo-500'));
+                document.querySelectorAll('.tab-content').forEach(x => x.classList.add('hidden'));
+                
+                t.classList.add('active', 'text-indigo-600', 'border-indigo-500');
+                document.getElementById(`${t.dataset.tab}-tab`).classList.remove('hidden');
+                
+                // Se a aba for charts, ajusta tamanho
+                if(t.dataset.tab === 'analysis') {
+                    if(flowChart) flowChart.resize();
+                    if(pieChart) pieChart.resize();
+                }
+            }));
+
+            // Toggle Inflação
+            document.getElementById('inflationToggle').addEventListener('change', (e) => {
+                appState.config.inflation = e.target.checked;
+                document.getElementById('inflationInputContainer').classList.toggle('hidden', !e.target.checked);
+            });
+
+            // Botões de Gráfico
+            document.querySelectorAll('.chart-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.chart-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    appState.chartType = btn.dataset.type;
+                    renderMainChart();
+                });
+            });
+
+            // Inputs Sync
+            const inputs = [
+                { id: 'initialAmount', obj: appState.config, key: 'initial' },
+                { id: 'interestRate', obj: appState.config, key: 'rate' },
+                { id: 'periodValue', obj: appState.config, key: 'periodValue' },
+                { id: 'inflationRate', obj: appState.config, key: 'inflationRate' }
+            ];
+
+            inputs.forEach(item => {
+                const el = document.getElementById(item.id);
+                el.value = item.obj[item.key];
+                el.addEventListener('change', (e) => {
+                    item.obj[item.key] = parseFloat(e.target.value) || 0;
+                });
+            });
+
+            // Select Unit
+            const unitEl = document.getElementById('periodUnit');
+            unitEl.value = appState.config.periodUnit;
+            unitEl.addEventListener('change', (e) => appState.config.periodUnit = e.target.value);
+
+            // Calcular
+            document.getElementById('calculateBtn').addEventListener('click', () => {
+                calculate();
+                showAlert('Simulação atualizada com sucesso!', 'success');
+            });
+
+            // Exportar CSV
+            document.getElementById('copyCsvButton').addEventListener('click', () => {
+                const csvContent = "Mes;Juros;Aporte;Saque;Saldo\n" + 
+                    appState.results.map(r => `${r.month};${r.interestMonth.toFixed(2)};${r.contribution.toFixed(2)};${r.withdrawal.toFixed(2)};${r.balance.toFixed(2)}`).join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", "simulacao_financeira.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+            
+            // Funções Globais para a Calculadora
+            window.calcInput = calcInput;
+            window.calcClear = calcClear;
+            window.calcBackspace = calcBackspace;
+            window.calcResult = calcResult;
+            window.removeContribution = removeContribution;
+            window.removeWithdrawal = removeWithdrawal;
+            window.updateContribution = updateContribution;
+            window.updateWithdrawal = updateWithdrawal;
+
+            // Cópia do resultado da calculadora
+            display.addEventListener('click', () => {
+                if (display.value && display.value !== '0' && display.value !== 'Erro') {
+                    navigator.clipboard.writeText(display.value).then(() => {
+                        showAlert('Resultado copiado para área de transferência!', 'success');
+                    }).catch(() => {
+                        showAlert('Não foi possível copiar o resultado', 'error');
+                    });
+                }
+            });
+
+            // Aportes e Saques Múltiplos
+            document.getElementById('addContributionBtn').addEventListener('click', addContribution);
+            document.getElementById('addWithdrawalBtn').addEventListener('click', addWithdrawal);
+
+            // Configurações
+            document.getElementById('saveSimulationBtn').addEventListener('click', saveSimulation);
+            document.getElementById('loadSimulationBtn').addEventListener('click', loadSimulation);
+            document.getElementById('exportDataBtn').addEventListener('click', exportData);
+            document.getElementById('importDataBtn').addEventListener('click', importData);
+
+            loadData();
+            updateSimulationList();
+            updateStorageBar();
+            //updateStorageInfo();
+        }
+
+        function saveData() {
+            localStorage.setItem('finCalcV3', JSON.stringify({ 
+                config: appState.config, 
+                contributions: appState.contributions, 
+                withdrawals: appState.withdrawals 
+            }));
+        }
+
+        function loadData() {
+            const data = localStorage.getItem('finCalcV3');
+            if (data) {
+                const parsed = JSON.parse(data);
+                appState.config = { ...appState.config, ...parsed.config };
+                appState.contributions = parsed.contributions || [{ amount: 500, freq: 1, id: 'contrib-1' }];
+                appState.withdrawals = parsed.withdrawals || [{ amount: 0, freq: 0, id: 'withdraw-1' }];
+                
+                updateInputsFromState();
+                if(appState.config.inflation) {
+                    document.getElementById('inflationInputContainer').classList.remove('hidden');
+                }
+            }
+            
+            renderContributions();
+            renderWithdrawals();
+            calculate();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
