@@ -6,16 +6,12 @@
     <title>Ítalo Faria Dória</title>
     <meta name="theme-color" content="#ffffff">
     
-    <!-- Favicon (Usando um ícone de "portfólio" dos Phosphor Icons) -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📃</text></svg>">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- Google Font: Inter (como nas suas ferramentas) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -39,7 +35,6 @@
 </head>
 <body class="antialiased">
 
-    <!-- Navegação (Navbar) -->
     <nav id="navbar" class="bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-50 w-full">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div id="navbar-container" class="flex justify-between items-center h-16 transition-all duration-300">
@@ -68,7 +63,6 @@
         <div class="h-1 bg-indigo-500" id="scroll-progress-bar" style="width: 0%; transition: width 0.1s ease-out;"></div>
     </nav>
 
-    <!-- Seção 1: Início (Hero) -->
     <section id="inicio" class="min-h-screen flex items-center bg-white">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-5 text-center">
             <!-- <img src="./assets/ft1.jpeg"  -->
@@ -104,7 +98,133 @@
         </div>
     </section>
 
-    <!-- Seção 2: Projetos -->
+    <section id="sobre" class="py-20 bg-slate-50 border-y border-slate-200">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+                <div>
+                    <h2 class="text-3xl md:text-4xl font-bold text-slate-800 mb-6">
+                        Sobre Mim
+                    </h2>
+                    <div class="space-y-4 text-lg text-slate-600">
+                        <p>
+                            Sou um profissional híbrido, apaixonado pela interseção entre a <strong class="text-indigo-600">biologia</strong> e a <strong class="text-indigo-600">tecnologia</strong>. Minha jornada na graduação em Ciências Biológicas na UFMG me deu uma visão parcial dos desafios e das necessidades dos pesquisadores.
+                        </p>
+                        <p>
+                            Paralelamente, minha experiência como Programador me equipou com as ferramentas técnicas para construir soluções.
+                        </p>
+                        <p>
+                            Meu objetivo é usar a tecnologia para ajudar os pesquisadores, automatizando tarefas tediosas, melhorando a análise de dados e criando ferramentas intuitivas que nos permitam focar no mais importante.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 sticky top-24">
+                    <h3 class="text-2xl font-semibold text-slate-800 mb-5">Habilidades Principais</h3>
+                    
+                    <h4 class="text-lg font-semibold text-indigo-600 mb-3">Tecnologias & Ferramentas</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">Python</span>
+                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">React</span>
+                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">Node.js</span>
+                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">Next.js</span>
+                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">Docker</span>
+                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">.NET</span>
+                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">Linux</span>
+                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">PostgreSQL</span>
+                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">JavaScript</span>
+                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">HTML5 & CSS3</span>
+                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">Tailwind CSS</span>
+                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">Git & GitHub</span>
+                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">Excel/VBA</span>
+                    </div>
+
+                    <h4 class="text-lg font-semibold text-indigo-600 mt-6 mb-3">Idiomas</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-medium">Português</span>
+                        <span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-medium">Inglês</span>
+                        <span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-medium">Francês</span>
+                    </div>
+
+                    <h4 class="text-lg font-semibold text-indigo-600 mt-6 mb-3">Habilidades Interpessoais</h4>
+                    <ul class="list-disc list-outside ml-5 text-slate-600 space-y-1">
+                        <li>Comunicação eficaz e didática</li>
+                        <li>Resolução de problemas complexos</li>
+                        <li>Trabalho em equipe (ambientes ágeis e de pesquisa)</li>
+                        <li>Organização, autonomia e proatividade</li>
+                        <li>Pensamento analítico e crítico</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="experiencia" class="py-20 bg-white">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <header class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-800">
+                    Carreira e Formação
+                </h2>
+                <p class="text-lg text-slate-600 mt-2">
+                    Minha jornada profissional e acadêmica.
+                </p>
+            </header>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div class="space-y-8">
+                    <h3 class="flex items-center gap-3 text-2xl font-semibold text-slate-800">
+                        <i class="ph-bold ph-briefcase text-indigo-500"></i>
+                        Experiência Profissional
+                    </h3>
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                        <h4 class="text-lg font-semibold text-slate-900">Aluno de Iniciação Científica</h4>
+                        <p class="text-sm font-medium text-indigo-600 mt-1">Lab. de Virologia Básica e Aplicada (LVBA)/CT Vacinas/Laboratório de Taxonomia e Diversidade de Fungos</p>
+                        <p class="text-sm text-slate-500 mb-4">Agosto/2023 – Presente</p>
+                        <ul class="list-disc list-outside ml-5 text-sm text-slate-600 space-y-1.5">
+                            <li>Estudo de genômica comparativa de leveduras(LabLev)</li>
+                            <li>Análises de fermentação de bancada e crescimento de leveduras(LabLev)</li>
+                            <li>Apoio a projetos de aprendizado de máquinas para o desenvolvimento de vacinas.(LVBA)</li>
+                            <li>Execução de procedimentos: PCR, cultivo celular, purificação de proteínas, tranformação bacteriana etc.(LVBA)</li>
+                            <li>Desenvolvimento de software para gerenciamento de insumos e protocolos (BPL).(CT Vacinas)</li>
+                            <li>Apoio no desenvolvimento e inspeção de processos BPL.(CT Vacinas)</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                        <h4 class="text-lg font-semibold text-slate-900">Programador Júnior</h4>
+                        <p class="text-sm font-medium text-indigo-600 mt-1">Jabil do Brasil</p>
+                        <p class="text-sm text-slate-500 mb-4">Fevereiro/2019 – Janeiro/2023</p>
+                        <ul class="list-disc list-outside ml-5 text-sm text-slate-600 space-y-1.5">
+                            <li>Desenvolvimento de APIs REST (.NET) com PostgreSQL.</li>
+                            <li>Criação de aplicações Front-end responsivas com Angular, SCSS e Bootstrap.</li>
+                            <li>Deploy de aplicações no IIS.</li>
+                            <li>Prática de metodologias ágeis (SCRUM), princípios SOLID e Clean Code.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="space-y-8">
+                    <h3 class="flex items-center gap-3 text-2xl font-semibold text-slate-800">
+                        <i class="ph-bold ph-graduation-cap text-indigo-500"></i>
+                        Formação Acadêmica
+                    </h3>
+                    
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                        <h4 class="text-lg font-semibold text-slate-900">Graduação em Ciências Biológicas (Licenciatura)</h4>
+                        <p class="text-sm font-medium text-indigo-600 mt-1">Universidade Federal de Minas Gerais (UFMG)</p>
+                        <p class="text-sm text-slate-500">2021/2 - 2026 (Previsão)</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                        <h4 class="text-lg font-semibold text-slate-900">Técnico em Eletroeletrônica</h4>
+                        <p class="text-sm font-medium text-indigo-600 mt-1">CEFET-MG - Centro Federal de Educação e Tecnologia de Minas Gerais</p>
+                        <p class="text-sm text-slate-500">2016 - 2018</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section id="projetos" class="py-20 bg-slate-50 border-y border-slate-200">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <header class="text-center mb-12">
@@ -251,134 +371,6 @@
         </div>
     </section>
     
-    <!-- Seção 3: Sobre & Habilidades -->
-    <section id="sobre" class="py-20 bg-white">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-                <div>
-                    <h2 class="text-3xl md:text-4xl font-bold text-slate-800 mb-6">
-                        Sobre Mim
-                    </h2>
-                    <div class="space-y-4 text-lg text-slate-600">
-                        <p>
-                            Sou um profissional híbrido, apaixonado pela interseção entre a <strong class="text-indigo-600">biologia</strong> e a <strong class="text-indigo-600">tecnologia</strong>. Minha jornada na graduação em Ciências Biológicas na UFMG me deu uma visão parcial dos desafios e das necessidades dos pesquisadores.
-                        </p>
-                        <p>
-                            Paralelamente, minha experiência como Programador me equipou com as ferramentas técnicas para construir soluções.
-                        </p>
-                        <p>
-                            Meu objetivo é usar a tecnologia para ajudar os pesquisadores, automatizando tarefas tediosas, melhorando a análise de dados e criando ferramentas intuitivas que nos permitam focar no mais importante.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200 sticky top-24">
-                    <h3 class="text-2xl font-semibold text-slate-800 mb-5">Habilidades Principais</h3>
-                    
-                    <h4 class="text-lg font-semibold text-indigo-600 mb-3">Tecnologias & Ferramentas</h4>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">Python</span>
-                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">React</span>
-                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">Node.js</span>
-                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">Next.js</span>
-                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">Docker</span>
-                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">.NET</span>
-                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">Linux</span>
-                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">PostgreSQL</span>
-                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">JavaScript</span>
-                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">HTML5 & CSS3</span>
-                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">Tailwind CSS</span>
-                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">Git & GitHub</span>
-                        <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">Excel/VBA</span>
-                    </div>
-
-                    <h4 class="text-lg font-semibold text-indigo-600 mt-6 mb-3">Idiomas</h4>
-                    <div class="flex flex-wrap gap-2">
-                        <span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-medium">Português</span>
-                        <span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-medium">Inglês</span>
-                        <span class="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-medium">Francês</span>
-                    </div>
-
-                    <h4 class="text-lg font-semibold text-indigo-600 mt-6 mb-3">Habilidades Interpessoais</h4>
-                    <ul class="list-disc list-outside ml-5 text-slate-600 space-y-1">
-                        <li>Comunicação eficaz e didática</li>
-                        <li>Resolução de problemas complexos</li>
-                        <li>Trabalho em equipe (ambientes ágeis e de pesquisa)</li>
-                        <li>Organização, autonomia e proatividade</li>
-                        <li>Pensamento analítico e crítico</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Seção 4: Experiência & Formação -->
-    <section id="experiencia" class="py-20 bg-slate-50 border-y border-slate-200">
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-            <header class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-800">
-                    Carreira e Formação
-                </h2>
-                <p class="text-lg text-slate-600 mt-2">
-                    Minha jornada profissional e acadêmica.
-                </p>
-            </header>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                <div class="space-y-8">
-                    <h3 class="flex items-center gap-3 text-2xl font-semibold text-slate-800">
-                        <i class="ph-bold ph-briefcase text-indigo-500"></i>
-                        Experiência Profissional
-                    </h3>
-                    
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
-                        <h4 class="text-lg font-semibold text-slate-900">Aluno de Iniciação Científica</h4>
-                        <p class="text-sm font-medium text-indigo-600 mt-1">Lab. de Virologia Básica e Aplicada (LVBA)/UFMG & CT Vacinas/UFMG</p>
-                        <p class="text-sm text-slate-500 mb-4">Agosto/2023 – Agosto/2025</p>
-                        <ul class="list-disc list-outside ml-5 text-sm text-slate-600 space-y-1.5">
-                            <li>Apoio a projetos de aprendizado de máquinas e desenvolvimento de vacinas.</li>
-                            <li>Execução de procedimentos: PCR, cultivo celular, purificação de proteínas, tranformação bacteriana etc.</li>
-                            <li>Desenvolvimento de software para gerenciamento de insumos e protocolos (BPL).</li>
-                            <li>Apoio no desenvolvimento e inspeção de processos BPL.</li>
-                        </ul>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
-                        <h4 class="text-lg font-semibold text-slate-900">Programador Júnior</h4>
-                        <p class="text-sm font-medium text-indigo-600 mt-1">Jabil do Brasil</p>
-                        <p class="text-sm text-slate-500 mb-4">Fevereiro/2019 – Janeiro/2023</p>
-                        <ul class="list-disc list-outside ml-5 text-sm text-slate-600 space-y-1.5">
-                            <li>Desenvolvimento de APIs REST (.NET) com PostgreSQL.</li>
-                            <li>Criação de aplicações Front-end responsivas com Angular, SCSS e Bootstrap.</li>
-                            <li>Deploy de aplicações no IIS.</li>
-                            <li>Prática de metodologias ágeis (SCRUM), princípios SOLID e Clean Code.</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="space-y-8">
-                    <h3 class="flex items-center gap-3 text-2xl font-semibold text-slate-800">
-                        <i class="ph-bold ph-graduation-cap text-indigo-500"></i>
-                        Formação Acadêmica
-                    </h3>
-                    
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
-                        <h4 class="text-lg font-semibold text-slate-900">Graduação em Ciências Biológicas (Licenciatura)</h4>
-                        <p class="text-sm font-medium text-indigo-600 mt-1">Universidade Federal de Minas Gerais (UFMG)</p>
-                        <p class="text-sm text-slate-500">2021/2 - 2026 (Previsão)</p>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
-                        <h4 class="text-lg font-semibold text-slate-900">Técnico em Eletroeletrônica</h4>
-                        <p class="text-sm font-medium text-indigo-600 mt-1">CEFET-MG - Centro Federal de Educação e Tecnologia de Minas Gerais</p>
-                        <p class="text-sm text-slate-500">2016 - 2018</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Seção 5: Contato (Call to Action) -->
     <section id="contato" class="py-20 bg-slate-800 text-white">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <i class="ph-bold ph-paper-plane-tilt text-5xl text-indigo-400 mb-4"></i>

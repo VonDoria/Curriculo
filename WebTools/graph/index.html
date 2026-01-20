@@ -3,777 +3,1136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Gráficos Dinâmico v2.0</title>
-    <!-- Favicon Genérico -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+    <title>DataPlotter</title>
+    <link rel="icon" href="graphLogo.png">
     <meta name="theme-color" content="#f8fafc">
     
-    <!-- Tailwind CSS para um design moderno e responsivo -->
+    <!-- Dependências -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Chart.js para a criação de gráficos interativos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Phosphor Icons para ícones -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <style>
-        /* Estilos personalizados para complementar o Tailwind */
+        /* --- ESTILOS DO TEMPLATE (PRESERVADOS) --- */
+        
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; /* cinza claro */
+            background-color: #f8fafc; /* Slate-50 */
+            color: #334155; /* Slate-700 */
         }
 
-        /* Animação suave para as abas */
-        .tab-content {
-            transition: opacity 0.3s ease-in-out;
+        /* Classes Utilitárias de UI para Reuso */
+        .card {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0; /* slate-200 */
+            transition: all 0.3s ease;
         }
 
-        /* Estilo para o seletor de amostras no gráfico */
-        .sample-checkbox-list {
-            max-height: 250px;
-            overflow-y: auto;
-            border: 1px solid #e2e8f0;
+        .section-title {
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 700;
+            color: #1e293b; /* slate-800 */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Inputs Padronizados */
+        .input-std {
+            width: 100%;
+            padding: 0.625rem;
+            border: 1px solid #cbd5e1;
             border-radius: 0.5rem;
-            padding: 0.75rem;
+            outline: none;
+            transition: all 0.2s;
+            background-color: #fff;
+        }
+        .input-std:focus {
+            border-color: #6366f1; /* Indigo-500 */
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
         }
         
-        /* Estilos para o accordion de grupos de dados */
-        details summary {
+        /* Input compacto para tabelas */
+        .input-compact {
+            padding: 0.4rem;
+            font-size: 0.875rem;
+        }
+
+        /* Botões Padronizados */
+        .btn {
+            padding: 0.625rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
             cursor: pointer;
-            list-style: none; /* Remove a seta padrão */
+            border: none;
         }
-        details summary::-webkit-details-marker {
-            display: none; /* Remove a seta padrão no Chrome/Safari */
+        .btn-primary { background-color: #6366f1; color: white; }
+        .btn-primary:hover { background-color: #4f46e5; transform: translateY(-1px); }
+        
+        .btn-secondary { background-color: #64748b; color: white; }
+        .btn-secondary:hover { background-color: #475569; transform: translateY(-1px); }
+
+        .btn-success { background-color: #10b981; color: white; }
+        .btn-success:hover { background-color: #059669; transform: translateY(-1px); }
+        
+        .btn-danger { background-color: #ef4444; color: white; }
+        .btn-danger:hover { background-color: #dc2626; transform: translateY(-1px); }
+
+        .btn-ghost { background-color: transparent; color: #64748b; }
+        .btn-ghost:hover { background-color: #f1f5f9; color: #334155; }
+
+        .btn-dashed {
+            background-color: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            color: #64748b;
         }
-        details summary .arrow {
+        .btn-dashed:hover {
+            border-color: #6366f1;
+            color: #6366f1;
+            background-color: #eef2ff;
+        }
+
+        /* Navegação (Tabs) - Estilo Clean */
+        .tabs-container {
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .tabs-container::-webkit-scrollbar { display: none; }
+        
+        .tab {
+            padding: 1rem 0.75rem;
+            border-bottom: 2px solid transparent;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: #64748b;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+            transition: color 0.2s, border-color 0.2s;
+            background: none;
+            border-top: none; border-left: none; border-right: none;
+        }
+        .tab:hover { 
+            color: #334155;
+            border-bottom-color: #cbd5e1;
+        }
+        .tab.active {
+            color: #6366f1;
+            border-bottom-color: #6366f1;
+        }
+        .tab-content { 
+            display: none; 
+            opacity: 0; 
+            transition: opacity 0.3s ease; 
+        }
+        .tab-content.active { 
+            display: block; 
+            opacity: 1; 
+        }
+
+        /* Elementos Específicos do DataPlotter (Estilizados para bater com o Template) */
+        
+        /* Dropdown de Cores */
+        .color-select-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            background: white;
+            transition: all 0.2s;
+        }
+        .color-select-btn:hover { 
+            border-color: #6366f1; 
+        }
+        
+        .color-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            z-index: 50;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            width: max-content;
+            margin-top: 0.25rem;
+        }
+        .color-option {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
             transition: transform 0.2s;
         }
-        details[open] summary .arrow {
-            transform: rotate(90deg);
+        .color-option:hover { transform: scale(1.1); }
+        .color-option.selected { border-color: #334155; transform: scale(1.1); }
+
+        /* Tutorial Accordion (Do template) */
+        details summary { cursor: pointer; list-style: none; }
+        details summary::-webkit-details-marker { display: none; }
+        details summary .arrow { transition: transform 0.2s; }
+        details[open] summary .arrow { transform: rotate(90deg); }
+        .tutorial-step { transition: background-color 0.2s; }
+        .tutorial-step:hover { background-color: #f8fafc; }
+
+        /* Toggles */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #6366f1;
+            transform: translateX(10px);
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #6366f1;
         }
 
-        /* Garante que a navegação por abas seja rolável em telas pequenas */
-        .tabs-nav-container {
-            overflow-x: auto;
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
-        }
-        .tabs-nav-container::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, Opera */
-        }
-        .tabs-nav {
-            flex-wrap: nowrap;
-            white-space: nowrap;
-        }
-        
-        /* Estilos para o modal de doação */
-        #donation-modal {
-            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-        }
-        #donation-icon:hover #donation-modal {
-            opacity: 1;
-            transform: scale(1) translateX(-10px);
-            pointer-events: auto;
-        }
     </style>
 </head>
-<body class="antialiased text-slate-700">
+<body class="antialiased">
 
-    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
-        <!-- Cabeçalho -->
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl min-h-screen flex flex-col">
+        
+        <!-- HEADER -->
         <header class="text-center mb-8 p-6 bg-white rounded-xl shadow-md border border-slate-200">
             <h1 class="text-3xl md:text-4xl font-bold text-slate-800 flex items-center justify-center gap-3">
-                <i class="ph-bold ph-chart-pie-slice text-indigo-500"></i>
-                Gerador de Gráficos Dinâmico
+                <i class="ph-bold ph-chart-polar text-indigo-500"></i>
+                <span id="app-title">DataPlotter</span>
             </h1>
-            <p class="text-slate-500 mt-2">Crie, visualize e compare seus dados de forma rápida e intuitiva.</p>
+            <p class="text-slate-500 mt-2">Crie gráficos científicos de forma rápida e intuitiva.</p>
         </header>
 
-        <!-- Navegação por Abas -->
-        <div class="mb-6 border-b border-slate-200 tabs-nav-container">
-            <nav class="flex -mb-px space-x-6 tabs-nav" aria-label="Tabs">
-                <button class="tab active" data-tab="tutorial">
+        <!-- NAVEGAÇÃO -->
+        <div class="mb-6 border-b border-slate-200 tabs-container">
+            <nav class="flex -mb-px space-x-6" aria-label="Tabs">
+                <button class="tab active" data-tab="line-chart">
+                    <i class="ph-bold ph-chart-line"></i> Gráfico de Linhas
+                </button>
+                <button class="tab" data-tab="bar-chart">
+                    <i class="ph-bold ph-chart-bar"></i> Gráfico de Barras
+                </button>
+                <button class="tab" data-tab="tutorial">
                     <i class="ph-bold ph-book-open"></i> Tutorial
                 </button>
-                <button class="tab" data-tab="data">
-                    <i class="ph-bold ph-database"></i> Dados
-                </button>
-                <button class="tab" data-tab="chart">
-                    <i class="ph-bold ph-chart-bar"></i> Gráfico
+                <button class="tab" data-tab="settings">
+                    <i class="ph-bold ph-gear"></i> Configurações
                 </button>
             </nav>
         </div>
 
-        <!-- Conteúdo das Abas -->
-        <main>
-            <!-- Aba de Tutorial -->
-            <div id="tutorial-tab" class="tab-content active">
-                <div class="card space-y-8">
-                    <div>
-                        <h2 class="section-title"><i class="ph-bold ph-rocket-launch text-indigo-500"></i> Como Funciona</h2>
-                        <p class="text-slate-600 mt-2">Bem-vindo(a)! Esta ferramenta foi projetada para transformar seus dados em gráficos claros e bonitos com apenas alguns cliques. Siga os passos abaixo para começar.</p>
+        <main class="flex-grow">
+            
+            <!-- ABA GRÁFICO DE LINHAS -->
+            <div id="line-chart-tab" class="tab-content active space-y-6">
+                
+                <!-- Área Visual do Gráfico -->
+                <div class="card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="section-title mb-0"><i class="ph-bold ph-eye text-indigo-500"></i> Visualização</h2>
+                        
+                        <!-- Toggle de Preenchimento -->
+                        <div class="flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                            <div class="relative inline-block w-8 align-middle select-none">
+                                <input type="checkbox" id="lineFillToggle" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 top-1 left-1" onchange="renderChart('line')"/>
+                                <label for="lineFillToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer transition-colors duration-300"></label>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-600 uppercase">Preencher Área</span>
+                        </div>
                     </div>
                     
-                    <div class="space-y-4">
-                        <details class="bg-slate-50 p-4 rounded-lg border">
-                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
-                                <span>Passo 1: Defina suas Métricas</span>
-                                <i class="ph ph-caret-right arrow text-xl"></i>
-                            </summary>
-                            <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
-                                <p>Na aba <strong>"Dados"</strong>, a primeira coisa a fazer é definir as "Métricas". Pense nelas como as colunas da sua planilha ou as variáveis que você mediu.</p>
-                                <ul class="list-disc list-inside space-y-1">
-                                    <li><strong>Exemplo:</strong> Se você está analisando o crescimento de plantas, suas métricas poderiam ser "Altura (cm)", "Nº de Folhas" e "Umidade do Solo (%)".</li>
-                                    <li>Adicione quantas métricas precisar. Elas se tornarão as opções que você poderá plotar no eixo Y do seu gráfico.</li>
-                                </ul>
-                            </div>
-                        </details>
-
-                        <details class="bg-slate-50 p-4 rounded-lg border">
-                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
-                                <span>Passo 2: Adicione seus Dados</span>
-                                 <i class="ph ph-caret-right arrow text-xl"></i>
-                            </summary>
-                             <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
-                                <p>Depois de definir as métricas, você pode começar a adicionar seus dados. Existem duas formas de fazer isso:</p>
-                                <ol class="list-decimal list-inside space-y-3">
-                                    <li>
-                                        <strong>Modo Ponto a Ponto (Padrão):</strong>
-                                        <ul class="list-disc list-inside ml-6 mt-1">
-                                            <li>Dê um <strong>nome ao Grupo</strong> (ex: "Tratamento A").</li>
-                                            <li>Insira o <strong>Rótulo do Ponto</strong> (Eixo X, ex: "Dia 1").</li>
-                                            <li>Preencha os valores para cada métrica.</li>
-                                            <li>Clique em "Adicionar Ponto ao Grupo". Repita para todos os pontos.</li>
-                                        </ul>
-                                    </li>
-                                    <li>
-                                        <strong>Modo em Massa (Recomendado para muitos dados):</strong>
-                                        <ul class="list-disc list-inside ml-6 mt-1">
-                                            <li>Marque a opção <strong>"Inserir dados em massa"</strong>.</li>
-                                            <li>Copie os dados de sua planilha (Excel, Google Sheets) e cole na área de texto.</li>
-                                            <li><strong>Formato esperado:</strong> A primeira coluna deve conter os Rótulos (Eixo X) e as colunas seguintes, os valores de cada métrica, na mesma ordem em que você as cadastrou.</li>
-                                            <li>Dê um nome ao Grupo e clique em "Adicionar Dados em Massa".</li>
-                                        </ul>
-                                    </li>
-                                </ol>
-                            </div>
-                        </details>
-                        
-                         <details class="bg-slate-50 p-4 rounded-lg border">
-                            <summary class="font-semibold text-lg flex justify-between items-center cursor-pointer">
-                                <span>Passo 3: Construa e Compare Gráficos</span>
-                                 <i class="ph ph-caret-right arrow text-xl"></i>
-                            </summary>
-                             <div class="pt-3 mt-3 border-t text-slate-600 space-y-2">
-                                 <p>A aba <strong>"Gráfico"</strong> é onde a visualização acontece:</p>
-                                 <ul class="list-disc list-inside space-y-1">
-                                     <li><strong>Selecione a Métrica (Eixo Y):</strong> Escolha qual das suas métricas você quer visualizar.</li>
-                                     <li><strong>Selecione os Grupos:</strong> No primeiro "Conjunto", marque os grupos de dados que você quer plotar. Cada grupo será uma série diferente no gráfico (uma barra ou uma linha de cor diferente).</li>
-                                     <li><strong>Organização do Eixo X:</strong> A ferramenta automaticamente coleta todos os Rótulos (ex: 'Dia 1', 'Dia 2') de todos os pontos nos grupos selecionados e os organiza em ordem no eixo X, garantindo que as comparações sejam sempre alinhadas.</li>
-                                     <li><strong>Compare Conjuntos:</strong> Para comparações mais complexas, clique em <strong>"Adicionar Conjunto para Comparação"</strong>. Isso cria um novo seletor. Os grupos selecionados no "Conjunto 1" terão uma paleta de cores e os do "Conjunto 2" terão outra, permitindo comparações visuais avançadas.</li>
-                                     <li><strong>Baixe seu Gráfico:</strong> Clique com o botão direito sobre o gráfico para salvá-lo como uma imagem.</li>
-                                </ul>
-                            </div>
-                        </details>
+                    <div class="h-[400px] w-full relative">
+                        <canvas id="lineCanvas"></canvas>
                     </div>
 
-                    <div class="border-t pt-6 mt-6 text-center text-slate-600">
-                        <h3 class="font-semibold text-lg text-slate-800">Uma mensagem do criador</h3>
-                        <p class="mt-2">Olá! Eu sou o Ítalo, estudante de biologia e entusiasta da ciência e da programação. Criei esta ferramenta com o objetivo de simplificar a vida de pesquisadores e estudantes, transformando uma tarefa tediosa em algo rápido e visual. Ela foi feita com muito carinho e atenção aos detalhes, pensando em como eu mesmo gostaria de analisar meus dados.</p>
-                        <p class="mt-2">Se esta ferramenta te ajudou a economizar tempo e a facilitar seu trabalho, considere apoiar o projeto. Sua contribuição me ajuda a manter a ferramenta funcionando, a desenvolver novas funcionalidades e, claro, a pagar o café que move tudo isso!</p>
-                        <div class="mt-4">
-                            <p class="font-bold text-indigo-600">Qualquer valor faz uma grande diferença. Muito obrigado!</p>
+                    <!-- Legenda de Área (Integral) -->
+                    <div id="lineAreaLegend" class="mt-6 pt-4 border-t border-slate-100 hidden">
+                        <p class="text-xs font-bold text-slate-400 uppercase mb-2">Cálculo de Área (Integral)</p>
+                        <div id="lineAreaLegendContent" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-sm"></div>
+                    </div>
+                </div>
+
+                <!-- Botão de Ação Principal -->
+                <button onclick="renderChart('line')" class="btn btn-primary w-full shadow-lg shadow-indigo-200">
+                    <i class="ph-bold ph-arrows-clockwise"></i> Atualizar Gráfico
+                </button>
+
+                <!-- Área de Datasets (Lista) -->
+                <div class="space-y-4">
+                    <h2 class="section-title"><i class="ph-bold ph-database text-indigo-500"></i> Dados</h2>
+                    
+                    <div id="lineDatasetsList" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Datasets injetados via JS -->
+                    </div>
+
+                    <button onclick="addDataset('line')" class="btn btn-dashed w-full py-4">
+                        <i class="ph-bold ph-plus-circle text-xl"></i> Novo Conjunto de Dados
+                    </button>
+                </div>
+
+                <!-- Biblioteca Local -->
+                <div class="card bg-slate-50 border-slate-200">
+                    <h2 class="section-title"><i class="ph-bold ph-floppy-disk text-slate-600"></i> Biblioteca Local</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-slate-500">Salvar Atual</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="lineChartTitle" class="input-std" placeholder="Nome do gráfico...">
+                                <button onclick="saveChart('line')" class="btn btn-secondary">Salvar</button>
+                            </div>
                         </div>
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-slate-500">Carregar Salvo</label>
+                            <div class="flex gap-2">
+                                <select id="lineSavedSelect" class="input-std">
+                                    <option value="">Selecione...</option>
+                                </select>
+                                <button onclick="loadChart('line')" class="btn btn-primary">Carregar</button>
+                                <button onclick="deleteSavedChart('line')" class="btn btn-danger px-3"><i class="ph-bold ph-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-200 text-right">
+                         <button onclick="clearAll('line')" class="text-xs text-red-500 hover:text-red-700 font-medium flex items-center justify-end gap-1 ml-auto">
+                            <i class="ph-bold ph-trash"></i> Limpar Tela
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ABA GRÁFICO DE BARRAS -->
+            <div id="bar-chart-tab" class="tab-content space-y-6">
+                 <!-- Área Visual -->
+                 <div class="card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="section-title mb-0"><i class="ph-bold ph-eye text-emerald-500"></i> Visualização</h2>
+                        
+                        <div class="flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                            <div class="relative inline-block w-8 align-middle select-none">
+                                <input type="checkbox" id="barStackToggle" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 top-1 left-1" onchange="renderChart('bar')"/>
+                                <label for="barStackToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer transition-colors duration-300"></label>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-600 uppercase">Empilhar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="h-[400px] w-full relative">
+                        <canvas id="barCanvas"></canvas>
+                    </div>
+                </div>
+
+                <button onclick="renderChart('bar')" class="btn btn-success w-full shadow-lg shadow-emerald-200">
+                    <i class="ph-bold ph-arrows-clockwise"></i> Atualizar Barras
+                </button>
+
+                 <!-- Área de Datasets -->
+                 <div class="space-y-4">
+                    <h2 class="section-title"><i class="ph-bold ph-database text-emerald-500"></i> Conjuntos de Barras</h2>
+                    
+                    <div id="barDatasetsList" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Datasets injetados via JS -->
+                    </div>
+
+                    <button onclick="addDataset('bar')" class="btn btn-dashed w-full py-4">
+                        <i class="ph-bold ph-plus-circle text-xl"></i> Novo Conjunto de Barras
+                    </button>
+                </div>
+
+                 <!-- Biblioteca Local -->
+                 <div class="card bg-slate-50 border-slate-200">
+                    <h2 class="section-title"><i class="ph-bold ph-floppy-disk text-slate-600"></i> Biblioteca Local</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-slate-500">Salvar Atual</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="barChartTitle" class="input-std" placeholder="Nome do gráfico...">
+                                <button onclick="saveChart('bar')" class="btn btn-secondary">Salvar</button>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-slate-500">Carregar Salvo</label>
+                            <div class="flex gap-2">
+                                <select id="barSavedSelect" class="input-std">
+                                    <option value="">Selecione...</option>
+                                </select>
+                                <button onclick="loadChart('bar')" class="btn btn-primary">Carregar</button>
+                                <button onclick="deleteSavedChart('bar')" class="btn btn-danger px-3"><i class="ph-bold ph-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-200 text-right">
+                         <button onclick="clearAll('bar')" class="text-xs text-red-500 hover:text-red-700 font-medium flex items-center justify-end gap-1 ml-auto">
+                            <i class="ph-bold ph-trash"></i> Limpar Tela
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Aba de Dados -->
-            <div id="data-tab" class="tab-content hidden">
-                <div class="card space-y-8">
-                    <!-- Seção de Métricas -->
+            <!-- ABA TUTORIAL -->
+            <div id="tutorial-tab" class="tab-content">
+                <div class="card space-y-6">
                     <div>
-                        <h2 class="section-title"><i class="ph-bold ph-pencil-ruler"></i> 1. Defina suas Métricas (Eixo Y)</h2>
-                        <div class="flex flex-col sm:flex-row gap-4 mt-4">
-                            <input type="text" id="metricName" placeholder="Nome da Métrica (Ex: Altura cm, Vendas R$)" class="flex-grow">
-                            <button id="addMetric" class="btn btn-primary">
-                                <i class="ph-bold ph-plus-circle"></i> Adicionar Métrica
-                            </button>
-                        </div>
-                        <div id="metricsList" class="my-4 flex flex-wrap gap-2">
-                            <!-- Métricas adicionadas aqui como tags -->
-                        </div>
+                        <h2 class="section-title"><i class="ph-bold ph-graduation-cap text-indigo-500"></i> Como usar o DataPlotter</h2>
+                        <p class="text-slate-600 mb-4">Bem-vindo! Esta ferramenta permite criar gráficos científicos e exportá-los. Siga os passos:</p>
                     </div>
 
-                    <!-- Seção de Adicionar Dados -->
-                    <div class="border-t pt-8">
-                        <h2 class="section-title"><i class="ph-bold ph-plus-square"></i> 2. Adicione seus Grupos e Pontos de Dados</h2>
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4 items-start">
-                            <div class="bg-slate-50 p-4 rounded-lg border space-y-4">
-                                <h3 class="font-semibold text-lg text-slate-800">Novo Ponto de Dado</h3>
-                                <div>
-                                    <label for="groupName" class="block text-sm font-medium text-slate-600 mb-1">Nome do Grupo de Dados</label>
-                                    <input type="text" id="groupName" placeholder="Ex: Controle, Tratamento A, Vendas 2023">
-                                </div>
-                                <div class="flex items-center my-2">
-                                    <input id="bulk-input-toggle" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                                    <label for="bulk-input-toggle" class="ml-2 block text-sm text-gray-900">Inserir dados em massa (colar da planilha)</label>
-                                </div>
-                                <div id="bulk-input-container" class="hidden">
-                                    <textarea id="bulkData" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition min-h-[8rem] font-mono text-sm" placeholder=""></textarea>
-                                </div>
-                                <div id="manual-input-container" class="space-y-4">
-                                    <div>
-                                        <label for="pointLabel" class="block text-sm font-medium text-slate-600 mb-1">Rótulo do Ponto (Eixo X)</label>
-                                        <input type="text" id="pointLabel" placeholder="Ex: Dia 1, Semana 3, Janeiro">
-                                    </div>
-                                    <div id="metricInputsContainer" class="space-y-3">
-                                        <!-- Inputs para cada métrica serão gerados aqui -->
-                                    </div>
-                                </div>
-                                <button id="addDataPoint" class="btn btn-primary w-full">
-                                    <i class="ph-bold ph-arrow-down"></i> Adicionar Ponto ao Grupo
+                    <div class="space-y-3">
+                        <details class="bg-slate-50 p-4 rounded-lg border border-slate-200 tutorial-step">
+                            <summary class="font-semibold text-slate-800 flex justify-between items-center">
+                                <span>1. Inserindo Dados</span>
+                                <i class="ph ph-caret-right arrow text-slate-400"></i>
+                            </summary>
+                            <div class="pt-3 mt-3 border-t border-slate-200 text-slate-600 text-sm">
+                                <p>Na aba do gráfico desejado, clique em "Novo Conjunto". Você pode digitar manualmente os dados na tabela ou ativar o modo "Exportar/Colar" para colar dados do Excel ou CSV. Se colar, clique em "Processar" para preencher a tabela.</p>
+                            </div>
+                        </details>
+
+                        <details class="bg-slate-50 p-4 rounded-lg border border-slate-200 tutorial-step">
+                            <summary class="font-semibold text-slate-800 flex justify-between items-center">
+                                <span>2. Gerando o Gráfico</span>
+                                <i class="ph ph-caret-right arrow text-slate-400"></i>
+                            </summary>
+                            <div class="pt-3 mt-3 border-t border-slate-200 text-slate-600 text-sm">
+                                <p>Após inserir os dados, clique no botão grande "Atualizar Gráfico". O gráfico será renderizado na área superior. Use os controles (Preencher Área / Empilhar) para alterar a visualização.</p>
+                            </div>
+                        </details>
+
+                        <details class="bg-slate-50 p-4 rounded-lg border border-slate-200 tutorial-step">
+                            <summary class="font-semibold text-slate-800 flex justify-between items-center">
+                                <span>3. Biblioteca Local</span>
+                                <i class="ph ph-caret-right arrow text-slate-400"></i>
+                            </summary>
+                            <div class="pt-3 mt-3 border-t border-slate-200 text-slate-600 text-sm">
+                                <p>Use a seção "Biblioteca Local" no final da página para salvar configurações de gráficos que você usa frequentemente. Os dados ficam salvos no seu navegador.</p>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABA CONFIGURAÇÕES (Backup) -->
+            <div id="settings-tab" class="tab-content">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <div class="card bg-white p-6 rounded-xl shadow-md border border-slate-200">
+                        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <i class="ph-bold ph-arrows-left-right text-emerald-500"></i> Sincronização de Dados
+                        </h2>
+                        
+                        <div class="space-y-4">
+                            <!-- Área de Exportação -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-1">Exportar (Backup)</label>
+                                <button id="btnExport" class="btn btn-success w-full justify-center">
+                                    <i class="ph-bold ph-export"></i> Copiar Dados para Transferência
+                                </button>
+                                <p class="text-xs text-slate-400 mt-1">Copia todo o estado da aplicação para a área de transferência.</p>
+                            </div>
+                            
+                            <hr class="border-slate-100 my-2">
+
+                            <!-- Área de Importação -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-1">Importar (Restaurar)</label>
+                                <textarea id="importArea" class="w-full h-24 p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-400 outline-none transition resize-none text-xs font-mono" placeholder="Cole aqui o código JSON..."></textarea>
+                                <button id="btnImport" class="btn btn-secondary w-full mt-2 justify-center">
+                                    <i class="ph-bold ph-download-simple"></i> Substituir e Importar
                                 </button>
                             </div>
-                            <div class="space-y-4">
-                                <h3 class="font-semibold text-lg text-slate-800">Grupos de Dados Salvos</h3>
-                                 <input type="text" id="dataGroupsSearch" placeholder="Buscar grupos..." class="mb-2 w-full">
-                                <div id="dataGroupsList" class="space-y-2 max-h-[500px] overflow-y-auto pr-2">
-                                    <!-- Lista de grupos de dados salvos -->
-                                </div>
-                            </div>
                         </div>
                     </div>
+
                 </div>
             </div>
 
-            <!-- Aba de Gráfico -->
-            <div id="chart-tab" class="tab-content hidden">
-                <div class="card">
-                    <h2 class="section-title"><i class="ph-bold ph-chart-bar"></i> Construtor de Gráfico Comparativo</h2>
-                    <div class="flex flex-col gap-6 mb-6">
-                        <div class="flex flex-col md:flex-row gap-6">
-                            <div class="flex-1">
-                                <label for="yAxisSelect" class="font-semibold mb-2 block">1. Selecione a métrica (Eixo Y):</label>
-                                <select id="yAxisSelect" class="input-field"></select>
-                            </div>
-                            <div class="flex-1">
-                                <label class="font-semibold mb-2 block">2. Selecione o tipo de gráfico:</label>
-                                <div id="chartTypeSelect" class="flex space-x-2">
-                                    <button data-type="bar" class="chart-type-btn"><i class="ph-bold ph-chart-bar"></i> Barras</button>
-                                    <button data-type="line" class="chart-type-btn active"><i class="ph-bold ph-chart-line"></i> Linhas</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="lg:col-span-2">
-                            <label class="font-semibold mb-2 block">3. Selecione os grupos de dados para plotar:</label>
-                            <div id="datasetSelectorsContainer" class="space-y-4 flex gap-4 flex-wrap items-stretch justify-start">
-                                <!-- Seletores de dataset serão inseridos aqui -->
-                            </div>
-                            <button id="addDatasetBtn" class="btn btn-secondary mt-4 text-sm">
-                                <i class="ph-bold ph-plus"></i> Adicionar Conjunto para Comparação
-                            </button>
-                        </div>
-                    </div>
-                    <div class="bg-slate-50 p-2 sm:p-4 rounded-lg mt-4">
-                        <canvas id="resultsChart"></canvas>
-                    </div>
-                </div>
-            </div>
         </main>
 
-        <!-- Container para Alertas -->
-        <div id="alertsContainer" class="fixed bottom-24 sm:bottom-5 right-5 w-full max-w-xs sm:max-w-sm space-y-3 z-50"></div>
-        
-        <!-- Ícone e Modal de Doação -->
-        <div id="donation-icon" class="fixed bottom-5 right-5 group">
-            <div id="donation-modal" class="absolute bottom-full right-0 mb-2 w-72 bg-white p-4 rounded-lg shadow-lg opacity-0 transform scale-95 pointer-events-none origin-bottom-right">
-                <h4 class="font-bold text-slate-800">Gostou da ferramenta?</h4>
-                <p class="text-sm text-slate-600 mt-1">Seu apoio ajuda a manter este projeto vivo e crescendo. Que tal pagar um café para o dev?</p>
-                <p class="text-center font-bold text-indigo-600 mt-2">PIX: <span class="select-all">italo.faria0@gmail.com</span></p>
-            </div>
-            <button class="w-10 h-10 bg-indigo-500 text-white rounded-full flex items-center justify-center shadow-lg transform transition-transform group-hover:scale-110">
-                <i class="ph-bold ph-coffee text-2xl"></i>
-            </button>
-        </div>
-        
         <!-- Barra de Armazenamento -->
         <footer class="mt-8">
             <div class="bg-white p-3 rounded-xl shadow-md border border-slate-200">
-                <div class="w-full bg-slate-200 rounded-full h-2.5">
+                <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
                     <div id="storageProgress" class="bg-indigo-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
                 </div>
                 <div class="flex justify-between text-xs text-slate-500 mt-2">
                     <span>Uso do Armazenamento Local</span>
-                    <span id="storageInfo">0% (0 KB / 5 MB)</span>
+                    <span id="storageText">0% (0 KB / 5 MB)</span>
                 </div>
             </div>
         </footer>
+        
+        <!-- Container de Toasts -->
+        <div id="toastContainer" class="fixed bottom-24 sm:bottom-5 left-5 w-full max-w-xs z-50 pointer-events-none"></div>
+
     </div>
 
-    <!-- Script principal da aplicação -->
     <script>
-        // Definindo estilos reutilizáveis com Tailwind via JS para fácil manutenção
-        const cardStyle = 'bg-white p-4 md:p-6 rounded-xl shadow-md border border-slate-200';
-        const inputStyle = 'w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition';
-        const btnBase = 'px-4 py-2.5 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition duration-200 ease-in-out transform hover:-translate-y-0.5';
-        const btnPrimary = `${btnBase} bg-indigo-500 hover:bg-indigo-600 shadow-sm`;
-        const btnSecondary = `${btnBase} bg-slate-500 hover:bg-slate-600 shadow-sm`;
-        const tabStyle = 'py-4 px-3 border-b-2 font-medium text-sm transition-colors duration-200 flex items-center gap-2';
-        const tabActiveStyle = 'border-indigo-500 text-indigo-600';
-        const tabInactiveStyle = 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300';
-        
-        document.querySelectorAll('.card').forEach(el => el.className = cardStyle);
-        document.querySelectorAll('input[type="text"], input[type="number"], select').forEach(el => { if(!el.id.includes('bulk-input-toggle')) el.className += ' ' + inputStyle });
-        document.querySelectorAll('.btn-primary').forEach(el => el.className = `${el.className.replace(btnPrimary, '')} ${btnPrimary}`);
-        document.querySelectorAll('.btn-secondary').forEach(el => el.className = `${el.className.replace(btnSecondary, '')} ${btnSecondary}`);
-        document.querySelectorAll('.tab').forEach(el => el.className = `tab ${el.classList.contains('active') ? 'active ' : ''}${tabStyle} ${el.classList.contains('active') ? tabActiveStyle : tabInactiveStyle}`);
-        document.querySelectorAll('.chart-type-btn').forEach(el => el.className = `${el.className.replace(/w-full text-sm.*$/, '')} w-full text-sm ${btnBase} ${el.classList.contains('active') ? 'bg-indigo-500' : 'bg-slate-300 text-slate-700 hover:bg-slate-400'}`);
+        /**
+         * CONFIGURAÇÃO GLOBAL E UTILITÁRIOS
+         */
+        const APP_KEY = 'DataPlotter_V2_Store'; 
+        const VIBRANT_COLORS = ['#6366f1', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+        const generateId = () => Math.random().toString(36).substr(2, 9);
+        const formatNum = (n) => new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(n);
 
-        const appState = { 
-            metrics: [], 
-            dataGroups: [], 
-            chartSelectedGroups: {} 
+        // Estado Inicial
+        const defaultState = {
+            line: { datasets: [] },
+            bar: { datasets: [] }
         };
-        let resultsChart = null;
-        let datasetCount = 0;
 
-        // --- Funções de UI e Notificação ---
+        // Estado Reativo
+        let appState = JSON.parse(JSON.stringify(defaultState));
+        // Instâncias do Chart.js
+        let chartInstances = { line: null, bar: null };
 
-        function showAlert(message, type = 'info') {
-            const icons = { success: '<i class="ph-bold ph-check-circle text-xl"></i>', error: '<i class="ph-bold ph-x-circle text-xl"></i>', info: '<i class="ph-bold ph-info text-xl"></i>' };
-            const colors = { success: 'bg-green-100 text-green-800 border-green-300', error: 'bg-red-100 text-red-800 border-red-300', info: 'bg-blue-100 text-blue-800 border-blue-300' };
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `flex items-center gap-4 p-4 rounded-lg shadow-lg border ${colors[type]} transform transition-all duration-300 translate-x-full opacity-0`;
-            alertDiv.innerHTML = `${icons[type]}<span>${message}</span>`;
-            document.getElementById('alertsContainer').appendChild(alertDiv);
-            setTimeout(() => alertDiv.classList.remove('translate-x-full', 'opacity-0'), 10);
-            setTimeout(() => {
-                alertDiv.classList.add('opacity-0', 'translate-x-full');
-                setTimeout(() => alertDiv.remove(), 6000);
-            }, 6000);
-        }
+        // --- SISTEMA DE ARMAZENAMENTO ---
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`${tabId}-tab`).classList.remove('hidden');
-            document.querySelectorAll('.tab').forEach(el => {
-                const isActive = el.dataset.tab === tabId;
-                el.classList.toggle(tabActiveStyle.split(' ')[0], isActive); el.classList.toggle(tabActiveStyle.split(' ')[1], isActive);
-                el.classList.toggle(tabInactiveStyle.split(' ')[0], !isActive); el.classList.toggle(tabInactiveStyle.split(' ')[1], !isActive);
-                el.classList.toggle(tabInactiveStyle.split(' ')[2], !isActive); el.classList.toggle(tabInactiveStyle.split(' ')[3], !isActive);
-            });
-        }
-        
-        // --- Funções de Persistência (LocalStorage) ---
-
-        function formatBytes(bytes, decimals = 2) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024; const dm = decimals < 0 ? 0 : decimals; const sizes = ['Bytes', 'KB', 'MB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-        }
-
-        function updateStorageBar() {
+        function saveData() {
             try {
-                const dataStr = JSON.stringify(localStorage);
-                const sizeInBytes = new Blob([dataStr]).size;
-                const totalSize = 5 * 1024 * 1024; // 5 MB
-                const usedPercent = Math.min(100, (sizeInBytes / totalSize) * 100);
-                document.getElementById('storageProgress').style.width = `${usedPercent}%`;
-                document.getElementById('storageInfo').textContent = `${usedPercent.toFixed(1)}% (${formatBytes(sizeInBytes, 0)} / 5 MB)`;
-            } catch (e) { /* Could be in a private browser, ignore. */ }
-        }
-
-        function saveState() {
-            try {
-                localStorage.setItem('dynamicChartData', JSON.stringify(appState));
+                const serialized = JSON.stringify(appState);
+                localStorage.setItem(APP_KEY, serialized);
                 updateStorageBar();
-            } catch (e) { showAlert('Erro ao salvar: Limite de armazenamento excedido.', 'error'); }
+            } catch (e) {
+                showToast('Erro ao salvar dados (Storage cheio?)', 'error');
+            }
         }
 
-        function loadState() {
-            const data = localStorage.getItem('dynamicChartData');
-            if (data) {
+        function loadData() {
+            const raw = localStorage.getItem(APP_KEY);
+            if (raw) {
                 try {
-                    const parsed = JSON.parse(data);
-                    if (parsed && typeof parsed === 'object') {
-                        appState.metrics = parsed.metrics || [];
-                        appState.dataGroups = parsed.dataGroups || [];
-                        appState.chartSelectedGroups = parsed.chartSelectedGroups || {};
-                    }
-                } catch (e) { console.error("Erro ao ler dados do localStorage.", e); }
+                    const parsed = JSON.parse(raw);
+                    
+                    appState = { ...defaultState, ...parsed };
+                    
+                    ['line', 'bar'].forEach(type => {
+                        if(appState[type] && appState[type].datasets) {
+                            appState[type].datasets.forEach(d => d.mode = 'manual');
+                        }
+                    });
+                } catch (e) {
+                    console.error("Dados corrompidos, resetando.");
+                    appState = JSON.parse(JSON.stringify(defaultState));
+                }
+            } else {
+                // Se vazio, criar um dataset inicial para o usuário não ver tela em branco
+                addDataset('line');
+                addDataset('bar');
             }
-            renderAll();
+            
+            // Render inicial
+            renderAllDatasets();
+            loadSavedList('line');
+            loadSavedList('bar');
             updateStorageBar();
         }
 
-        // --- Funções de Renderização ---
-
-        function renderAll() {
-            renderMetrics();
-            renderMetricInputs();
-            updateBulkTextareaPlaceholder();
-            renderDataGroupsList();
-            initializeChartSelectors();
-            renderChart();
-        }
-
-        function renderMetrics() {
-            const list = document.getElementById('metricsList');
-            list.innerHTML = '';
-            if(appState.metrics.length === 0) {
-                list.innerHTML = `<p class="text-slate-400 text-sm">Nenhuma métrica definida.</p>`; return;
-            }
-            appState.metrics.forEach(metric => {
-                const tag = document.createElement('div');
-                tag.className = 'flex items-center gap-2 bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium';
-                tag.innerHTML = `<span>${metric}</span><button class="text-indigo-500 hover:text-indigo-800" onclick="removeMetric('${metric}')"><i class="ph-bold ph-x"></i></button>`;
-                list.appendChild(tag);
-            });
-        }
-
-        function renderMetricInputs() {
-            const container = document.getElementById('metricInputsContainer');
-            container.innerHTML = '';
-            if (appState.metrics.length === 0) {
-                container.innerHTML = `<p class="text-slate-400 text-center text-sm p-4 bg-white rounded-lg">Adicione uma métrica acima para começar a inserir valores.</p>`; return;
-            }
-            appState.metrics.forEach(metric => {
-                const div = document.createElement('div');
-                div.innerHTML = `<label for="metric-input-${metric}" class="block text-sm font-medium text-slate-600 mb-1">Valor para "${metric}"</label>
-                                 <input type="number" id="metric-input-${metric}" data-metric-name="${metric}" placeholder="Insira o valor numérico..." class="metric-value-input w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none transition">`;
-                container.appendChild(div);
-            });
-        }
-        
-        function updateBulkTextareaPlaceholder() {
-            const textarea = document.getElementById('bulkData');
-            if (!textarea) return;
-
-            let placeholder = `Cole seus dados aqui. A primeira coluna deve ser o Rótulo (Eixo X).\nAs colunas seguintes devem corresponder às suas métricas na ordem em que foram adicionadas.\n\nExemplo para as métricas atuais:\n`;
-            if(appState.metrics.length > 0) {
-                const header = ['Rótulo X', ...appState.metrics].join('\t');
-                const example1 = ['Ponto A', ...appState.metrics.map(() => (Math.random() * 100).toFixed(1))].join('\t');
-                const example2 = ['Ponto B', ...appState.metrics.map(() => (Math.random() * 100).toFixed(1))].join('\t');
-                placeholder += `${header}\n${example1}\n${example2}`;
-            } else {
-                placeholder = 'Defina pelo menos uma métrica para poder colar seus dados.';
-            }
-            textarea.placeholder = placeholder;
-        }
-
-        function renderDataGroupsList(filter = '') {
-            const list = document.getElementById('dataGroupsList');
-            list.innerHTML = '';
-            const lowerCaseFilter = filter.toLowerCase();
-            const filteredGroups = appState.dataGroups.filter(g => g.name.toLowerCase().includes(lowerCaseFilter));
-
-            if (filteredGroups.length === 0) {
-                list.innerHTML = `<p class="text-slate-500 text-center py-4">Nenhum grupo de dados encontrado.</p>`; return;
-            }
-
-            filteredGroups.forEach(group => {
-                const details = document.createElement('details');
-                details.className = 'bg-slate-50 border border-slate-200 rounded-lg';
-                details.innerHTML = `
-                    <summary class="p-3 font-semibold text-slate-800 flex justify-between items-center">
-                        <span class="flex items-center gap-2"><i class="ph-bold ph-folder-simple text-indigo-500"></i> ${group.name} (${group.points.length} pontos)</span>
-                        <div>
-                            <button class="text-red-500 hover:text-red-700 text-sm p-1" onclick="deleteGroup('${group.id}', event)"><i class="ph-bold ph-trash"></i></button>
-                            <i class="ph ph-caret-right arrow text-slate-500 ml-2"></i>
-                        </div>
-                    </summary>
-                    <div class="border-t border-slate-200 overflow-x-auto">
-                        <table class="w-full text-sm text-left">
-                            <thead class="bg-slate-100"><tr><th class="p-2 font-semibold">Rótulo (Eixo X)</th>${appState.metrics.map(m => `<th class="p-2 font-semibold">${m}</th>`).join('')}</tr></thead>
-                            <tbody>${group.points.map(p => `<tr class="border-b last:border-b-0"><td class="p-2 font-medium">${p.label}</td>${appState.metrics.map(m => `<td class="p-2">${p.values[m] !== undefined ? p.values[m] : 'N/A'}</td>`).join('')}</tr>`).join('')}</tbody>
-                        </table>
-                    </div>`;
-                list.appendChild(details);
-            });
-        }
-        
-        // --- Funções de Manipulação de Dados ---
-
-        function addMetric() {
-            const input = document.getElementById('metricName');
-            const name = input.value.trim();
-            if (!name) { showAlert('O nome da métrica não pode ser vazio.', 'error'); return; }
-            if (appState.metrics.includes(name)) { showAlert('Essa métrica já existe.', 'info'); return; }
-            appState.metrics.push(name); input.value = '';
-            renderMetrics(); renderMetricInputs(); initializeChartSelectors(); updateBulkTextareaPlaceholder();
-            saveState(); showAlert(`Métrica "${name}" adicionada.`, 'success');
-        }
-
-        window.removeMetric = (metricName) => {
-            appState.metrics = appState.metrics.filter(m => m !== metricName);
-            appState.dataGroups.forEach(group => { group.points.forEach(point => { delete point.values[metricName]; }); });
-            renderAll(); saveState();
-            showAlert(`Métrica "${metricName}" removida.`, 'success');
-        };
-        
-        function addDataPoint() {
-            document.getElementById('bulk-input-toggle').checked ? processBulkData() : processManualDataPoint();
-        }
-
-        function processManualDataPoint() {
-            const groupName = document.getElementById('groupName').value.trim();
-            const pointLabel = document.getElementById('pointLabel').value.trim();
-            if (!groupName || !pointLabel) { showAlert('Nome do grupo e rótulo do ponto são obrigatórios.', 'error'); return; }
-            if(appState.metrics.length === 0){ showAlert('Você precisa definir pelo menos uma métrica primeiro.', 'error'); return; }
-
-            const values = {}; let hasValue = false;
-            document.querySelectorAll('.metric-value-input').forEach(input => {
-                const metricName = input.dataset.metricName;
-                const value = parseFloat(input.value);
-                if (!isNaN(value)) { values[metricName] = value; hasValue = true; }
-            });
-
-            if (!hasValue) { showAlert('Pelo menos um valor de métrica deve ser preenchido.', 'error'); return; }
-
-            let group = appState.dataGroups.find(g => g.name === groupName);
-            if (!group) { group = { id: Date.now(), name: groupName, points: [] }; appState.dataGroups.push(group); }
-            group.points.push({ id: Date.now() + 1, label: pointLabel, values: values });
-
-            renderDataGroupsList(); initializeChartSelectors(); saveState();
-            showAlert(`Ponto "${pointLabel}" adicionado ao grupo "${groupName}".`, 'success');
-
-            document.getElementById('pointLabel').value = '';
-            document.querySelectorAll('.metric-value-input').forEach(input => input.value = '');
-            document.getElementById('pointLabel').focus();
-        }
-
-        function processBulkData() {
-            const groupName = document.getElementById('groupName').value.trim();
-            if (!groupName) { showAlert('O Nome do Grupo de Dados é obrigatório.', 'error'); return; }
-            if(appState.metrics.length === 0){ showAlert('Você precisa definir pelo menos uma métrica para colar os dados.', 'error'); return; }
+        function updateStorageBar() {
+            const dataStr = JSON.stringify(localStorage);
+            const size = new Blob([dataStr]).size;
+            const limit = 5 * 1024 * 1024; // 5MB padrão
+            const percent = Math.min(100, (size / limit) * 100);
             
-            const textData = document.getElementById('bulkData').value.trim();
-            if (!textData) { showAlert('A área de dados em massa está vazia.', 'error'); return; }
-
-            let group = appState.dataGroups.find(g => g.name === groupName);
-            if (!group) { group = { id: Date.now(), name: groupName, points: [] }; appState.dataGroups.push(group); }
+            const bar = document.getElementById('storageProgress');
+            const text = document.getElementById('storageText');
             
-            const lines = textData.split('\n').filter(line => line.trim() !== '');
-            let pointsAdded = 0; let columnMismatchWarningShown = false;
+            bar.style.width = `${percent}%`;
+            if(percent > 90) bar.className = 'bg-red-500 h-2.5 rounded-full transition-all duration-500';
+            else bar.className = 'bg-indigo-500 h-2.5 rounded-full transition-all duration-500';
 
-            lines.forEach(line => {
-                const columns = line.split('\t');
-                const pointLabel = columns[0]?.trim();
-                if (!pointLabel) return;
+            text.textContent = `${percent.toFixed(1)}% (${(size/1024).toFixed(0)} KB usados)`;
+        }
 
-                if (!columnMismatchWarningShown && (columns.length - 1 !== appState.metrics.length)) {
-                    showAlert(`Aviso: O número de colunas nos seus dados (${columns.length - 1}) não corresponde ao de métricas (${appState.metrics.length}). Os dados serão importados como possível.`, 'info');
-                    columnMismatchWarningShown = true;
-                }
+        // --- SISTEMA DE UI / NAVEGAÇÃO ---
 
-                const values = {};
-                appState.metrics.forEach((metricName, index) => {
-                    const valueStr = columns[index + 1];
-                    if (valueStr !== undefined) {
-                        const value = parseFloat(valueStr.replace(',', '.'));
-                        if (!isNaN(value)) { values[metricName] = value; }
+        function initTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    const targetId = tab.getAttribute('data-tab') + '-tab';
+                    document.getElementById(targetId).classList.add('active');
+                    
+                    if(tab.dataset.tab.includes('chart')) {
+                        const type = tab.dataset.tab.split('-')[0]; 
+                        if(chartInstances[type]) chartInstances[type].resize();
                     }
                 });
-                
-                group.points.push({ id: Date.now() + pointsAdded, label: pointLabel, values: values });
-                pointsAdded++;
             });
-
-            if (pointsAdded > 0) {
-                renderDataGroupsList(); initializeChartSelectors(); saveState();
-                showAlert(`${pointsAdded} pontos adicionados ao grupo "${groupName}".`, 'success');
-                document.getElementById('bulkData').value = '';
-            } else {
-                showAlert('Nenhum ponto de dado válido foi encontrado nos dados colados.', 'error');
-            }
         }
 
-        window.deleteGroup = (groupId, event) => {
-            event.stopPropagation();
-            const group = appState.dataGroups.find(g => g.id == groupId);
-            if (confirm(`Tem certeza que deseja excluir o grupo "${group.name}" e todos os seus dados?`)) {
-                appState.dataGroups = appState.dataGroups.filter(g => g.id != groupId);
-                Object.keys(appState.chartSelectedGroups).forEach(key => {
-                    const index = appState.chartSelectedGroups[key].indexOf(group.name);
-                    if (index > -1) { appState.chartSelectedGroups[key].splice(index, 1); }
-                });
-                renderAll(); saveState();
-                showAlert(`Grupo "${group.name}" excluído.`, 'success');
-            }
-        };
-
-        // --- Funções do Gráfico ---
-
-        function initializeChartSelectors() {
-            const yAxis = document.getElementById('yAxisSelect');
-            yAxis.innerHTML = '<option value="">Selecione uma métrica</option>';
-             if(appState.dataGroups.length === 0) {
-                document.getElementById('datasetSelectorsContainer').innerHTML = '<p class="text-slate-500 text-center text-sm">Adicione alguns dados para começar a montar o gráfico.</p>'; return;
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const colors = {
+                success: 'bg-emerald-100 border-emerald-400 text-emerald-800',
+                error: 'bg-red-100 border-red-400 text-red-800',
+                info: 'bg-indigo-100 border-indigo-400 text-indigo-800'
             };
-            appState.metrics.forEach(m => { yAxis.innerHTML += `<option value="${m}">${m}</option>`; });
-            document.getElementById('datasetSelectorsContainer').innerHTML = '';
-            datasetCount = 0;
-            appState.chartSelectedGroups = {}; addDatasetSelector();
-        }
+            const icons = {
+                success: 'ph-check-circle',
+                error: 'ph-warning-circle',
+                info: 'ph-info'
+            };
 
-        function addDatasetSelector() {
-            datasetCount++;
-            const container = document.getElementById('datasetSelectorsContainer');
-            const selectorId = `dataset-selector-${datasetCount}`;
-            const wrapper = document.createElement('div');
-            wrapper.className = 'border border-slate-200 p-3 rounded-lg bg-slate-50 flex-1 min-w-[280px]';
-            let content = `
-                <div class="flex justify-between items-center mb-2">
-                    <label class="font-semibold text-slate-700">Conjunto ${datasetCount}</label>
-                    ${datasetCount > 1 ? `<button class="text-red-500 hover:text-red-700 text-xs" onclick="removeDatasetSelector('${selectorId}', event)"><i class="ph-bold ph-trash"></i></button>` : ''}
-                </div>
-                <input type="text" placeholder="Buscar grupo..." class="dataset-search-input w-full p-2 border border-slate-200 rounded-md mb-2 text-sm" data-target="${selectorId}">
-                <div id="${selectorId}" class="sample-checkbox-list bg-white">`;
-
-            appState.dataGroups.forEach(g => {
-                content += `<label class="flex items-center space-x-2 p-1 hover:bg-slate-100 rounded cursor-pointer">
-                                <input type="checkbox" value="${g.name}" class="chart-group-checkbox rounded" data-parent-id="${selectorId}"><span>${g.name}</span>
-                            </label>`;
-            });
-            content += '</div>';
-            wrapper.innerHTML = content;
-            wrapper.id = `${selectorId}-wrapper`; container.appendChild(wrapper);
-            appState.chartSelectedGroups[selectorId] = [];
+            const el = document.createElement('div');
+            el.className = `pointer-events-auto flex items-center gap-3 p-4 rounded-lg shadow-lg border mb-3 transform transition-all duration-300 translate-x-[-100%] opacity-0 ${colors[type]}`;
+            el.innerHTML = `<i class="ph-bold ${icons[type]} text-xl"></i><span class="font-medium text-sm">${msg}</span>`;
             
-            wrapper.querySelectorAll('.chart-group-checkbox').forEach(el => el.addEventListener('change', handleChartSelectionChange));
-            wrapper.querySelector('.dataset-search-input').addEventListener('input', handleDatasetSearch);
+            container.appendChild(el);
+            requestAnimationFrame(() => el.classList.remove('translate-x-[-100%]', 'opacity-0'));
+            setTimeout(() => {
+                el.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => el.remove(), 300);
+            }, 3000);
         }
 
-        function handleDatasetSearch(event) {
-            const searchTerm = event.target.value.toLowerCase();
-            const targetListId = event.target.dataset.target;
-            const listContainer = document.getElementById(targetListId);
-            listContainer.querySelectorAll('label').forEach(label => {
-                const groupName = label.querySelector('span').textContent.toLowerCase();
-                label.style.display = groupName.includes(searchTerm) ? 'flex' : 'none';
+        // --- LÓGICA CORE (DATASETS & GRÁFICOS) ---
+
+        function addDataset(type) {
+            const id = generateId();
+            const idx = appState[type].datasets.length;
+            const color = VIBRANT_COLORS[idx % VIBRANT_COLORS.length];
+            
+            appState[type].datasets.push({
+                id,
+                name: `Conjunto ${idx + 1}`,
+                color,
+                points: [{ x: '', y: '', label: '' }],
+                mode: 'manual'
+            });
+            
+            renderDatasetCard(type, id);
+            saveData();
+        }
+
+        function removeDataset(type, id) {
+            appState[type].datasets = appState[type].datasets.filter(d => d.id !== id);
+            renderAllDatasets(type); // Re-render lista
+            saveData();
+        }
+
+        function renderAllDatasets(specificType = null) {
+            const types = specificType ? [specificType] : ['line', 'bar'];
+            types.forEach(type => {
+                const container = document.getElementById(`${type}DatasetsList`);
+                container.innerHTML = ''; // Limpa tudo
+                if(appState[type] && appState[type].datasets) {
+                    appState[type].datasets.forEach(ds => renderDatasetCard(type, ds.id));
+                }
             });
         }
 
-        function handleChartSelectionChange(event) {
-            const { value: groupName, dataset: { parentId }, checked } = event.target;
-            const selectedGroups = appState.chartSelectedGroups[parentId];
-            const index = selectedGroups.indexOf(groupName);
-            if (checked && index === -1) { selectedGroups.push(groupName); } 
-            else if (!checked && index > -1) { selectedGroups.splice(index, 1); }
-            renderChart(); saveState();
-        }
-        
-        window.removeDatasetSelector = (selectorId, event) => {
-            event.stopPropagation(); delete appState.chartSelectedGroups[selectorId];
-            document.getElementById(`${selectorId}-wrapper`).remove();
-            renderChart(); saveState();
+        function toggleDatasetMode(type, id) {
+            const ds = appState[type].datasets.find(d => d.id === id);
+            ds.mode = ds.mode === 'manual' ? 'paste' : 'manual';
+            renderDatasetCard(type, id);
         }
 
-        function renderChart() {
-            const selectedMetric = document.getElementById('yAxisSelect').value;
-            const chartType = document.querySelector('.chart-type-btn.active')?.dataset.type || 'bar';
-            if (resultsChart) resultsChart.destroy();
-            
-            const hasActiveSelections = Object.values(appState.chartSelectedGroups).some(arr => arr.length > 0);
-            const ctx = document.getElementById('resultsChart').getContext('2d');
+        // Renderiza um único Card de Dataset
+        function renderDatasetCard(type, id) {
+            const ds = appState[type].datasets.find(d => d.id === id);
+            if (!ds) return;
 
-            if (!selectedMetric || !hasActiveSelections) {
-                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-                ctx.font = "16px Inter, sans-serif"; ctx.fillStyle = "#64748b"; ctx.textAlign = "center";
-                //ctx.fillText("Selecione uma métrica e ao menos um grupo de dados para gerar o gráfico.", ctx.canvas.width / 2, 50);
-                return;
+            const container = document.getElementById(`${type}DatasetsList`);
+            let card = document.getElementById(`card-${type}-${id}`);
+
+            // Se o card não existe no DOM, cria. Se existe, vamos substituir o conteúdo.
+            if (!card) {
+                card = document.createElement('div');
+                card.id = `card-${type}-${id}`;
+                card.className = "card border-l-4"; // Usa a classe card do template
+                card.style.borderLeftColor = ds.color;
+                container.appendChild(card);
+            } else {
+                card.style.borderLeftColor = ds.color; // Atualiza cor se mudou
             }
 
-            const colors = [
-                { bg: 'rgba(79, 70, 229, 0.7)', border: 'rgba(79, 70, 229, 1)' }, { bg: 'rgba(225, 29, 72, 0.7)', border: 'rgba(225, 29, 72, 1)' },
-                { bg: 'rgba(34, 197, 94, 0.7)', border: 'rgba(34, 197, 94, 1)' }, { bg: 'rgba(249, 115, 22, 0.7)', border: 'rgba(249, 115, 22, 1)' },
-                { bg: 'rgba(139, 92, 246, 0.7)', border: 'rgba(139, 92, 246, 1)' }, { bg: 'rgba(236, 72, 153, 0.7)', border: 'rgba(236, 72, 153, 1)' }
-            ];
+            // HTML Interno do Card
+            let headerHtml = `
+                <div class="flex flex-wrap gap-3 items-center mb-4">
+                    <!-- Nome -->
+                    <input type="text" value="${ds.name}" onchange="updateName('${type}', '${id}', this.value)" 
+                    class="input-std font-semibold text-slate-700 flex-grow min-w-[150px] py-1" placeholder="Nome">
+                    
+                    <!-- Cor -->
+                    <div class="relative">
+                        <button class="color-select-btn" onclick="toggleColorDropdown('${type}', '${id}')">
+                            <div class="w-4 h-4 rounded-full" style="background-color: ${ds.color}"></div>
+                            <i class="ph-bold ph-caret-down text-xs text-slate-400"></i>
+                        </button>
+                        <div id="color-dropdown-${type}-${id}" class="color-dropdown hidden">
+                            ${VIBRANT_COLORS.map(c => `
+                                <div class="color-option ${c === ds.color ? 'selected' : ''}" 
+                                     style="background-color: ${c}" 
+                                     onclick="updateColor('${type}', '${id}', '${c}')"></div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <!-- Mode Toggle -->
+                    <button onclick="toggleDatasetMode('${type}', '${id}')" class="btn btn-ghost p-1 text-xs" title="Alternar entrada Manual/Colar">
+                        <i class="ph-bold ${ds.mode === 'manual' ? 'ph-table' : 'ph-clipboard-text'} text-lg"></i>
+                    </button>
 
-            const allSelectedGroups = appState.dataGroups.filter(g => Object.values(appState.chartSelectedGroups).flat().includes(g.name));
-            if (allSelectedGroups.length === 0) return;
+                    <!-- Excluir -->
+                    <button onclick="removeDataset('${type}', '${id}')" class="btn btn-ghost text-red-400 hover:text-red-600 p-1">
+                        <i class="ph-bold ph-trash text-lg"></i>
+                    </button>
+                </div>
+            `;
 
-            const allLabels = new Set();
-            allSelectedGroups.forEach(group => group.points.forEach(point => allLabels.add(point.label)));
-            const sortedLabels = Array.from(allLabels).sort((a, b) => String(a).localeCompare(String(b), undefined, {numeric: true}));
+            let bodyHtml = '';
+
+            if (ds.mode === 'manual') {
+                bodyHtml = `
+                    <div class="overflow-x-auto border border-slate-100 rounded-lg">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-slate-500 font-semibold">
+                                <tr>
+                                    ${type === 'line' ? '<th class="p-2 w-[25%]">Rótulo</th>' : ''}
+                                    <th class="p-2 w-[30%]">${type === 'bar' ? 'Categoria' : 'Eixo X'}</th>
+                                    <th class="p-2 w-[30%]">Valor (Y)</th>
+                                    <th class="p-2 w-[5%]"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="rows-${type}-${id}">
+                                <!-- Linhas geradas abaixo -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <button onclick="addRow('${type}', '${id}')" class="btn btn-dashed w-full mt-2 py-1 text-xs">
+                        <i class="ph-bold ph-plus"></i> Adicionar Linha
+                    </button>
+                `;
+            } else {
+                bodyHtml = `
+                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                        <p class="text-xs text-slate-500 mb-2">Cole dados do Excel/CSV. Selecione as colunas correspondentes.</p>
+                        <textarea id="paste-area-${type}-${id}" class="input-std h-24 font-mono text-xs mb-3 resize-none" placeholder="10\t2.5\n20\t5.0"></textarea>
+                        
+                        <div class="grid grid-cols-3 gap-2 mb-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase">X</label>
+                                <select id="map-x-${type}-${id}" class="input-std py-1 text-xs"><option value="0">Col 1</option><option value="1">Col 2</option><option value="2">Col 3</option></select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase">Y</label>
+                                <select id="map-y-${type}-${id}" class="input-std py-1 text-xs"><option value="1">Col 2</option><option value="0">Col 1</option><option value="2">Col 3</option></select>
+                            </div>
+                             ${type === 'line' ? `
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase">Label</label>
+                                <select id="map-lbl-${type}-${id}" class="input-std py-1 text-xs"><option value="-1">-</option><option value="2">Col 3</option></select>
+                            </div>` : ''}
+                        </div>
+
+                        <button onclick="processPaste('${type}', '${id}')" class="btn btn-primary w-full text-xs">
+                            Processar
+                        </button>
+                    </div>
+                `;
+            }
+
+            card.innerHTML = headerHtml + bodyHtml;
+
+            // Preenche linhas se manual
+            if (ds.mode === 'manual') {
+                const tbody = document.getElementById(`rows-${type}-${id}`);
+                ds.points.forEach((pt, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b border-slate-50 last:border-0";
+                    
+                    const inputLbl = type === 'line' ? 
+                        `<td class="p-1"><input type="text" value="${pt.label || ''}" onchange="updatePoint('${type}', '${id}', ${idx}, 'label', this.value)" class="input-std input-compact"></td>` : '';
+
+                    tr.innerHTML = `
+                        ${inputLbl}
+                        <td class="p-1"><input type="text" value="${pt.x}" onchange="updatePoint('${type}', '${id}', ${idx}, 'x', this.value)" class="input-std input-compact"></td>
+                        <td class="p-1"><input type="number" step="any" value="${pt.y}" onchange="updatePoint('${type}', '${id}', ${idx}, 'y', this.value)" class="input-std input-compact"></td>
+                        <td class="p-1 text-center">
+                            <button onclick="removeRow('${type}', '${id}', ${idx})" class="text-slate-300 hover:text-red-500"><i class="ph-bold ph-x"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        // --- MANIPULAÇÃO DE DADOS ---
+
+        function updateName(type, id, val) {
+            appState[type].datasets.find(d => d.id === id).name = val;
+            saveData();
+        }
+
+        function updateColor(type, id, val) {
+            appState[type].datasets.find(d => d.id === id).color = val;
+            document.getElementById(`color-dropdown-${type}-${id}`).classList.add('hidden');
+            renderDatasetCard(type, id);
+            saveData();
+        }
+
+        function toggleColorDropdown(type, id) {
+            const el = document.getElementById(`color-dropdown-${type}-${id}`);
+            el.classList.toggle('hidden');
+        }
+
+        function addRow(type, id) {
+            appState[type].datasets.find(d => d.id === id).points.push({ x: '', y: '', label: '' });
+            renderDatasetCard(type, id);
+        }
+
+        function removeRow(type, id, idx) {
+            appState[type].datasets.find(d => d.id === id).points.splice(idx, 1);
+            renderDatasetCard(type, id);
+            saveData();
+        }
+
+        function updatePoint(type, id, idx, field, val) {
+            appState[type].datasets.find(d => d.id === id).points[idx][field] = val;
+            saveData();
+        }
+
+        function processPaste(type, id) {
+            const raw = document.getElementById(`paste-area-${type}-${id}`).value;
+            const xIdx = parseFloat(document.getElementById(`map-x-${type}-${id}`).value);
+            const yIdx = parseFloat(document.getElementById(`map-y-${type}-${id}`).value);
+            const lIdx = type === 'line' ? parseFloat(document.getElementById(`map-lbl-${type}-${id}`).value) : -1;
+
+            if (!raw.trim()) return showToast('Área vazia!', 'error');
+
+            const rows = raw.trim().split('\n');
+            const newPoints = [];
+
+            rows.forEach(row => {
+                const parts = row.split(/[\t,;]+/).map(s => s.trim()).filter(s => s !== '');
+                if (parts.length < 2) return;
+
+                const rawX = parts[xIdx];
+                const rawY = parts[yIdx];
+                
+                if (rawX !== undefined && rawY !== undefined) {
+                    const yVal = rawY.replace(',', '.');
+                    if (!isNaN(parseFloat(yVal))) {
+                        newPoints.push({
+                            x: rawX,
+                            y: yVal,
+                            label: (lIdx !== -1 && parts[lIdx]) ? parts[lIdx] : ''
+                        });
+                    }
+                }
+            });
+
+            if (newPoints.length > 0) {
+                const ds = appState[type].datasets.find(d => d.id === id);
+                ds.points = newPoints;
+                ds.mode = 'manual';
+                renderDatasetCard(type, id);
+                showToast(`${newPoints.length} linhas importadas!`, 'success');
+                saveData();
+            } else {
+                showToast('Falha ao processar dados.', 'error');
+            }
+        }
+
+        // --- CHART.JS RENDER ---
+
+        function renderChart(type) {
+            const ctx = document.getElementById(`${type}Canvas`);
+            if(!ctx) return;
+
+            // Destrói anterior
+            if (chartInstances[type]) {
+                chartInstances[type].destroy();
+            }
+
+            const datasets = appState[type].datasets;
             
-            const datasets = [];
-            Object.entries(appState.chartSelectedGroups).forEach(([setId, groupNames], setIndex) => {
-                groupNames.forEach(groupName => {
-                    const group = appState.dataGroups.find(g => g.name === groupName);
-                    if (!group) return;
-                    
-                    const color = colors[datasets.length % colors.length];
-                    const data = sortedLabels.map(label => group.points.find(p => p.label === label)?.values[selectedMetric] ?? null);
-                    
-                    datasets.push({
-                        label: groupName, data: data, backgroundColor: color.bg, borderColor: color.border, borderWidth: 2,
-                        pointBackgroundColor: color.border, pointRadius: 5,
-                        fill: chartType === 'line' ? { target: 'origin', above: color.bg.replace('0.7', '0.1') } : false,
-                        tension: 0.1
-                    });
+            if (type === 'line') {
+                renderLineChart(ctx.getContext('2d'), datasets);
+            } else {
+                renderBarChart(ctx.getContext('2d'), datasets);
+            }
+            
+            showToast('Gráfico atualizado!', 'success');
+        }
+
+        function renderLineChart(ctx, datasets) {
+            const fill = document.getElementById('lineFillToggle').checked;
+            
+            // Verifica se é numérico
+            let isNumericX = true;
+            datasets.forEach(ds => {
+                ds.points.forEach(p => {
+                    if (p.x !== '' && isNaN(parseFloat(p.x.toString().replace(',','.')))) isNumericX = false;
                 });
             });
 
-            resultsChart = new Chart(ctx, {
-                type: chartType, data: { labels: sortedLabels, datasets: datasets },
+            const chartDatasets = datasets.map(ds => {
+                let data = ds.points.filter(p => p.x !== '' && p.y !== '').map(p => ({
+                    x: isNumericX ? parseFloat(p.x.toString().replace(',','.')) : p.x,
+                    y: parseFloat(p.y.toString().replace(',','.')),
+                    label: p.label
+                }));
+
+                if (isNumericX) data.sort((a, b) => a.x - b.x);
+
+                return {
+                    label: ds.name,
+                    data: data,
+                    borderColor: ds.color,
+                    backgroundColor: ds.color + '40',
+                    fill: fill ? 'origin' : false,
+                    tension: 0.3,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                };
+            });
+
+            chartInstances.line = new Chart(ctx, {
+                type: 'line',
+                data: { datasets: chartDatasets },
                 options: {
-                    responsive: true, maintainAspectRatio: true,
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
                     scales: {
-                        y: { beginAtZero: true, grid: { color: '#e2e8f0' }, title: { display: true, text: selectedMetric, font: {size: 14} } },
-                        x: { grid: { display: false } }
+                        x: {
+                            type: isNumericX ? 'linear' : 'category',
+                            grid: { color: '#f1f5f9' }
+                        },
+                        y: { grid: { color: '#f1f5f9' } }
                     },
                     plugins: {
-                        legend: { position: 'top' },
-                        tooltip: { backgroundColor: '#1e293b', titleFont: { weight: 'bold' }, bodyFont: { size: 14 }, padding: 10, cornerRadius: 8, mode: 'index', intersect: false }
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    label += context.parsed.y;
+                                    if (context.raw.label) label += ` (${context.raw.label})`;
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Integral
+            const legendDiv = document.getElementById('lineAreaLegend');
+            const legendContent = document.getElementById('lineAreaLegendContent');
+            
+            if(fill && isNumericX) {
+                legendDiv.classList.remove('hidden');
+                let html = '';
+                chartDatasets.forEach(ds => {
+                    let area = 0;
+                    const pts = ds.data;
+                    for(let i=0; i<pts.length-1; i++) {
+                        const h = pts[i+1].x - pts[i].x;
+                        const avgH = (pts[i].y + pts[i+1].y) / 2;
+                        area += avgH * h;
+                    }
+                    html += `
+                        <div class="flex items-center gap-2 bg-slate-50 p-2 rounded border border-slate-100">
+                            <div class="w-2 h-2 rounded-full" style="background:${ds.borderColor}"></div>
+                            <span class="text-slate-500 font-medium">${ds.label}:</span>
+                            <strong class="text-slate-800">${formatNum(area)}</strong>
+                        </div>`;
+                });
+                legendContent.innerHTML = html;
+            } else {
+                legendDiv.classList.add('hidden');
+            }
+        }
+
+        function renderBarChart(ctx, datasets) {
+            const stacked = document.getElementById('barStackToggle').checked;
+
+            const allLabels = new Set();
+            datasets.forEach(ds => ds.points.forEach(p => { if (p.x) allLabels.add(p.x); }));
+            const labelsArray = Array.from(allLabels).sort();
+
+            const chartDatasets = datasets.map(ds => {
+                const data = labelsArray.map(lbl => {
+                    const pt = ds.points.find(p => p.x == lbl);
+                    return pt ? parseFloat(pt.y.replace(',','.')) : 0;
+                });
+
+                return {
+                    label: ds.name,
+                    data: data,
+                    backgroundColor: ds.color,
+                    borderRadius: 4,
+                    borderWidth: stacked ? 1 : 0,
+                    borderColor: 'white'
+                };
+            });
+
+            chartInstances.bar = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labelsArray,
+                    datasets: chartDatasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: stacked, grid: { display: false } },
+                        y: { stacked: stacked, grid: { color: '#f1f5f9' } }
                     }
                 }
             });
         }
 
-        // --- Inicialização ---
-        document.addEventListener('DOMContentLoaded', () => {
-            loadState();
-            switchTab('tutorial');
+        // --- SISTEMA DE BIBLIOTECA LOCAL ---
 
-            // Event Listeners
-            document.getElementById('addMetric').addEventListener('click', addMetric);
-            document.getElementById('addDataPoint').addEventListener('click', addDataPoint);
-            document.getElementById('addDatasetBtn').addEventListener('click', addDatasetSelector);
-            document.getElementById('dataGroupsSearch').addEventListener('input', (e) => renderDataGroupsList(e.target.value));
-            document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
-            document.getElementById('yAxisSelect').addEventListener('change', renderChart);
+        function saveChart(type) {
+            const title = document.getElementById(`${type}ChartTitle`).value.trim();
+            if (!title) return showToast('Digite um nome para salvar', 'error');
+
+            const key = `dataplotter_lib_${type}`;
+            const lib = JSON.parse(localStorage.getItem(key) || '{}');
             
-            document.querySelectorAll('.chart-type-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('.chart-type-btn').forEach(b => {
-                        b.classList.remove('active', 'bg-indigo-500');
-                        b.classList.add('bg-slate-300', 'text-slate-700', 'hover:bg-slate-400');
-                    });
-                    btn.classList.add('active', 'bg-indigo-500');
-                    btn.classList.remove('bg-slate-300', 'text-slate-700', 'hover:bg-slate-400');
-                    renderChart();
-                });
-            });
+            lib[title] = {
+                date: new Date().toISOString(),
+                datasets: appState[type].datasets
+            };
 
-            const bulkToggle = document.getElementById('bulk-input-toggle');
-            const bulkContainer = document.getElementById('bulk-input-container');
-            const manualContainer = document.getElementById('manual-input-container');
-            const addDataButton = document.getElementById('addDataPoint');
-            bulkToggle.addEventListener('change', () => {
-                const isBulkMode = bulkToggle.checked;
-                bulkContainer.classList.toggle('hidden', !isBulkMode);
-                manualContainer.classList.toggle('hidden', isBulkMode);
-                addDataButton.innerHTML = isBulkMode
-                    ? '<i class="ph-bold ph-file-arrow-down"></i> Adicionar Dados em Massa'
-                    : '<i class="ph-bold ph-plus-circle"></i> Adicionar Ponto ao Grupo';
+            localStorage.setItem(key, JSON.stringify(lib));
+            loadSavedList(type);
+            updateStorageBar();
+            showToast('Salvo na biblioteca!', 'success');
+        }
+
+        function loadSavedList(type) {
+            const key = `dataplotter_lib_${type}`;
+            const lib = JSON.parse(localStorage.getItem(key) || '{}');
+            const sel = document.getElementById(`${type}SavedSelect`);
+            
+            sel.innerHTML = '<option value="">Selecione...</option>';
+            Object.keys(lib).forEach(k => {
+                sel.innerHTML += `<option value="${k}">${k}</option>`;
+            });
+        }
+
+        function loadChart(type) {
+            const title = document.getElementById(`${type}SavedSelect`).value;
+            if (!title) return;
+
+            const key = `dataplotter_lib_${type}`;
+            const lib = JSON.parse(localStorage.getItem(key) || '{}');
+            
+            if (lib[title]) {
+                appState[type].datasets = lib[title].datasets;
+                appState[type].datasets.forEach(d => d.mode = 'manual'); // Força visualização normal
+                renderAllDatasets(type);
+                renderChart(type);
+                document.getElementById(`${type}ChartTitle`).value = title;
+                showToast('Gráfico carregado!', 'success');
+                saveData(); // Atualiza estado atual
+            }
+        }
+
+        function deleteSavedChart(type) {
+            const title = document.getElementById(`${type}SavedSelect`).value;
+            if (!title) return;
+            
+            if(confirm(`Excluir "${title}" da biblioteca?`)) {
+                const key = `dataplotter_lib_${type}`;
+                const lib = JSON.parse(localStorage.getItem(key) || '{}');
+                delete lib[title];
+                localStorage.setItem(key, JSON.stringify(lib));
+                loadSavedList(type);
+                updateStorageBar();
+                showToast('Item excluído', 'info');
+            }
+        }
+
+        function clearAll(type) {
+            if(confirm('Isso limpará os dados da tela atual. Confirmar?')) {
+                appState[type].datasets = [];
+                addDataset(type); // Adiciona um novo vazio
+                renderChart(type); // Limpa o canvas
+                saveData();
+                showToast('Tela limpa.', 'success');
+            }
+        }
+
+        // --- EXPORT/IMPORT GLOBAL (Config Tab) ---
+        
+        document.getElementById('btnExport').addEventListener('click', () => {
+            const dataStr = JSON.stringify(appState, null, 2);
+            navigator.clipboard.writeText(dataStr).then(() => {
+                showToast('Copiado para a área de transferência!', 'success');
+            }).catch(() => {
+                const area = document.getElementById('importArea');
+                area.value = dataStr;
+                area.select();
+                document.execCommand('copy');
+                area.value = '';
+                showToast('Copiado (via fallback)!', 'success');
             });
         });
+
+        document.getElementById('btnImport').addEventListener('click', () => {
+            const str = document.getElementById('importArea').value.trim();
+            if(!str) return showToast('Cole o código primeiro.', 'error');
+
+            try {
+                const parsed = JSON.parse(str);
+                if(confirm('Isso substituirá TODOS os dados atuais. Continuar?')) {
+                    appState = parsed;
+                    saveData();
+                    renderAllDatasets();
+                    loadSavedList('line'); // Recarrega listas pois pode ter afetado
+                    loadSavedList('bar');
+                    showToast('Dados importados!', 'success');
+                    document.getElementById('importArea').value = '';
+                }
+            } catch (e) {
+                showToast('JSON Inválido.', 'error');
+            }
+        });
+
+        // --- INICIALIZAÇÃO ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initTabs();
+            loadData();
+            
+            // Renderiza gráficos iniciais vazios ou com dados carregados
+            setTimeout(() => {
+                renderChart('line');
+                renderChart('bar');
+            }, 100);
+        });
+
     </script>
 </body>
 </html>
-
