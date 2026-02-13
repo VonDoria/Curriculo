@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DataPlotter</title>
-    <link rel="icon" href="graphLogo.png">
     <meta name="theme-color" content="#f8fafc">
+    <link rel="icon" href="graphLogo.png">
     
     <!-- Dependências -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,8 +13,6 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <style>
-        /* --- ESTILOS DO TEMPLATE (PRESERVADOS) --- */
-        
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
         body {
@@ -23,51 +21,34 @@
             color: #334155; /* Slate-700 */
         }
 
-        /* Classes Utilitárias de UI para Reuso */
+        /* --- UI COMPONENTS --- */
         .card {
             background-color: white;
-            padding: 1.5rem;
-            border-radius: 0.75rem; /* rounded-xl */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            border: 1px solid #e2e8f0; /* slate-200 */
-            transition: all 0.3s ease;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+            overflow: hidden; /* Importante para o collapse */
         }
 
-        .section-title {
-            font-size: 1.125rem; /* text-lg */
-            font-weight: 700;
-            color: #1e293b; /* slate-800 */
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        /* Inputs Padronizados */
         .input-std {
             width: 100%;
-            padding: 0.625rem;
+            padding: 0.5rem;
             border: 1px solid #cbd5e1;
-            border-radius: 0.5rem;
+            border-radius: 0.375rem;
             outline: none;
-            transition: all 0.2s;
+            transition: border-color 0.2s;
+            font-size: 0.875rem;
             background-color: #fff;
         }
         .input-std:focus {
-            border-color: #6366f1; /* Indigo-500 */
-            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-        }
-        
-        /* Input compacto para tabelas */
-        .input-compact {
-            padding: 0.4rem;
-            font-size: 0.875rem;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
         }
 
-        /* Botões Padronizados */
         .btn {
-            padding: 0.625rem 1rem;
-            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
             font-weight: 600;
             font-size: 0.875rem;
             transition: all 0.2s;
@@ -78,17 +59,12 @@
             cursor: pointer;
             border: none;
         }
+        
         .btn-primary { background-color: #6366f1; color: white; }
-        .btn-primary:hover { background-color: #4f46e5; transform: translateY(-1px); }
+        .btn-primary:hover { background-color: #4f46e5; }
         
-        .btn-secondary { background-color: #64748b; color: white; }
-        .btn-secondary:hover { background-color: #475569; transform: translateY(-1px); }
-
-        .btn-success { background-color: #10b981; color: white; }
-        .btn-success:hover { background-color: #059669; transform: translateY(-1px); }
-        
-        .btn-danger { background-color: #ef4444; color: white; }
-        .btn-danger:hover { background-color: #dc2626; transform: translateY(-1px); }
+        .btn-secondary { background-color: #f1f5f9; color: #475569; }
+        .btn-secondary:hover { background-color: #e2e8f0; }
 
         .btn-ghost { background-color: transparent; color: #64748b; }
         .btn-ghost:hover { background-color: #f1f5f9; color: #334155; }
@@ -104,732 +80,481 @@
             background-color: #eef2ff;
         }
 
-        /* Navegação (Tabs) - Estilo Clean */
-        .tabs-container {
-            overflow-x: auto;
-            scrollbar-width: none;
+        /* --- DRAG AND DROP STYLES --- */
+        .draggable-source {
+            opacity: 0.4;
+            border: 2px dashed #6366f1;
         }
-        .tabs-container::-webkit-scrollbar { display: none; }
-        
-        .tab {
-            padding: 1rem 0.75rem;
-            border-bottom: 2px solid transparent;
-            font-weight: 500;
-            font-size: 0.875rem;
-            color: #64748b;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            white-space: nowrap;
-            transition: color 0.2s, border-color 0.2s;
-            background: none;
-            border-top: none; border-left: none; border-right: none;
+        .drag-handle {
+            cursor: grab;
+            color: #94a3b8;
         }
-        .tab:hover { 
-            color: #334155;
-            border-bottom-color: #cbd5e1;
-        }
-        .tab.active {
+        .drag-handle:active {
+            cursor: grabbing;
             color: #6366f1;
-            border-bottom-color: #6366f1;
-        }
-        .tab-content { 
-            display: none; 
-            opacity: 0; 
-            transition: opacity 0.3s ease; 
-        }
-        .tab-content.active { 
-            display: block; 
-            opacity: 1; 
         }
 
-        /* Elementos Específicos do DataPlotter (Estilizados para bater com o Template) */
-        
-        /* Dropdown de Cores */
-        .color-select-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            background: white;
-            transition: all 0.2s;
-        }
-        .color-select-btn:hover { 
-            border-color: #6366f1; 
-        }
-        
-        .color-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background: white;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            border-radius: 0.5rem;
-            padding: 0.5rem;
-            z-index: 50;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.5rem;
-            width: max-content;
-            margin-top: 0.25rem;
-        }
-        .color-option {
-            width: 1.5rem;
-            height: 1.5rem;
+        /* --- COLOR PICKER --- */
+        .color-circle {
+            width: 1.25rem;
+            height: 1.25rem;
             border-radius: 50%;
             cursor: pointer;
             border: 2px solid transparent;
-            transition: transform 0.2s;
+            transition: transform 0.1s;
         }
-        .color-option:hover { transform: scale(1.1); }
-        .color-option.selected { border-color: #334155; transform: scale(1.1); }
+        .color-circle:hover { transform: scale(1.1); }
+        .color-circle.selected { border-color: #334155; transform: scale(1.1); }
 
-        /* Tutorial Accordion (Do template) */
-        details summary { cursor: pointer; list-style: none; }
-        details summary::-webkit-details-marker { display: none; }
-        details summary .arrow { transition: transform 0.2s; }
-        details[open] summary .arrow { transform: rotate(90deg); }
-        .tutorial-step { transition: background-color 0.2s; }
-        .tutorial-step:hover { background-color: #f8fafc; }
-
-        /* Toggles */
-        .toggle-checkbox:checked {
-            right: 0;
-            border-color: #6366f1;
-            transform: translateX(10px);
+        /* --- COLLAPSIBLE ANIMATION --- */
+        .card-body {
+            max-height: 2000px; /* Valor arbitrário alto */
+            opacity: 1;
+            transition: all 0.3s ease-in-out;
+            padding: 1rem;
+            border-top: 1px solid #f1f5f9;
         }
-        .toggle-checkbox:checked + .toggle-label {
-            background-color: #6366f1;
+        .card-body.collapsed {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            opacity: 0;
+            overflow: hidden;
+            border-top: none;
         }
+        .chevron-icon { transition: transform 0.3s; }
+        .chevron-icon.rotated { transform: rotate(-180deg); }
 
     </style>
 </head>
-<body class="antialiased">
+<body class="antialiased pb-20 flex justify-center">
 
-    <div class="container mx-auto p-4 md:p-8 max-w-7xl min-h-screen flex flex-col">
+    <div class="container p-4 grid grid-cols-1 md:grid-cols-5 gap-4">
         
-        <!-- HEADER -->
-        <header class="text-center mb-8 p-6 bg-white rounded-xl shadow-md border border-slate-200">
-            <h1 class="text-3xl md:text-4xl font-bold text-slate-800 flex items-center justify-center gap-3">
-                <i class="ph-bold ph-chart-polar text-indigo-500"></i>
-                <span id="app-title">DataPlotter</span>
-            </h1>
-            <p class="text-slate-500 mt-2">Crie gráficos científicos de forma rápida e intuitiva.</p>
-        </header>
-
-        <!-- NAVEGAÇÃO -->
-        <div class="mb-6 border-b border-slate-200 tabs-container">
-            <nav class="flex -mb-px space-x-6" aria-label="Tabs">
-                <button class="tab active" data-tab="line-chart">
-                    <i class="ph-bold ph-chart-line"></i> Gráfico de Linhas
-                </button>
-                <button class="tab" data-tab="bar-chart">
-                    <i class="ph-bold ph-chart-bar"></i> Gráfico de Barras
-                </button>
-                <button class="tab" data-tab="tutorial">
-                    <i class="ph-bold ph-book-open"></i> Tutorial
-                </button>
-                <button class="tab" data-tab="settings">
-                    <i class="ph-bold ph-gear"></i> Configurações
-                </button>
-            </nav>
-        </div>
-
-        <main class="flex-grow">
-            
-            <!-- ABA GRÁFICO DE LINHAS -->
-            <div id="line-chart-tab" class="tab-content active space-y-6">
-                
-                <!-- Área Visual do Gráfico -->
-                <div class="card">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="section-title mb-0"><i class="ph-bold ph-eye text-indigo-500"></i> Visualização</h2>
-                        
-                        <!-- Toggle de Preenchimento -->
-                        <div class="flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-                            <div class="relative inline-block w-8 align-middle select-none">
-                                <input type="checkbox" id="lineFillToggle" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 top-1 left-1" onchange="renderChart('line')"/>
-                                <label for="lineFillToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer transition-colors duration-300"></label>
-                            </div>
-                            <span class="text-xs font-semibold text-slate-600 uppercase">Preencher Área</span>
-                        </div>
-                    </div>
-                    
-                    <div class="h-[400px] w-full relative">
-                        <canvas id="lineCanvas"></canvas>
-                    </div>
-
-                    <!-- Legenda de Área (Integral) -->
-                    <div id="lineAreaLegend" class="mt-6 pt-4 border-t border-slate-100 hidden">
-                        <p class="text-xs font-bold text-slate-400 uppercase mb-2">Cálculo de Área (Integral)</p>
-                        <div id="lineAreaLegendContent" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-sm"></div>
-                    </div>
-                </div>
-
-                <!-- Botão de Ação Principal -->
-                <button onclick="renderChart('line')" class="btn btn-primary w-full shadow-lg shadow-indigo-200">
+        <!-- ÁREA DO GRÁFICO (FIXO) -->
+        <section class="card p-4 shadow-lg ring-1 ring-slate-900/5 md:col-span-4 max-h-[100vh]">
+            <div class="h-[350px] md:h-[80vh] w-full relative">
+                <canvas id="mainCanvas"></canvas>
+            </div>
+            <div class="mt-4 flex justify-between items-center border-t border-slate-100 pt-3">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Visualização</span>
+                <button onclick="renderChart()" class="btn btn-primary text-xs shadow-md shadow-indigo-200">
                     <i class="ph-bold ph-arrows-clockwise"></i> Atualizar Gráfico
                 </button>
+            </div>
+        </section>
 
-                <!-- Área de Datasets (Lista) -->
-                <div class="space-y-4">
-                    <h2 class="section-title"><i class="ph-bold ph-database text-indigo-500"></i> Dados</h2>
-                    
-                    <div id="lineDatasetsList" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Datasets injetados via JS -->
+        <!-- LISTA DE DATASETS (DRAGGABLE) -->
+        <section class="space-y-4">
+            <div class="flex justify-between items-end px-1">
+                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                    <i class="ph-bold ph-database"></i> Conjuntos de Dados
+                </h2>
+            </div>
+            
+            <div id="datasetsContainer" class="space-y-3">
+                <!-- Cards injetados via JS -->
+            </div>
+
+            <button onclick="addNewDataset()" class="btn btn-dashed w-full py-4 text-slate-500 hover:text-indigo-600 transition-colors">
+                <i class="ph-bold ph-plus-circle text-xl"></i> Adicionar Novo Conjunto
+            </button>
+        </section>
+
+        <!-- RODAPÉ DE UTILITÁRIOS -->
+        <footer class="grid grid-cols-1 md:grid-cols-2 gap-6 border-slate-200 mt-4 md:col-span-5">
+            
+            <!-- Biblioteca Local -->
+            <div class="card p-4 bg-slate-50 border-slate-200">
+                <h3 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                    <i class="ph-bold ph-floppy-disk text-slate-500"></i> Biblioteca Local
+                </h3>
+                <div class="space-y-3">
+                    <div class="flex gap-2">
+                        <input type="text" id="saveTitle" class="input-std" placeholder="Nome do salvamento...">
+                        <button onclick="saveToLibrary()" class="btn btn-secondary whitespace-nowrap">Salvar</button>
                     </div>
-
-                    <button onclick="addDataset('line')" class="btn btn-dashed w-full py-4">
-                        <i class="ph-bold ph-plus-circle text-xl"></i> Novo Conjunto de Dados
-                    </button>
+                    <div class="flex gap-2">
+                        <select id="loadSelect" class="input-std">
+                            <option value="">Selecione para carregar...</option>
+                        </select>
+                        <button onclick="loadFromLibrary()" class="btn btn-primary">Carregar</button>
+                        <button onclick="deleteFromLibrary()" class="btn btn-ghost text-red-500 hover:text-red-700 px-2"><i class="ph-bold ph-trash"></i></button>
+                    </div>
                 </div>
+            </div>
 
-                <!-- Biblioteca Local -->
-                <div class="card bg-slate-50 border-slate-200">
-                    <h2 class="section-title"><i class="ph-bold ph-floppy-disk text-slate-600"></i> Biblioteca Local</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold text-slate-500">Salvar Atual</label>
-                            <div class="flex gap-2">
-                                <input type="text" id="lineChartTitle" class="input-std" placeholder="Nome do gráfico...">
-                                <button onclick="saveChart('line')" class="btn btn-secondary">Salvar</button>
-                            </div>
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold text-slate-500">Carregar Salvo</label>
-                            <div class="flex gap-2">
-                                <select id="lineSavedSelect" class="input-std">
-                                    <option value="">Selecione...</option>
-                                </select>
-                                <button onclick="loadChart('line')" class="btn btn-primary">Carregar</button>
-                                <button onclick="deleteSavedChart('line')" class="btn btn-danger px-3"><i class="ph-bold ph-trash"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-4 pt-4 border-t border-slate-200 text-right">
-                         <button onclick="clearAll('line')" class="text-xs text-red-500 hover:text-red-700 font-medium flex items-center justify-end gap-1 ml-auto">
-                            <i class="ph-bold ph-trash"></i> Limpar Tela
+            <!-- Dados & Armazenamento -->
+            <div class="card p-4 bg-slate-50 border-slate-200 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                        <i class="ph-bold ph-arrows-left-right text-slate-500"></i> Importar / Exportar
+                    </h3>
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <button onclick="exportData()" class="btn btn-secondary text-xs">
+                            <i class="ph-bold ph-copy"></i> Copiar Dados
+                        </button>
+                        <button onclick="importData()" class="btn btn-secondary text-xs">
+                            <i class="ph-bold ph-download-simple"></i> Colar Dados
                         </button>
                     </div>
                 </div>
-
-            </div>
-
-            <!-- ABA GRÁFICO DE BARRAS -->
-            <div id="bar-chart-tab" class="tab-content space-y-6">
-                 <!-- Área Visual -->
-                 <div class="card">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="section-title mb-0"><i class="ph-bold ph-eye text-emerald-500"></i> Visualização</h2>
-                        
-                        <div class="flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-                            <div class="relative inline-block w-8 align-middle select-none">
-                                <input type="checkbox" id="barStackToggle" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 top-1 left-1" onchange="renderChart('bar')"/>
-                                <label for="barStackToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer transition-colors duration-300"></label>
-                            </div>
-                            <span class="text-xs font-semibold text-slate-600 uppercase">Empilhar</span>
-                        </div>
+                
+                <!-- Storage Bar -->
+                <div>
+                    <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden mb-1">
+                        <div id="storageProgress" class="bg-indigo-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
                     </div>
-                    
-                    <div class="h-[400px] w-full relative">
-                        <canvas id="barCanvas"></canvas>
+                    <div class="flex justify-between text-[10px] text-slate-400">
+                        <span>Armazenamento Local</span>
+                        <span id="storageText">0%</span>
                     </div>
                 </div>
-
-                <button onclick="renderChart('bar')" class="btn btn-success w-full shadow-lg shadow-emerald-200">
-                    <i class="ph-bold ph-arrows-clockwise"></i> Atualizar Barras
+            </div>
+            
+            <div class="md:col-span-2 text-center">
+                 <button onclick="clearAll()" class="text-xs text-red-400 hover:text-red-600 font-medium inline-flex items-center gap-1">
+                    <i class="ph-bold ph-trash"></i> Resetar Tudo
                 </button>
-
-                 <!-- Área de Datasets -->
-                 <div class="space-y-4">
-                    <h2 class="section-title"><i class="ph-bold ph-database text-emerald-500"></i> Conjuntos de Barras</h2>
-                    
-                    <div id="barDatasetsList" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Datasets injetados via JS -->
-                    </div>
-
-                    <button onclick="addDataset('bar')" class="btn btn-dashed w-full py-4">
-                        <i class="ph-bold ph-plus-circle text-xl"></i> Novo Conjunto de Barras
-                    </button>
-                </div>
-
-                 <!-- Biblioteca Local -->
-                 <div class="card bg-slate-50 border-slate-200">
-                    <h2 class="section-title"><i class="ph-bold ph-floppy-disk text-slate-600"></i> Biblioteca Local</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold text-slate-500">Salvar Atual</label>
-                            <div class="flex gap-2">
-                                <input type="text" id="barChartTitle" class="input-std" placeholder="Nome do gráfico...">
-                                <button onclick="saveChart('bar')" class="btn btn-secondary">Salvar</button>
-                            </div>
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold text-slate-500">Carregar Salvo</label>
-                            <div class="flex gap-2">
-                                <select id="barSavedSelect" class="input-std">
-                                    <option value="">Selecione...</option>
-                                </select>
-                                <button onclick="loadChart('bar')" class="btn btn-primary">Carregar</button>
-                                <button onclick="deleteSavedChart('bar')" class="btn btn-danger px-3"><i class="ph-bold ph-trash"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-4 pt-4 border-t border-slate-200 text-right">
-                         <button onclick="clearAll('bar')" class="text-xs text-red-500 hover:text-red-700 font-medium flex items-center justify-end gap-1 ml-auto">
-                            <i class="ph-bold ph-trash"></i> Limpar Tela
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ABA TUTORIAL -->
-            <div id="tutorial-tab" class="tab-content">
-                <div class="card space-y-6">
-                    <div>
-                        <h2 class="section-title"><i class="ph-bold ph-graduation-cap text-indigo-500"></i> Como usar o DataPlotter</h2>
-                        <p class="text-slate-600 mb-4">Bem-vindo! Esta ferramenta permite criar gráficos científicos e exportá-los. Siga os passos:</p>
-                    </div>
-
-                    <div class="space-y-3">
-                        <details class="bg-slate-50 p-4 rounded-lg border border-slate-200 tutorial-step">
-                            <summary class="font-semibold text-slate-800 flex justify-between items-center">
-                                <span>1. Inserindo Dados</span>
-                                <i class="ph ph-caret-right arrow text-slate-400"></i>
-                            </summary>
-                            <div class="pt-3 mt-3 border-t border-slate-200 text-slate-600 text-sm">
-                                <p>Na aba do gráfico desejado, clique em "Novo Conjunto". Você pode digitar manualmente os dados na tabela ou ativar o modo "Exportar/Colar" para colar dados do Excel ou CSV. Se colar, clique em "Processar" para preencher a tabela.</p>
-                            </div>
-                        </details>
-
-                        <details class="bg-slate-50 p-4 rounded-lg border border-slate-200 tutorial-step">
-                            <summary class="font-semibold text-slate-800 flex justify-between items-center">
-                                <span>2. Gerando o Gráfico</span>
-                                <i class="ph ph-caret-right arrow text-slate-400"></i>
-                            </summary>
-                            <div class="pt-3 mt-3 border-t border-slate-200 text-slate-600 text-sm">
-                                <p>Após inserir os dados, clique no botão grande "Atualizar Gráfico". O gráfico será renderizado na área superior. Use os controles (Preencher Área / Empilhar) para alterar a visualização.</p>
-                            </div>
-                        </details>
-
-                        <details class="bg-slate-50 p-4 rounded-lg border border-slate-200 tutorial-step">
-                            <summary class="font-semibold text-slate-800 flex justify-between items-center">
-                                <span>3. Biblioteca Local</span>
-                                <i class="ph ph-caret-right arrow text-slate-400"></i>
-                            </summary>
-                            <div class="pt-3 mt-3 border-t border-slate-200 text-slate-600 text-sm">
-                                <p>Use a seção "Biblioteca Local" no final da página para salvar configurações de gráficos que você usa frequentemente. Os dados ficam salvos no seu navegador.</p>
-                            </div>
-                        </details>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ABA CONFIGURAÇÕES (Backup) -->
-            <div id="settings-tab" class="tab-content">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                    <div class="card bg-white p-6 rounded-xl shadow-md border border-slate-200">
-                        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                            <i class="ph-bold ph-arrows-left-right text-emerald-500"></i> Sincronização de Dados
-                        </h2>
-                        
-                        <div class="space-y-4">
-                            <!-- Área de Exportação -->
-                            <div>
-                                <label class="block text-sm font-medium text-slate-600 mb-1">Exportar (Backup)</label>
-                                <button id="btnExport" class="btn btn-success w-full justify-center">
-                                    <i class="ph-bold ph-export"></i> Copiar Dados para Transferência
-                                </button>
-                                <p class="text-xs text-slate-400 mt-1">Copia todo o estado da aplicação para a área de transferência.</p>
-                            </div>
-                            
-                            <hr class="border-slate-100 my-2">
-
-                            <!-- Área de Importação -->
-                            <div>
-                                <label class="block text-sm font-medium text-slate-600 mb-1">Importar (Restaurar)</label>
-                                <textarea id="importArea" class="w-full h-24 p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-400 outline-none transition resize-none text-xs font-mono" placeholder="Cole aqui o código JSON..."></textarea>
-                                <button id="btnImport" class="btn btn-secondary w-full mt-2 justify-center">
-                                    <i class="ph-bold ph-download-simple"></i> Substituir e Importar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-        </main>
-
-        <!-- Barra de Armazenamento -->
-        <footer class="mt-8">
-            <div class="bg-white p-3 rounded-xl shadow-md border border-slate-200">
-                <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
-                    <div id="storageProgress" class="bg-indigo-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
-                </div>
-                <div class="flex justify-between text-xs text-slate-500 mt-2">
-                    <span>Uso do Armazenamento Local</span>
-                    <span id="storageText">0% (0 KB / 5 MB)</span>
-                </div>
             </div>
         </footer>
-        
-        <!-- Container de Toasts -->
-        <div id="toastContainer" class="fixed bottom-24 sm:bottom-5 left-5 w-full max-w-xs z-50 pointer-events-none"></div>
 
     </div>
 
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none w-full max-w-sm px-4"></div>
+
+    <!-- Import Modal (Hidden) -->
+    <dialog id="importModal" class="p-0 rounded-lg shadow-2xl backdrop:bg-slate-900/50 border border-slate-200 w-full max-w-md">
+        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <h3 class="font-bold text-slate-700">Importar JSON</h3>
+            <button onclick="document.getElementById('importModal').close()" class="text-slate-400 hover:text-slate-600"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <div class="p-4">
+            <textarea id="importTextarea" class="input-std h-32 font-mono text-xs resize-none mb-3" placeholder="Cole o código JSON aqui..."></textarea>
+            <button onclick="processImport()" class="btn btn-primary w-full">Importar e Substituir</button>
+        </div>
+    </dialog>
+
     <script>
         /**
-         * CONFIGURAÇÃO GLOBAL E UTILITÁRIOS
+         * GLOBAL CONFIG & UTILS
          */
         const APP_KEY = 'DataPlotter_V2_Store'; 
-        const VIBRANT_COLORS = ['#6366f1', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+        const LIB_KEY = 'DataPlotter_V2_Lib';
+        const VIBRANT_COLORS = ['#6366f1', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#3b82f6', '#f43f5e'];
         const generateId = () => Math.random().toString(36).substr(2, 9);
-        const formatNum = (n) => new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(n);
 
-        // Estado Inicial
-        const defaultState = {
-            line: { datasets: [] },
-            bar: { datasets: [] }
+        // Estado Unificado
+        let appState = {
+            datasets: []
         };
+        
+        let chartInstance = null;
+        let draggedItemIndex = null;
 
-        // Estado Reativo
-        let appState = JSON.parse(JSON.stringify(defaultState));
-        // Instâncias do Chart.js
-        let chartInstances = { line: null, bar: null };
-
-        // --- SISTEMA DE ARMAZENAMENTO ---
+        // --- CORE: STATE MANAGEMENT ---
 
         function saveData() {
             try {
-                const serialized = JSON.stringify(appState);
-                localStorage.setItem(APP_KEY, serialized);
+                localStorage.setItem(APP_KEY, JSON.stringify(appState));
                 updateStorageBar();
             } catch (e) {
-                showToast('Erro ao salvar dados (Storage cheio?)', 'error');
+                showToast('Erro ao salvar. Armazenamento cheio?', 'error');
             }
         }
 
         function loadData() {
             const raw = localStorage.getItem(APP_KEY);
-            if (raw) {
-                try {
-                    const parsed = JSON.parse(raw);
-                    
-                    appState = { ...defaultState, ...parsed };
-                    
-                    ['line', 'bar'].forEach(type => {
-                        if(appState[type] && appState[type].datasets) {
-                            appState[type].datasets.forEach(d => d.mode = 'manual');
-                        }
-                    });
-                } catch (e) {
-                    console.error("Dados corrompidos, resetando.");
-                    appState = JSON.parse(JSON.stringify(defaultState));
+            
+            // Tentativa de Migração da V1 para V2
+            if (!raw) {
+                const v1Data = localStorage.getItem('DataPlotter_V2_Store'); // V1 key was the same in prompt but struct diff
+                // Se a estrutura antiga for detectada (com 'line' e 'bar' na raiz)
+                if (raw && (JSON.parse(raw).line || JSON.parse(raw).bar)) {
+                   // Apenas limpamos para evitar conflito na V2
+                   // O código abaixo assume "fresh start" se não achar a estrutura correta
+                } else {
+                    // Start Fresh
+                    addNewDataset(); 
                 }
             } else {
-                // Se vazio, criar um dataset inicial para o usuário não ver tela em branco
-                addDataset('line');
-                addDataset('bar');
+                try {
+                    const parsed = JSON.parse(raw);
+                    // Validação simples da estrutura V2
+                    if(Array.isArray(parsed.datasets)) {
+                        appState = parsed;
+                    } else {
+                        // Migração ou Reset
+                        appState = { datasets: [] };
+                        addNewDataset();
+                    }
+                } catch (e) {
+                    appState = { datasets: [] };
+                    addNewDataset();
+                }
             }
-            
-            // Render inicial
-            renderAllDatasets();
-            loadSavedList('line');
-            loadSavedList('bar');
+            renderDatasetsList();
+            renderChart();
+            updateLibraryList();
             updateStorageBar();
         }
 
-        function updateStorageBar() {
-            const dataStr = JSON.stringify(localStorage);
-            const size = new Blob([dataStr]).size;
-            const limit = 5 * 1024 * 1024; // 5MB padrão
-            const percent = Math.min(100, (size / limit) * 100);
-            
-            const bar = document.getElementById('storageProgress');
-            const text = document.getElementById('storageText');
-            
-            bar.style.width = `${percent}%`;
-            if(percent > 90) bar.className = 'bg-red-500 h-2.5 rounded-full transition-all duration-500';
-            else bar.className = 'bg-indigo-500 h-2.5 rounded-full transition-all duration-500';
+        // --- DATASET LOGIC ---
 
-            text.textContent = `${percent.toFixed(1)}% (${(size/1024).toFixed(0)} KB usados)`;
-        }
-
-        // --- SISTEMA DE UI / NAVEGAÇÃO ---
-
-        function initTabs() {
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                    
-                    tab.classList.add('active');
-                    const targetId = tab.getAttribute('data-tab') + '-tab';
-                    document.getElementById(targetId).classList.add('active');
-                    
-                    if(tab.dataset.tab.includes('chart')) {
-                        const type = tab.dataset.tab.split('-')[0]; 
-                        if(chartInstances[type]) chartInstances[type].resize();
-                    }
-                });
-            });
-        }
-
-        function showToast(msg, type = 'info') {
-            const container = document.getElementById('toastContainer');
-            const colors = {
-                success: 'bg-emerald-100 border-emerald-400 text-emerald-800',
-                error: 'bg-red-100 border-red-400 text-red-800',
-                info: 'bg-indigo-100 border-indigo-400 text-indigo-800'
-            };
-            const icons = {
-                success: 'ph-check-circle',
-                error: 'ph-warning-circle',
-                info: 'ph-info'
-            };
-
-            const el = document.createElement('div');
-            el.className = `pointer-events-auto flex items-center gap-3 p-4 rounded-lg shadow-lg border mb-3 transform transition-all duration-300 translate-x-[-100%] opacity-0 ${colors[type]}`;
-            el.innerHTML = `<i class="ph-bold ${icons[type]} text-xl"></i><span class="font-medium text-sm">${msg}</span>`;
-            
-            container.appendChild(el);
-            requestAnimationFrame(() => el.classList.remove('translate-x-[-100%]', 'opacity-0'));
-            setTimeout(() => {
-                el.classList.add('opacity-0', 'translate-y-2');
-                setTimeout(() => el.remove(), 300);
-            }, 3000);
-        }
-
-        // --- LÓGICA CORE (DATASETS & GRÁFICOS) ---
-
-        function addDataset(type) {
-            const id = generateId();
-            const idx = appState[type].datasets.length;
+        function addNewDataset() {
+            const idx = appState.datasets.length;
             const color = VIBRANT_COLORS[idx % VIBRANT_COLORS.length];
             
-            appState[type].datasets.push({
-                id,
+            const newDs = {
+                id: generateId(),
                 name: `Conjunto ${idx + 1}`,
-                color,
-                points: [{ x: '', y: '', label: '' }],
-                mode: 'manual'
-            });
+                type: 'line', // line, bar, scatter
+                color: color,
+                mode: 'manual', // manual vs paste
+                collapsed: false,
+                points: [{ x: '', y: '', label: '' }]
+            };
             
-            renderDatasetCard(type, id);
+            appState.datasets.push(newDs);
+            renderDatasetsList();
             saveData();
         }
 
-        function removeDataset(type, id) {
-            appState[type].datasets = appState[type].datasets.filter(d => d.id !== id);
-            renderAllDatasets(type); // Re-render lista
+        function removeDataset(id) {
+            appState.datasets = appState.datasets.filter(d => d.id !== id);
+            renderDatasetsList();
+            renderChart(); // Atualiza gráfico ao remover
             saveData();
         }
 
-        function renderAllDatasets(specificType = null) {
-            const types = specificType ? [specificType] : ['line', 'bar'];
-            types.forEach(type => {
-                const container = document.getElementById(`${type}DatasetsList`);
-                container.innerHTML = ''; // Limpa tudo
-                if(appState[type] && appState[type].datasets) {
-                    appState[type].datasets.forEach(ds => renderDatasetCard(type, ds.id));
-                }
+        function toggleCollapse(id) {
+            const ds = appState.datasets.find(d => d.id === id);
+            ds.collapsed = !ds.collapsed;
+            
+            // UI Update Only (sem re-renderizar tudo para performance)
+            const body = document.getElementById(`body-${id}`);
+            const icon = document.getElementById(`chevron-${id}`);
+            
+            if(ds.collapsed) {
+                body.classList.add('collapsed');
+                icon.classList.add('rotated'); // Icon down
+            } else {
+                body.classList.remove('collapsed');
+                icon.classList.remove('rotated'); // Icon up
+            }
+            saveData();
+        }
+
+        function updateDatasetField(id, field, value) {
+            const ds = appState.datasets.find(d => d.id === id);
+            ds[field] = value;
+            if(field === 'name' || field === 'type' || field === 'color') {
+                // Se mudar cor/tipo, atualiza o header visualmente se necessário
+                if(field === 'color') document.getElementById(`color-indicator-${id}`).style.backgroundColor = value;
+            }
+            saveData();
+        }
+
+        // --- DRAG AND DROP LOGIC ---
+
+        function handleDragStart(e, index) {
+            draggedItemIndex = index;
+            e.dataTransfer.effectAllowed = 'move';
+            e.target.closest('.card').classList.add('opacity-50');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDrop(e, index) {
+            e.preventDefault();
+            const cards = document.querySelectorAll('.card-dataset');
+            cards.forEach(c => c.classList.remove('opacity-50'));
+
+            if (draggedItemIndex === index) return;
+
+            // Reorder array
+            const itemToMove = appState.datasets[draggedItemIndex];
+            appState.datasets.splice(draggedItemIndex, 1);
+            appState.datasets.splice(index, 0, itemToMove);
+
+            draggedItemIndex = null;
+            renderDatasetsList();
+            saveData(); // Salva nova ordem
+        }
+
+        function handleDragEnd(e) {
+            const cards = document.querySelectorAll('.card-dataset');
+            cards.forEach(c => c.classList.remove('opacity-50'));
+        }
+
+        // --- RENDER UI: CARD COMPONENT ---
+
+        function renderDatasetsList() {
+            const container = document.getElementById('datasetsContainer');
+            container.innerHTML = '';
+
+            appState.datasets.forEach((ds, index) => {
+                const el = document.createElement('div');
+                el.className = 'card card-dataset group';
+                el.draggable = true;
+                el.ondragstart = (e) => handleDragStart(e, index);
+                el.ondragover = handleDragOver;
+                el.ondrop = (e) => handleDrop(e, index);
+                el.ondragend = handleDragEnd;
+
+                // Header
+                const header = `
+                    <div class="flex items-center gap-3 p-2 bg-white cursor-pointer select-none" >
+                        <!-- Drag Handle -->
+                        <div class="drag-handle p-1 hover:bg-slate-100 rounded" title="Arraste para reordenar">
+                            <i class="ph-bold ph-dots-six-vertical text-lg"></i>
+                        </div>
+
+                        <!-- Color Indicator & Picker Trigger -->
+                        <div class="relative group/color">
+                            <div id="color-indicator-${ds.id}" class="w-5 h-5 rounded-full shadow-sm ring-1 ring-slate-200 transition-transform hover:scale-110" 
+                                 style="background-color: ${ds.color}"
+                                 onclick="document.getElementById('cp-${ds.id}').classList.toggle('hidden')"></div>
+                            
+                            <!-- Dropdown Cor -->
+                            <div id="cp-${ds.id}" class="hidden absolute top-full left-0 mt-2 p-2 bg-white border border-slate-200 shadow-xl rounded-lg grid grid-cols-5 gap-1 z-10 w-[140px]">
+                                ${VIBRANT_COLORS.map(c => `
+                                    <div class="w-5 h-5 rounded-full cursor-pointer hover:scale-110 border border-transparent hover:border-slate-400" 
+                                         style="background-color: ${c}"
+                                         onclick="updateDatasetField('${ds.id}', 'color', '${c}'); document.getElementById('cp-${ds.id}').classList.add('hidden'); renderChart();">
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Main Controls (Collapsed View) -->
+                        <div class="flex-grow flex flex-wrap gap-2 items-center">
+                            <input type="text" value="${ds.name}" 
+                                   onchange="updateDatasetField('${ds.id}', 'name', this.value); renderChart();"
+                                   onclick="event.stopPropagation()"
+                                   class="font-semibold text-slate-700 bg-transparent border-none outline-none focus:bg-slate-50 hover:bg-slate-50 rounded px-2 py-1 transition-colors w-full flex-grow" 
+                                   placeholder="Nome do Conjunto">
+                            
+                            <select onchange="updateDatasetField('${ds.id}', 'type', this.value); renderChart();" 
+                                    onclick="event.stopPropagation()"
+                                    class="text-xs font-medium text-slate-500 bg-slate-50 border border-slate-200 rounded px-2 py-1 outline-none focus:border-indigo-500 cursor-pointer">
+                                <option value="line" ${ds.type === 'line' ? 'selected' : ''}>Linha</option>
+                                <option value="bar" ${ds.type === 'bar' ? 'selected' : ''}>Barras</option>
+                                <option value="scatter" ${ds.type === 'scatter' ? 'selected' : ''}>Pontos</option>
+                            </select>
+                        </div>
+
+                        <!-- Collapse Trigger -->
+                        <button onclick="toggleCollapse('${ds.id}')" class="p-2 text-slate-400 hover:text-indigo-600 transition-colors">
+                            <i id="chevron-${ds.id}" class="ph-bold ph-caret-up chevron-icon ${ds.collapsed ? 'rotated' : ''}"></i>
+                        </button>
+                    </div>
+                `;
+
+                // Body (Data Entry)
+                const body = `
+                    <div id="body-${ds.id}" class="card-body ${ds.collapsed ? 'collapsed' : ''} bg-slate-50/50">
+                        <div class="flex justify-between items-center mb-3">
+                            <div class="flex gap-2">
+                                <button onclick="setMode('${ds.id}', 'manual')" class="text-xs px-2 py-1 rounded ${ds.mode === 'manual' ? 'bg-indigo-100 text-indigo-700 font-bold' : 'text-slate-500 hover:bg-slate-100'}">Tabela</button>
+                                <button onclick="setMode('${ds.id}', 'paste')" class="text-xs px-2 py-1 rounded ${ds.mode === 'paste' ? 'bg-indigo-100 text-indigo-700 font-bold' : 'text-slate-500 hover:bg-slate-100'}">Colar (Excel)</button>
+                            </div>
+                            <button onclick="removeDataset('${ds.id}')" class="text-xs text-red-400 hover:text-red-600 flex items-center gap-1">
+                                <i class="ph-bold ph-trash"></i> Excluir Conjunto
+                            </button>
+                        </div>
+
+                        ${ds.mode === 'manual' ? renderTable(ds) : renderPaste(ds)}
+                    </div>
+                `;
+
+                el.innerHTML = header + body;
+                container.appendChild(el);
             });
         }
 
-        function toggleDatasetMode(type, id) {
-            const ds = appState[type].datasets.find(d => d.id === id);
-            ds.mode = ds.mode === 'manual' ? 'paste' : 'manual';
-            renderDatasetCard(type, id);
+        function setMode(id, mode) {
+            updateDatasetField(id, 'mode', mode);
+            renderDatasetsList();
         }
 
-        // Renderiza um único Card de Dataset
-        function renderDatasetCard(type, id) {
-            const ds = appState[type].datasets.find(d => d.id === id);
-            if (!ds) return;
+        function renderTable(ds) {
+            const rows = ds.points.map((pt, idx) => `
+                <div class="flex gap-2 mb-2 items-center">
+                    <input type="text" placeholder="X" value="${pt.x}" onchange="updatePoint('${ds.id}', ${idx}, 'x', this.value)" class="input-std text-xs w-1/3">
+                    <input type="text" placeholder="Y" step="any" value="${pt.y}" onchange="updatePoint('${ds.id}', ${idx}, 'y', this.value)" class="input-std text-xs w-1/3">
+                    <input type="text" placeholder="Rótulo (Op)" value="${pt.label || ''}" onchange="updatePoint('${ds.id}', ${idx}, 'label', this.value)" class="input-std text-xs w-1/3">
+                    <button onclick="removePoint('${ds.id}', ${idx})" class="text-slate-300 hover:text-red-500 px-1"><i class="ph-bold ph-x"></i></button>
+                </div>
+            `).join('');
 
-            const container = document.getElementById(`${type}DatasetsList`);
-            let card = document.getElementById(`card-${type}-${id}`);
-
-            // Se o card não existe no DOM, cria. Se existe, vamos substituir o conteúdo.
-            if (!card) {
-                card = document.createElement('div');
-                card.id = `card-${type}-${id}`;
-                card.className = "card border-l-4"; // Usa a classe card do template
-                card.style.borderLeftColor = ds.color;
-                container.appendChild(card);
-            } else {
-                card.style.borderLeftColor = ds.color; // Atualiza cor se mudou
-            }
-
-            // HTML Interno do Card
-            let headerHtml = `
-                <div class="flex flex-wrap gap-3 items-center mb-4">
-                    <!-- Nome -->
-                    <input type="text" value="${ds.name}" onchange="updateName('${type}', '${id}', this.value)" 
-                    class="input-std font-semibold text-slate-700 flex-grow min-w-[150px] py-1" placeholder="Nome">
-                    
-                    <!-- Cor -->
-                    <div class="relative">
-                        <button class="color-select-btn" onclick="toggleColorDropdown('${type}', '${id}')">
-                            <div class="w-4 h-4 rounded-full" style="background-color: ${ds.color}"></div>
-                            <i class="ph-bold ph-caret-down text-xs text-slate-400"></i>
-                        </button>
-                        <div id="color-dropdown-${type}-${id}" class="color-dropdown hidden">
-                            ${VIBRANT_COLORS.map(c => `
-                                <div class="color-option ${c === ds.color ? 'selected' : ''}" 
-                                     style="background-color: ${c}" 
-                                     onclick="updateColor('${type}', '${id}', '${c}')"></div>
-                            `).join('')}
-                        </div>
+            return `
+                <div>
+                    <div class="flex gap-2 mb-1 text-[10px] font-bold text-slate-400 uppercase px-1">
+                        <span class="w-1/3">Eixo X</span>
+                        <span class="w-1/3">Eixo Y</span>
+                        <span class="w-1/3">Rótulo</span>
+                        <span class="w-6"></span>
                     </div>
-                    
-                    <!-- Mode Toggle -->
-                    <button onclick="toggleDatasetMode('${type}', '${id}')" class="btn btn-ghost p-1 text-xs" title="Alternar entrada Manual/Colar">
-                        <i class="ph-bold ${ds.mode === 'manual' ? 'ph-table' : 'ph-clipboard-text'} text-lg"></i>
-                    </button>
-
-                    <!-- Excluir -->
-                    <button onclick="removeDataset('${type}', '${id}')" class="btn btn-ghost text-red-400 hover:text-red-600 p-1">
-                        <i class="ph-bold ph-trash text-lg"></i>
-                    </button>
+                    ${rows}
+                    <button onclick="addPoint('${ds.id}')" class="btn btn-dashed w-full py-1 text-xs mt-2"><i class="ph-bold ph-plus"></i> Adicionar Linha</button>
                 </div>
             `;
+        }
 
-            let bodyHtml = '';
-
-            if (ds.mode === 'manual') {
-                bodyHtml = `
-                    <div class="overflow-x-auto border border-slate-100 rounded-lg">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-slate-50 text-slate-500 font-semibold">
-                                <tr>
-                                    ${type === 'line' ? '<th class="p-2 w-[25%]">Rótulo</th>' : ''}
-                                    <th class="p-2 w-[30%]">${type === 'bar' ? 'Categoria' : 'Eixo X'}</th>
-                                    <th class="p-2 w-[30%]">Valor (Y)</th>
-                                    <th class="p-2 w-[5%]"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="rows-${type}-${id}">
-                                <!-- Linhas geradas abaixo -->
-                            </tbody>
-                        </table>
+        function renderPaste(ds) {
+            return `
+                <div>
+                    <textarea id="paste-${ds.id}" class="input-std h-24 font-mono text-xs mb-2 resize-none" placeholder="Cole seus dados aqui (Tab ou CSV)..."></textarea>
+                    <div class="grid grid-cols-3 gap-2 mb-2">
+                        <div><label class="text-[10px] uppercase font-bold text-slate-400">Col X</label><select id="mx-${ds.id}" class="input-std py-1 text-xs"><option value="0">1ª</option><option value="1">2ª</option><option value="2">3ª</option></select></div>
+                        <div><label class="text-[10px] uppercase font-bold text-slate-400">Col Y</label><select id="my-${ds.id}" class="input-std py-1 text-xs"><option value="1">2ª</option><option value="0">1ª</option><option value="2">3ª</option></select></div>
+                        <div><label class="text-[10px] uppercase font-bold text-slate-400">Rótulo</label><select id="ml-${ds.id}" class="input-std py-1 text-xs"><option value="-1">Nenhum</option><option value="2">3ª</option><option value="0">1ª</option></select></div>
                     </div>
-                    <button onclick="addRow('${type}', '${id}')" class="btn btn-dashed w-full mt-2 py-1 text-xs">
-                        <i class="ph-bold ph-plus"></i> Adicionar Linha
-                    </button>
-                `;
-            } else {
-                bodyHtml = `
-                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                        <p class="text-xs text-slate-500 mb-2">Cole dados do Excel/CSV. Selecione as colunas correspondentes.</p>
-                        <textarea id="paste-area-${type}-${id}" class="input-std h-24 font-mono text-xs mb-3 resize-none" placeholder="10\t2.5\n20\t5.0"></textarea>
-                        
-                        <div class="grid grid-cols-3 gap-2 mb-3">
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase">X</label>
-                                <select id="map-x-${type}-${id}" class="input-std py-1 text-xs"><option value="0">Col 1</option><option value="1">Col 2</option><option value="2">Col 3</option></select>
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase">Y</label>
-                                <select id="map-y-${type}-${id}" class="input-std py-1 text-xs"><option value="1">Col 2</option><option value="0">Col 1</option><option value="2">Col 3</option></select>
-                            </div>
-                             ${type === 'line' ? `
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase">Label</label>
-                                <select id="map-lbl-${type}-${id}" class="input-std py-1 text-xs"><option value="-1">-</option><option value="2">Col 3</option></select>
-                            </div>` : ''}
-                        </div>
-
-                        <button onclick="processPaste('${type}', '${id}')" class="btn btn-primary w-full text-xs">
-                            Processar
-                        </button>
-                    </div>
-                `;
-            }
-
-            card.innerHTML = headerHtml + bodyHtml;
-
-            // Preenche linhas se manual
-            if (ds.mode === 'manual') {
-                const tbody = document.getElementById(`rows-${type}-${id}`);
-                ds.points.forEach((pt, idx) => {
-                    const tr = document.createElement('tr');
-                    tr.className = "border-b border-slate-50 last:border-0";
-                    
-                    const inputLbl = type === 'line' ? 
-                        `<td class="p-1"><input type="text" value="${pt.label || ''}" onchange="updatePoint('${type}', '${id}', ${idx}, 'label', this.value)" class="input-std input-compact"></td>` : '';
-
-                    tr.innerHTML = `
-                        ${inputLbl}
-                        <td class="p-1"><input type="text" value="${pt.x}" onchange="updatePoint('${type}', '${id}', ${idx}, 'x', this.value)" class="input-std input-compact"></td>
-                        <td class="p-1"><input type="number" step="any" value="${pt.y}" onchange="updatePoint('${type}', '${id}', ${idx}, 'y', this.value)" class="input-std input-compact"></td>
-                        <td class="p-1 text-center">
-                            <button onclick="removeRow('${type}', '${id}', ${idx})" class="text-slate-300 hover:text-red-500"><i class="ph-bold ph-x"></i></button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            }
+                    <button onclick="processPaste('${ds.id}')" class="btn btn-primary w-full text-xs">Processar Dados</button>
+                </div>
+            `;
         }
 
-        // --- MANIPULAÇÃO DE DADOS ---
+        // --- POINT DATA LOGIC ---
 
-        function updateName(type, id, val) {
-            appState[type].datasets.find(d => d.id === id).name = val;
+        function addPoint(id) {
+            const ds = appState.datasets.find(d => d.id === id);
+            ds.points.push({ x: '', y: '', label: '' });
+            renderDatasetsList();
+        }
+
+        function removePoint(id, idx) {
+            const ds = appState.datasets.find(d => d.id === id);
+            ds.points.splice(idx, 1);
+            saveData();
+            renderDatasetsList();
+        }
+
+        function updatePoint(id, idx, field, val) {
+            const ds = appState.datasets.find(d => d.id === id);
+            ds.points[idx][field] = val;
             saveData();
         }
 
-        function updateColor(type, id, val) {
-            appState[type].datasets.find(d => d.id === id).color = val;
-            document.getElementById(`color-dropdown-${type}-${id}`).classList.add('hidden');
-            renderDatasetCard(type, id);
-            saveData();
-        }
-
-        function toggleColorDropdown(type, id) {
-            const el = document.getElementById(`color-dropdown-${type}-${id}`);
-            el.classList.toggle('hidden');
-        }
-
-        function addRow(type, id) {
-            appState[type].datasets.find(d => d.id === id).points.push({ x: '', y: '', label: '' });
-            renderDatasetCard(type, id);
-        }
-
-        function removeRow(type, id, idx) {
-            appState[type].datasets.find(d => d.id === id).points.splice(idx, 1);
-            renderDatasetCard(type, id);
-            saveData();
-        }
-
-        function updatePoint(type, id, idx, field, val) {
-            appState[type].datasets.find(d => d.id === id).points[idx][field] = val;
-            saveData();
-        }
-
-        function processPaste(type, id) {
-            const raw = document.getElementById(`paste-area-${type}-${id}`).value;
-            const xIdx = parseFloat(document.getElementById(`map-x-${type}-${id}`).value);
-            const yIdx = parseFloat(document.getElementById(`map-y-${type}-${id}`).value);
-            const lIdx = type === 'line' ? parseFloat(document.getElementById(`map-lbl-${type}-${id}`).value) : -1;
+        function processPaste(id) {
+            const raw = document.getElementById(`paste-${id}`).value;
+            const xIdx = parseInt(document.getElementById(`mx-${id}`).value);
+            const yIdx = parseInt(document.getElementById(`my-${id}`).value);
+            const lIdx = parseInt(document.getElementById(`ml-${id}`).value);
 
             if (!raw.trim()) return showToast('Área vazia!', 'error');
-
+            
             const rows = raw.trim().split('\n');
             const newPoints = [];
 
             rows.forEach(row => {
                 const parts = row.split(/[\t,;]+/).map(s => s.trim()).filter(s => s !== '');
-                if (parts.length < 2) return;
+                if (parts.length < 2 && lIdx === -1) return; // Minimo 2 colunas se nao tiver label explicito
 
                 const rawX = parts[xIdx];
                 const rawY = parts[yIdx];
@@ -847,93 +572,161 @@
             });
 
             if (newPoints.length > 0) {
-                const ds = appState[type].datasets.find(d => d.id === id);
+                const ds = appState.datasets.find(d => d.id === id);
                 ds.points = newPoints;
                 ds.mode = 'manual';
-                renderDatasetCard(type, id);
-                showToast(`${newPoints.length} linhas importadas!`, 'success');
                 saveData();
+                renderDatasetsList();
+                renderChart();
+                showToast(`${newPoints.length} pontos importados!`, 'success');
             } else {
-                showToast('Falha ao processar dados.', 'error');
+                showToast('Formato não reconhecido.', 'error');
             }
         }
 
-        // --- CHART.JS RENDER ---
+        // --- CHART.JS RENDERING (HÍBRIDO) ---
 
-        function renderChart(type) {
-            const ctx = document.getElementById(`${type}Canvas`);
-            if(!ctx) return;
+        function renderChart() {
+            const ctx = document.getElementById('mainCanvas');
+            if (!ctx) return;
 
-            // Destrói anterior
-            if (chartInstances[type]) {
-                chartInstances[type].destroy();
-            }
+            if (chartInstance) chartInstance.destroy();
 
-            const datasets = appState[type].datasets;
-            
-            if (type === 'line') {
-                renderLineChart(ctx.getContext('2d'), datasets);
-            } else {
-                renderBarChart(ctx.getContext('2d'), datasets);
-            }
-            
-            showToast('Gráfico atualizado!', 'success');
-        }
+            // 1. Detectar tipo de escala X (Linear ou Categoria)
+            // Se TODOS os valores X de TODOS os datasets forem numéricos, usamos linear.
+            // Caso contrário, usamos Categoria (strings).
+            let allNumericX = true;
+            const allXValues = new Set();
 
-        function renderLineChart(ctx, datasets) {
-            const fill = document.getElementById('lineFillToggle').checked;
-            
-            // Verifica se é numérico
-            let isNumericX = true;
-            datasets.forEach(ds => {
+            appState.datasets.forEach(ds => {
                 ds.points.forEach(p => {
-                    if (p.x !== '' && isNaN(parseFloat(p.x.toString().replace(',','.')))) isNumericX = false;
+                    if (p.x !== '' && p.x !== null) {
+                        const val = p.x.toString().replace(',', '.');
+                        if (isNaN(parseFloat(val))) allNumericX = false;
+                        allXValues.add(p.x);
+                    }
                 });
             });
 
-            const chartDatasets = datasets.map(ds => {
-                let data = ds.points.filter(p => p.x !== '' && p.y !== '').map(p => ({
-                    x: isNumericX ? parseFloat(p.x.toString().replace(',','.')) : p.x,
-                    y: parseFloat(p.y.toString().replace(',','.')),
-                    label: p.label
-                }));
+            // Ordenar labels se for linear para o gráfico desenhar na ordem certa
+            let labels = Array.from(allXValues);
+            if (allNumericX) {
+                labels.sort((a, b) => parseFloat(a.toString().replace(',','.')) - parseFloat(b.toString().replace(',','.')));
+            } else {
+                labels.sort();
+            }
 
-                if (isNumericX) data.sort((a, b) => a.x - b.x);
+            // 2. Montar Datasets do Chart.js
+            const chartDatasets = appState.datasets.map(ds => {
+                // Filtrar e preparar pontos
+                let data = [];
+                
+                if (allNumericX) {
+                    // Modo XY (Scatter/Line Numeric)
+                    data = ds.points
+                        .filter(p => p.x !== '' && p.y !== '')
+                        .map(p => ({
+                            x: parseFloat(p.x.toString().replace(',', '.')),
+                            y: parseFloat(p.y.toString().replace(',', '.')),
+                            label: p.label
+                        }))
+                        .sort((a, b) => a.x - b.x);
+                } else {
+                    // Modo Categoria (Mapear Y para o Label X correspondente)
+                    data = labels.map(lbl => {
+                        const pt = ds.points.find(p => p.x == lbl);
+                        return pt ? parseFloat(pt.y.toString().replace(',', '.')) : null; // null quebra a linha, 0 desenha no chão
+                    });
+                }
 
-                return {
+                // Configuração baseada no Tipo
+                const common = {
                     label: ds.name,
                     data: data,
+                    backgroundColor: ds.type === 'bar' ? ds.color : ds.color, // Pontos/Linhas usam backgroundColor para a legenda
                     borderColor: ds.color,
-                    backgroundColor: ds.color + '40',
-                    fill: fill ? 'origin' : false,
-                    tension: 0.3,
-                    pointRadius: 4,
-                    pointHoverRadius: 6
                 };
+
+                if (ds.type === 'line') {
+                    return {
+                        ...common,
+                        type: 'line',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        fill: false
+                    };
+                } else if (ds.type === 'bar') {
+                    return {
+                        ...common,
+                        type: 'bar',
+                        backgroundColor: ds.color + 'CC', // Levemente transparente
+                        borderWidth: 0,
+                        barPercentage: 0.6
+                    };
+                } else if (ds.type === 'scatter') {
+                    return {
+                        ...common,
+                        type: 'scatter', // Chart.js scatter é basicamente line sem linha
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        showLine: false // Garante que não desenhe linha
+                    };
+                }
             });
 
-            chartInstances.line = new Chart(ctx, {
-                type: 'line',
-                data: { datasets: chartDatasets },
+            // 3. Criar Gráfico
+            chartInstance = new Chart(ctx, {
+                type: 'line', // Tipo padrão base para misto
+                data: {
+                    labels: allNumericX ? labels : labels, // Labels usados se categoria
+                    datasets: chartDatasets
+                },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
                     scales: {
                         x: {
-                            type: isNumericX ? 'linear' : 'category',
-                            grid: { color: '#f1f5f9' }
+                            type: allNumericX ? 'linear' : 'category',
+                            grid: { display: false },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
                         },
-                        y: { grid: { color: '#f1f5f9' } }
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' },
+                            ticks: { color: '#94a3b8' }
+                        }
                     },
                     plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: { family: "'Inter', sans-serif", size: 12 }
+                            }
+                        },
                         tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                            titleColor: '#1e293b',
+                            bodyColor: '#475569',
+                            borderColor: '#e2e8f0',
+                            borderWidth: 1,
+                            padding: 10,
                             callbacks: {
-                                label: (context) => {
+                                label: function(context) {
                                     let label = context.dataset.label || '';
                                     if (label) label += ': ';
-                                    label += context.parsed.y;
-                                    if (context.raw.label) label += ` (${context.raw.label})`;
+                                    if (context.parsed.y !== null) label += context.parsed.y;
+                                    // Hack para pegar label customizado no scatter
+                                    const raw = context.raw;
+                                    if (raw && raw.label) label += ` (${raw.label})`;
                                     return label;
                                 }
                             }
@@ -941,196 +734,136 @@
                     }
                 }
             });
-
-            // Integral
-            const legendDiv = document.getElementById('lineAreaLegend');
-            const legendContent = document.getElementById('lineAreaLegendContent');
-            
-            if(fill && isNumericX) {
-                legendDiv.classList.remove('hidden');
-                let html = '';
-                chartDatasets.forEach(ds => {
-                    let area = 0;
-                    const pts = ds.data;
-                    for(let i=0; i<pts.length-1; i++) {
-                        const h = pts[i+1].x - pts[i].x;
-                        const avgH = (pts[i].y + pts[i+1].y) / 2;
-                        area += avgH * h;
-                    }
-                    html += `
-                        <div class="flex items-center gap-2 bg-slate-50 p-2 rounded border border-slate-100">
-                            <div class="w-2 h-2 rounded-full" style="background:${ds.borderColor}"></div>
-                            <span class="text-slate-500 font-medium">${ds.label}:</span>
-                            <strong class="text-slate-800">${formatNum(area)}</strong>
-                        </div>`;
-                });
-                legendContent.innerHTML = html;
-            } else {
-                legendDiv.classList.add('hidden');
-            }
         }
 
-        function renderBarChart(ctx, datasets) {
-            const stacked = document.getElementById('barStackToggle').checked;
+        // --- LIBRARY & UTILS ---
 
-            const allLabels = new Set();
-            datasets.forEach(ds => ds.points.forEach(p => { if (p.x) allLabels.add(p.x); }));
-            const labelsArray = Array.from(allLabels).sort();
-
-            const chartDatasets = datasets.map(ds => {
-                const data = labelsArray.map(lbl => {
-                    const pt = ds.points.find(p => p.x == lbl);
-                    return pt ? parseFloat(pt.y.replace(',','.')) : 0;
-                });
-
-                return {
-                    label: ds.name,
-                    data: data,
-                    backgroundColor: ds.color,
-                    borderRadius: 4,
-                    borderWidth: stacked ? 1 : 0,
-                    borderColor: 'white'
-                };
-            });
-
-            chartInstances.bar = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labelsArray,
-                    datasets: chartDatasets
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { stacked: stacked, grid: { display: false } },
-                        y: { stacked: stacked, grid: { color: '#f1f5f9' } }
-                    }
-                }
-            });
+        function updateStorageBar() {
+            const dataStr = JSON.stringify(localStorage);
+            const size = new Blob([dataStr]).size;
+            const limit = 5 * 1024 * 1024; // 5MB aprox
+            const percent = Math.min(100, (size / limit) * 100);
+            
+            const bar = document.getElementById('storageProgress');
+            bar.style.width = `${percent}%`;
+            bar.className = percent > 90 ? 'bg-red-500 h-1.5 rounded-full' : 'bg-indigo-500 h-1.5 rounded-full';
+            document.getElementById('storageText').textContent = `${percent.toFixed(1)}% usado (${(size/1024).toFixed(0)} KB)`;
         }
 
-        // --- SISTEMA DE BIBLIOTECA LOCAL ---
-
-        function saveChart(type) {
-            const title = document.getElementById(`${type}ChartTitle`).value.trim();
-            if (!title) return showToast('Digite um nome para salvar', 'error');
-
-            const key = `dataplotter_lib_${type}`;
-            const lib = JSON.parse(localStorage.getItem(key) || '{}');
+        function saveToLibrary() {
+            const title = document.getElementById('saveTitle').value.trim();
+            if(!title) return showToast('Digite um nome.', 'error');
             
-            lib[title] = {
-                date: new Date().toISOString(),
-                datasets: appState[type].datasets
-            };
-
-            localStorage.setItem(key, JSON.stringify(lib));
-            loadSavedList(type);
-            updateStorageBar();
+            const lib = JSON.parse(localStorage.getItem(LIB_KEY) || '{}');
+            lib[title] = appState.datasets;
+            localStorage.setItem(LIB_KEY, JSON.stringify(lib));
+            
+            updateLibraryList();
             showToast('Salvo na biblioteca!', 'success');
         }
 
-        function loadSavedList(type) {
-            const key = `dataplotter_lib_${type}`;
-            const lib = JSON.parse(localStorage.getItem(key) || '{}');
-            const sel = document.getElementById(`${type}SavedSelect`);
-            
+        function updateLibraryList() {
+            const lib = JSON.parse(localStorage.getItem(LIB_KEY) || '{}');
+            const sel = document.getElementById('loadSelect');
             sel.innerHTML = '<option value="">Selecione...</option>';
             Object.keys(lib).forEach(k => {
                 sel.innerHTML += `<option value="${k}">${k}</option>`;
             });
         }
 
-        function loadChart(type) {
-            const title = document.getElementById(`${type}SavedSelect`).value;
-            if (!title) return;
-
-            const key = `dataplotter_lib_${type}`;
-            const lib = JSON.parse(localStorage.getItem(key) || '{}');
+        function loadFromLibrary() {
+            const title = document.getElementById('loadSelect').value;
+            if(!title) return;
             
-            if (lib[title]) {
-                appState[type].datasets = lib[title].datasets;
-                appState[type].datasets.forEach(d => d.mode = 'manual'); // Força visualização normal
-                renderAllDatasets(type);
-                renderChart(type);
-                document.getElementById(`${type}ChartTitle`).value = title;
-                showToast('Gráfico carregado!', 'success');
-                saveData(); // Atualiza estado atual
-            }
-        }
-
-        function deleteSavedChart(type) {
-            const title = document.getElementById(`${type}SavedSelect`).value;
-            if (!title) return;
-            
-            if(confirm(`Excluir "${title}" da biblioteca?`)) {
-                const key = `dataplotter_lib_${type}`;
-                const lib = JSON.parse(localStorage.getItem(key) || '{}');
-                delete lib[title];
-                localStorage.setItem(key, JSON.stringify(lib));
-                loadSavedList(type);
-                updateStorageBar();
-                showToast('Item excluído', 'info');
-            }
-        }
-
-        function clearAll(type) {
-            if(confirm('Isso limpará os dados da tela atual. Confirmar?')) {
-                appState[type].datasets = [];
-                addDataset(type); // Adiciona um novo vazio
-                renderChart(type); // Limpa o canvas
+            const lib = JSON.parse(localStorage.getItem(LIB_KEY) || '{}');
+            if(lib[title]) {
+                appState.datasets = lib[title];
+                // Reset collapse/modes para visualização limpa
+                appState.datasets.forEach(d => {
+                    d.collapsed = true;
+                    d.mode = 'manual';
+                });
+                renderDatasetsList();
+                renderChart();
                 saveData();
-                showToast('Tela limpa.', 'success');
+                showToast('Carregado com sucesso.', 'success');
             }
         }
 
-        // --- EXPORT/IMPORT GLOBAL (Config Tab) ---
-        
-        document.getElementById('btnExport').addEventListener('click', () => {
-            const dataStr = JSON.stringify(appState, null, 2);
-            navigator.clipboard.writeText(dataStr).then(() => {
-                showToast('Copiado para a área de transferência!', 'success');
-            }).catch(() => {
-                const area = document.getElementById('importArea');
-                area.value = dataStr;
-                area.select();
-                document.execCommand('copy');
-                area.value = '';
-                showToast('Copiado (via fallback)!', 'success');
-            });
-        });
+        function deleteFromLibrary() {
+            const title = document.getElementById('loadSelect').value;
+            if(!title) return;
+            if(confirm(`Excluir "${title}"?`)) {
+                const lib = JSON.parse(localStorage.getItem(LIB_KEY) || '{}');
+                delete lib[title];
+                localStorage.setItem(LIB_KEY, JSON.stringify(lib));
+                updateLibraryList();
+                showToast('Item excluído.', 'success');
+            }
+        }
 
-        document.getElementById('btnImport').addEventListener('click', () => {
-            const str = document.getElementById('importArea').value.trim();
-            if(!str) return showToast('Cole o código primeiro.', 'error');
+        function exportData() {
+            const str = JSON.stringify(appState, null, 2);
+            navigator.clipboard.writeText(str)
+                .then(() => showToast('JSON copiado!', 'success'))
+                .catch(() => showToast('Erro ao copiar.', 'error'));
+        }
 
+        function importData() {
+            document.getElementById('importModal').showModal();
+        }
+
+        function processImport() {
             try {
-                const parsed = JSON.parse(str);
-                if(confirm('Isso substituirá TODOS os dados atuais. Continuar?')) {
-                    appState = parsed;
+                const json = JSON.parse(document.getElementById('importTextarea').value);
+                if(json.datasets && Array.isArray(json.datasets)) {
+                    appState = json;
                     saveData();
-                    renderAllDatasets();
-                    loadSavedList('line'); // Recarrega listas pois pode ter afetado
-                    loadSavedList('bar');
-                    showToast('Dados importados!', 'success');
-                    document.getElementById('importArea').value = '';
+                    renderDatasetsList();
+                    renderChart();
+                    document.getElementById('importModal').close();
+                    document.getElementById('importTextarea').value = '';
+                    showToast('Importado com sucesso!', 'success');
+                } else {
+                    throw new Error('Formato inválido');
                 }
-            } catch (e) {
+            } catch(e) {
                 showToast('JSON Inválido.', 'error');
             }
-        });
+        }
 
-        // --- INICIALIZAÇÃO ---
+        function clearAll() {
+            if(confirm('Isso apagará todos os gráficos da tela. Continuar?')) {
+                appState.datasets = [];
+                addNewDataset();
+                showToast('Resetado.', 'success');
+            }
+        }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            initTabs();
-            loadData();
+        function showToast(msg, type) {
+            const el = document.createElement('div');
+            const colors = type === 'success' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-red-100 text-red-800 border-red-300';
+            el.className = `p-3 rounded-lg shadow-lg border text-sm font-medium flex items-center gap-2 transform transition-all duration-300 translate-y-10 opacity-0 ${colors}`;
+            el.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : 'ph-warning-circle'}"></i> ${msg}`;
             
-            // Renderiza gráficos iniciais vazios ou com dados carregados
+            document.getElementById('toastContainer').appendChild(el);
+            
+            requestAnimationFrame(() => el.classList.remove('translate-y-10', 'opacity-0'));
             setTimeout(() => {
-                renderChart('line');
-                renderChart('bar');
-            }, 100);
+                el.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => el.remove(), 300);
+            }, 3000);
+        }
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            // Prevenir drag de fechar collapse acidentalmente
+            document.addEventListener('dragstart', (e) => {
+                if(e.target.classList.contains('drag-handle')) {
+                    // OK
+                }
+            });
         });
 
     </script>

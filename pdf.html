@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currículo - Ítalo Faria Dória</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Fonte Inter (Estilo Notion/Moderno) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        stone: {
+                            50: '#fafaf9',
+                            100: '#f5f5f4', // Cor de fundo da sidebar (estilo Notion)
+                            200: '#e7e5e4',
+                            300: '#d6d3d1',
+                            800: '#292524', // Cor de texto principal
+                            900: '#1c1917',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Estilos específicos para impressão e formato A4 */
+        body {
+            background-color: #525252; /* Fundo escuro apenas para visualização em tela */
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 2rem 0;
+        }
+
+        .page {
+            background-color: white;
+            width: 210mm; /* Largura A4 */
+            min-height: 297mm; /* Altura A4 */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            overflow: hidden; /* Garante que nada saia da folha */
+            position: relative;
+        }
+
+        /* Configurações de Impressão */
+        @media print {
+            body {
+                background-color: white;
+                padding: 0;
+                display: block;
+            }
+            .page {
+                width: 100%;
+                height: 100%;
+                box-shadow: none;
+                margin: 0;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact; /* Garante que o fundo cinza imprima */
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        /* Utilitários de texto */
+        h1, h2, h3, h4 { letter-spacing: -0.02em; }
+        .sidebar-item { margin-bottom: 1.5rem; }
+        p, li { line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+    <!-- Botão flutuante para imprimir (Apenas tela) -->
+    <div class="fixed bottom-8 right-8 no-print z-50">
+        <button onclick="window.print()" class="bg-stone-800 text-white p-4 rounded-full shadow-lg hover:bg-black transition-all flex items-center gap-2 font-medium">
+            <i class="ph-bold ph-printer text-xl"></i>
+            Salvar PDF / Imprimir
+        </button>
+    </div>
+
+    <!-- Página A4 -->
+    <div class="page">
+        
+        <!-- COLUNA DA ESQUERDA (SIDEBAR) -->
+        <aside class="w-[32%] bg-[#F7F7F5] p-8 text-stone-800 border-r border-stone-200 flex flex-col">
+            
+            <!-- Foto -->
+            <div class="mb-8 flex justify-center">
+                <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-sm">
+                    <img src="./assets/Italo Faria Doria.jpeg" 
+                         alt="Foto de Ítalo"
+                         class="w-full h-full object-cover"
+                         onerror="this.src='https://placehold.co/200x200/e5e5e5/262626?text=IFD';">
+                </div>
+            </div>
+
+            <!-- Contato -->
+            <div class="sidebar-item">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-stone-500 mb-4 border-b border-stone-300 pb-1">Contato</h3>
+                
+                <div class="flex flex-col gap-3 text-sm">
+                    <a href="mailto:italo.faria0@gmail.com" class="flex items-center gap-3 hover:text-stone-500 transition-colors">
+                        <div class="w-6 flex justify-center"><i class="ph-fill ph-envelope-simple text-lg"></i></div>
+                        <span class="break-all">italo.faria0@gmail.com</span>
+                    </a>
+                    
+                    <a href="https://www.linkedin.com/in/%C3%ADtalofariad%C3%B3ria51/" target="_blank" class="flex items-center gap-3 hover:text-stone-500 transition-colors">
+                        <div class="w-6 flex justify-center"><i class="ph-fill ph-linkedin-logo text-lg"></i></div>
+                        <span>linkedin.com/in/ítalofariadória51</span>
+                    </a>
+                    
+                    <a href="https://github.com/VonDoria" target="_blank" class="flex items-center gap-3 hover:text-stone-500 transition-colors">
+                        <div class="w-6 flex justify-center"><i class="ph-fill ph-github-logo text-lg"></i></div>
+                        <span>github.com/VonDoria</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Habilidades Técnicas -->
+            <div class="sidebar-item">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-stone-500 mb-4 border-b border-stone-300 pb-1">Tech Stack</h3>
+                <div class="flex flex-wrap gap-2">
+                    <span class="text-xs bg-white border border-stone-200 px-2 py-1 rounded font-medium">Python</span>
+                    <span class="text-xs bg-white border border-stone-200 px-2 py-1 rounded font-medium">Linux</span>
+                    <span class="text-xs bg-white border border-stone-200 px-2 py-1 rounded font-medium">Docker</span>
+                    <span class="text-xs bg-white border border-stone-200 px-2 py-1 rounded font-medium">R</span>
+                    <span class="text-xs bg-white border border-stone-200 px-2 py-1 rounded font-medium">SQL</span>
+                    <span class="text-xs bg-white border border-stone-200 px-2 py-1 rounded font-medium">C#</span>
+                    <span class="text-xs bg-white border border-stone-200 px-2 py-1 rounded font-medium">Node.js</span>
+                    <span class="text-xs bg-white border border-stone-200 px-2 py-1 rounded font-medium">Next.js</span>
+                    <span class="text-xs bg-white border border-stone-200 px-2 py-1 rounded font-medium">Tailwind CSS</span>
+                    <span class="text-xs bg-white border border-stone-200 px-2 py-1 rounded font-medium">Excel/VBA</span>
+                </div>
+            </div>
+
+             <!-- Idiomas -->
+             <div class="sidebar-item">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-stone-500 mb-4 border-b border-stone-300 pb-1">Idiomas</h3>
+                <ul class="text-sm space-y-2">
+                    <li class="flex justify-between">
+                        <span>Português</span>
+                        <!-- <span class="text-stone-500 text-xs">Nativo</span> -->
+                    </li>
+                    <li class="flex justify-between">
+                        <span>Inglês</span>
+                        <!-- <span class="text-stone-500 text-xs">Interm.</span> -->
+                    </li>
+                    <li class="flex justify-between">
+                        <span>Francês</span>
+                        <!-- <span class="text-stone-500 text-xs">Básico</span> -->
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Soft Skills -->
+            <div class="sidebar-item">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-stone-500 mb-4 border-b border-stone-300 pb-1">Competências</h3>
+                <ul class="text-xs space-y-2 text-stone-700 list-disc list-inside marker:text-stone-400">
+                    <li>Comunicação Didática</li>
+                    <li>Resolução de Problemas</li>
+                    <li>Pesquisa Científica</li>
+                    <li>Trabalho em Equipe</li>
+                    <li>Organização</li>
+                </ul>
+            </div>
+
+        </aside>
+
+        <!-- COLUNA DA DIREITA (CONTEÚDO PRINCIPAL) -->
+        <main class="w-[68%] p-10 text-stone-900 flex flex-col gap-8">
+            
+            <!-- Header -->
+            <header>
+                <h1 class="text-4xl font-bold text-stone-800 uppercase tracking-tight mb-2">Ítalo Faria Dória</h1>
+                <h2 class="text-sm font-semibold tracking-[0.2em] text-stone-500 uppercase">Desenvolvedor Web | Biólogo</h2>
+            </header>
+
+            <!-- Resumo -->
+            <section>
+                <h3 class="text-sm font-bold uppercase tracking-widest text-stone-400 mb-3">Perfil Profissional</h3>
+                <p class="text-sm text-stone-700 text-justify">
+                    Profissional híbrido, apaixonado pela interseção entre a <strong>biologia</strong> e a <strong>tecnologia</strong>. Graduando em Ciências Biológicas na UFMG com sólida experiência prévia como Programador Júnior. Meu objetivo é usar a tecnologia para otimizar a pesquisa científica, automatizando tarefas, melhorando a <strong>análise de dados</strong> e criando ferramentas intuitivas.
+                </p>
+            </section>
+
+            <!-- Experiência -->
+            <section>
+                <h3 class="text-sm font-bold uppercase tracking-widest text-stone-400 mb-4 border-b border-stone-200 pb-2">Experiência Profissional</h3>
+                
+                <div class="mb-5">
+                    <div class="flex justify-between items-baseline mb-1">
+                        <h4 class="font-bold text-stone-800">Aluno de Iniciação Científica</h4>
+                        <span class="text-xs text-stone-500 font-medium whitespace-nowrap">Ago 2023 – Presente</span>
+                    </div>
+                    <p class="text-xs text-stone-600 font-medium mb-2 uppercase tracking-wide">CT Vacinas / LVBA / LabLev</p>
+                    <ul class="list-disc list-outside ml-4 text-sm text-stone-600 space-y-1 marker:text-stone-400 text-justify">
+                        <li>Estudo genômico comparativo de leveduras(LabLev).</li>
+                        <li>Análises de fermentação de bancada e crescimento de leveduras(LabLev).</li>
+                        <li>Fluxo ETL de dados climaticos usando Python para aplicação em pesquisa(LVBA).</li>
+                        <li>Participação em projetos de aprendizado de máquinas para o desenvolvimento de vacinas(LVBA).</li>
+                        <li>Trabalho de bancada: PCR, cultivo celular, purificação de DNA, tranformação bacteriana etc(LVBA).</li>
+                        <li>Desenvolvimento de software para gerenciamento de insumos e protocolos (BPL)(CT Vacinas).</li>
+                        <li>Apoio no desenvolvimento e inspeção de processos BPL(CT Vacinas).</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-baseline mb-1">
+                        <h4 class="font-bold text-stone-800">Programador Júnior</h4>
+                        <span class="text-xs text-stone-500 font-medium whitespace-nowrap">Fev 2019 – Jan 2023</span>
+                    </div>
+                    <p class="text-xs text-stone-600 font-medium mb-2 uppercase tracking-wide">Jabil do Brasil</p>
+                    <ul class="list-disc list-outside ml-4 text-sm text-stone-600 space-y-1 marker:text-stone-400 text-justify">
+                        <li>Desenvolvimento de APIs REST (.NET) com PostgreSQL.</li>
+                        <li>Criação de aplicações Front-end responsivas com Angular, SCSS e Bootstrap.</li>
+                        <li>Prática de metodologias ágeis (SCRUM), princípios SOLID e Clean Code.</li>
+                        <li>Criação de scripts em Python para embarcados.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Formação -->
+            <section>
+                <h3 class="text-sm font-bold uppercase tracking-widest text-stone-400 mb-4 border-b border-stone-200 pb-2">Formação Acadêmica</h3>
+                
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h4 class="font-bold text-stone-800 text-sm">Graduação em Ciências Biológicas</h4>
+                        <p class="text-xs text-stone-600">Universidade Federal de Minas Gerais (UFMG)</p>
+                    </div>
+                    <span class="text-xs text-stone-500 font-medium text-right">Previsão 2026</span>
+                </div>
+
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h4 class="font-bold text-stone-800 text-sm">Técnico em Eletroeletrônica</h4>
+                        <p class="text-xs text-stone-600">CEFET-MG</p>
+                    </div>
+                    <span class="text-xs text-stone-500 font-medium text-right">2016 – 2018</span>
+                </div>
+            </section>
+
+            <!-- Projetos Selecionados (Compacto) -->
+            <section>
+                <h3 class="text-sm font-bold uppercase tracking-widest text-stone-400 mb-4 border-b border-stone-200 pb-2">Projetos & Ferramentas</h3>
+                
+                <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+                    <div>
+                        <h4 class="text-sm font-bold text-stone-800">Análise de Dados HPLC</h4>
+                        <p class="text-xs text-stone-600 mt-1">Ferramenta web para processar dados brutos de cromatografia, calcular médias e gerar gráficos.</p>            
+                        <a href="WebTools/hplc/index.html" target="_blank" class="flex items-center gap-3 hover:text-stone-500 transition-colors">                     
+                            <span class="text-stone-500 text-xs">Ver Ferramenta</span>
+                        </a>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-stone-800">Calculadora ANOVA</h4>
+                        <p class="text-xs text-stone-600 mt-1">Automação de análise estatística de variância com geração de P-valor instantânea.</p>
+                        <a href="WebTools/anova/index.html" target="_blank" class="flex items-center gap-3 hover:text-stone-500 transition-colors">                     
+                            <span class="text-stone-500 text-xs">Ver Ferramenta</span>
+                        </a>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-stone-800">BioQuiz</h4>
+                        <p class="text-xs text-stone-600 mt-1">Plataforma gamificada de avaliação e estudo com sincronização via QR Code.</p>
+                        <a href="WebTools/bioquiz/index.html" target="_blank" class="flex items-center gap-3 hover:text-stone-500 transition-colors">                     
+                            <span class="text-stone-500 text-xs">Ver Ferramenta</span>
+                        </a>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-stone-800">Gerador de QR Code JSON</h4>
+                        <p class="text-xs text-stone-600 mt-1">Gera QR Codes vetoriais (SVG) de alta capacidade a partir de textos longos ou JSON.</p>
+                        <a href="WebTools/qrcode/index.html" target="_blank" class="flex items-center gap-3 hover:text-stone-500 transition-colors">                     
+                            <span class="text-stone-500 text-xs">Ver Ferramenta</span>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+</body>
+</html>
