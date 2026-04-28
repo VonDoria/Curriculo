@@ -203,11 +203,11 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                 
-                <!-- Card Projeto: Epidemiologia e Clima (NOVO E DESTAQUE) -->
+                <!-- Card Projeto: Epidemiologia e Clima -->
                 <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden group">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-blue-600"></div>
+                    <div class="absolute top-0 left-0 w-full h-1 bg-green-600"></div>
                     <div class="flex justify-between items-start mb-4">
-                        <i class="ph-bold ph-chart-line-up text-blue-600 text-4xl group-hover:scale-110 transition-transform"></i>
+                        <i class="ph-bold ph-chart-line-up text-green-600 text-4xl group-hover:scale-110 transition-transform"></i>
                         <span data-i18n="tag_data" class="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded">Data Science</span>
                     </div>
                     <h3 data-i18n="proj1_title" class="text-xl font-bold text-slate-900 mb-2">Análise Preditiva: Clima e Epidemiologia</h3>
@@ -222,11 +222,32 @@
                         <i class="ph-bold ph-arrow-right ml-1 group-hover/link:translate-x-1 transition-transform"></i>
                     </a>
                 </div>
+                
+                <!-- Card Projeto: SEMMA Análise de Expressão de RNA em Câncer -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-green-600"></div>
+                    <div class="flex justify-between items-start mb-4">
+                        <i class="ph-bold ph-dna text-green-600 text-4xl group-hover:scale-110 transition-transform"></i>
+                        <span data-i18n="tag_data" class="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded">Bioinformatics / ML</span>
+                    </div>
+                    <h3 data-i18n="proj6_title" class="text-xl font-bold text-slate-900 mb-2">Machine Learning na Classificação de Câncer</h3>
+                    <p data-i18n="proj6_desc" class="text-slate-600 text-sm mt-2 flex-grow leading-relaxed">
+                        Aplicação do framework <strong>SEMMA</strong> para identificação de biomarcadores e diagnóstico tumoral via expressão gênica (RNA-Seq). O projeto engloba desde a <strong>estratificação de dados biológicos</strong> e <strong>engenharia de atributos (discretização)</strong> até o treinamento de <strong>modelos logísticos</strong>.
+                    </p>
+                    <div class="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-slate-500 mb-6">
+                        <span>#Python</span> <span>#Scikit-learn</span> <span>#Feature-Engine</span> <span>#SEMMA</span> <span>#Biomedical-Data</span>
+                    </div>
+                    <a href="https://github.com/VonDoria/Cancer-RNA-Expression-SEMMA-Analyse" target="_blank" class="inline-flex items-center text-sm font-bold text-blue-700 hover:text-blue-800 transition-colors group/link">
+                        <span data-i18n="btn_repo">Ver Repositório GitHub</span>
+                        <i class="ph-bold ph-arrow-right ml-1 group-hover/link:translate-x-1 transition-transform"></i>
+                    </a>
+                </div>
 
                 <!-- Card Projeto: HPLC -->
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative group">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-blue-600"></div>
                     <div class="flex justify-between items-start mb-4">
-                        <i class="ph-bold ph-flask text-slate-700 text-4xl group-hover:scale-110 transition-transform"></i>
+                        <i class="ph-bold ph-flask text-blue-600 text-4xl group-hover:scale-110 transition-transform"></i>
                         <span data-i18n="tag_app" class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">Web App</span>
                     </div>
                     <h3 data-i18n="proj2_title" class="text-xl font-bold text-slate-900 mb-2">Automação de Dados HPLC</h3>
@@ -240,9 +261,10 @@
                 </div>
 
                 <!-- Card Projeto: Pipeline de bioinfo -->
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative group">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-purple-600"></div>
                     <div class="flex justify-between items-start mb-4">
-                        <i class="ph-bold ph-terminal-window text-slate-700 text-4xl group-hover:scale-110 transition-transform"></i>
+                        <i class="ph-bold ph-terminal-window text-purple-700 text-4xl group-hover:scale-110 transition-transform"></i>
                         <span data-i18n="tag_devops" class="bg-purple-100 text-purple-800 text-xs font-bold px-2 py-1 rounded">DevOps & Scripting</span>
                     </div>
                     <h3 data-i18n="proj3_title" class="text-xl font-bold text-slate-900 mb-2">Pipeline Docker: BioInformática</h3>
@@ -256,10 +278,11 @@
                 </div>
 
                 <!-- Card Projeto: ANOVA -->
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative group">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-blue-600"></div>
                     <div class="flex justify-between items-start mb-4">
-                        <i class="ph-bold ph-function text-slate-700 text-4xl group-hover:scale-110 transition-transform"></i>
-                        <span data-i18n="tag_data" class="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded">Data Science</span>
+                        <i class="ph-bold ph-function text-blue-600 text-4xl group-hover:scale-110 transition-transform"></i>
+                        <span data-i18n="tag_app" class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">Web App</span>
                     </div>
                     <h3 data-i18n="proj4_title" class="text-xl font-bold text-slate-900 mb-2">Motor Estatístico: ANOVA</h3>
                     <p data-i18n="proj4_desc" class="text-slate-600 text-sm mt-2 flex-grow leading-relaxed">
@@ -272,9 +295,10 @@
                 </div>
 
                 <!-- Card Projeto: QrCode -->
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative group">
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-blue-600"></div>
                     <div class="flex justify-between items-start mb-4">
-                        <i class="ph-bold ph-qr-code text-slate-700 text-4xl group-hover:scale-110 transition-transform"></i>
+                        <i class="ph-bold ph-qr-code text-blue-600 text-4xl group-hover:scale-110 transition-transform"></i>
                         <span data-i18n="tag_app" class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">Web App</span>
                     </div>
                     <h3 data-i18n="proj5_title" class="text-xl font-bold text-slate-900 mb-2">Gerador Vetorial de QR Code JSON</h3>
@@ -282,22 +306,6 @@
                         Ferramenta utilitária de alta performance para conversão de strings longas e JSON em QR Codes em formato SVG. Implementa algoritmos de minificação automática para otimização de payload e controle estrito de limites de bytes.
                     </p>
                     <a href="WebTools/qrcode/index.html" target="_blank" class="inline-flex items-center text-sm font-bold text-blue-700 hover:text-blue-800 transition-colors mt-6 group/link">
-                        <span data-i18n="btn_view">Ver Aplicação</span>
-                        <i class="ph-bold ph-arrow-right ml-1 group-hover/link:translate-x-1 transition-transform"></i>
-                    </a>
-                </div>
-
-                <!-- Card Projeto: Calculadora Financeira -->
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative group">
-                    <div class="flex justify-between items-start mb-4">
-                        <i class="ph-bold ph-trend-up text-slate-700 text-4xl group-hover:scale-110 transition-transform"></i>
-                        <span data-i18n="tag_app" class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">Web App</span>
-                    </div>
-                    <h3 data-i18n="proj6_title" class="text-xl font-bold text-slate-900 mb-2">Simulador de Projeção Financeira</h3>
-                    <p data-i18n="proj6_desc" class="text-slate-600 text-sm mt-2 flex-grow leading-relaxed">
-                        Página de simulação que projeta o crescimento de patrimônio considerando variáveis macroeconômicas complexas: juros compostos, inflação, aportes dinâmicos e cronogramas de saque, visualizados através de bibliotecas gráficas.
-                    </p>
-                    <a href="WebTools/calc/index.html" target="_blank" class="inline-flex items-center text-sm font-bold text-blue-700 hover:text-blue-800 transition-colors mt-6 group/link">
                         <span data-i18n="btn_view">Ver Aplicação</span>
                         <i class="ph-bold ph-arrow-right ml-1 group-hover/link:translate-x-1 transition-transform"></i>
                     </a>
@@ -474,8 +482,8 @@
                 "proj5_title": "Gerador Vetorial de QR Code JSON",
                 "proj5_desc": "Ferramenta utilitária de alta performance para conversão de strings longas e JSON em QR Codes em formato SVG. Implementa algoritmos de minificação automática para otimização de payload e controle estrito de limites de bytes.",
                 
-                "proj6_title": "Simulador de Projeção Financeira",
-                "proj6_desc": "Página de simulação que projeta o crescimento de patrimônio considerando variáveis macroeconômicas complexas: juros compostos, inflação, aportes dinâmicos e cronogramas de saque, visualizados através de bibliotecas gráficas.",
+                "proj6_title": "Machine Learning na Classificação de Câncer",
+                "proj6_desc": "Aplicação do framework <strong>SEMMA</strong> para identificação de biomarcadores e diagnóstico tumoral via expressão gênica (RNA-Seq). O projeto engloba desde a <strong>estratificação de dados biológicos</strong> e <strong>engenharia de atributos (discretização)</strong> até o treinamento de <strong>modelos logísticos</strong>.",
 
                 "career_title": "Trajetória Profissional e Acadêmica",
                 "career_desc": "Experiência prática em engenharia de software e pesquisa científica orientada a dados.",
@@ -555,8 +563,8 @@
                 "proj5_title": "Vector JSON QR Code Generator",
                 "proj5_desc": "High-performance utility tool for converting long strings and JSON into SVG format QR Codes. Implements automatic minification algorithms for payload optimization and strict byte-limit control.",
                 
-                "proj6_title": "Financial Projection Simulator",
-                "proj6_desc": "Simulation web-page that projects wealth growth considering complex macroeconomic variables: compound interest, inflation, dynamic contributions, and withdrawal schedules, visualized through charting libraries.",
+                "proj6_title": "Machine Learning in Cancer Classification",
+                "proj6_desc": "Application of the <strong>SEMMA</strong> framework for biomarker identification and tumor diagnosis via gene expression (RNA-Seq). The project encompasses everything from <strong>biological data stratification</strong> and <strong>feature engineering (discretization)</strong> to the training of <strong>logistic models</strong>.",
 
                 "career_title": "Professional & Academic Path",
                 "career_desc": "Practical experience in software engineering and data-driven scientific research.",
